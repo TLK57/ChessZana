@@ -346,7 +346,19 @@ Tout est dans le dossier `data/` :
 - `data/echecs.sqlite` : la base (joueurs, parties avec PGN et pendules `%clk`, positions, évaluations, classements, file d'analyse) ;
 - `data/engine/` : Stockfish.
 
-Comptez environ 20 Mo pour 1 000 parties. Pour sauvegarder : copiez le dossier `data/` (application fermée). Pour tout recommencer : supprimez `data/echecs.sqlite`.
+Comptez environ 20 Mo pour 1 000 parties. Pour tout recommencer : supprimez `data/echecs.sqlite` (application fermée).
+
+### Sauvegardes
+
+- **Automatiques** : au démarrage, si la dernière sauvegarde a plus de 24 h, et avant chaque mise à jour de la
+  structure de la base (nouvelle version de l'application). Elles sont rangées dans `data/backups/` ; les **7 dernières**
+  sont gardées.
+- **Contrôle d'intégrité** à chaque démarrage. Si la base est endommagée, l'analyse s'arrête et un bandeau propose de
+  restaurer la dernière sauvegarde saine.
+- Dans *Importer & file d'analyse* : **Exporter ma base** (télécharge une copie complète, à garder sur une clé USB par
+  exemple), **Sauvegarder maintenant**, et **Restaurer** une sauvegarde de la liste. Avant toute restauration, la base
+  actuelle est elle-même sauvegardée : on peut toujours revenir en arrière.
+- Pour réinstaller l'application ailleurs : copiez votre export dans `data/` sous le nom `echecs.sqlite`.
 
 ## 7. Tests automatiques
 

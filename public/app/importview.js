@@ -38,7 +38,14 @@ export async function renderImport(root) {
       <h2 style="margin-top:12px">Imports</h2>
       <ul id="log" class="small" style="padding-left:18px;margin:0"></ul>
     </section>
-  </div>`;
+  </div>
+  <section class="card" style="margin-top:16px">
+    <h2>Sauvegardes de la base</h2>
+    <p class="small muted">Une sauvegarde est faite automatiquement au démarrage (si la dernière a plus de 24 h) et avant chaque mise à jour
+      de la structure de la base. Les <span id="keep">7</span> dernières sont gardées dans le dossier <code>data/backups</code>.</p>
+    <div class="actions"><a class="primary" href="/api/backups/export" download>⬇ Exporter ma base</a><button id="backupNow">Sauvegarder maintenant</button></div>
+    <table class="simple" style="margin-top:10px"><thead><tr><th>Date</th><th>Raison</th><th class="num">Taille</th><th></th></tr></thead><tbody id="backups"></tbody></table>
+  </section>`;
   const $ = (id) => root.querySelector(`#${id}`);
 
   async function refresh() {
@@ -104,6 +111,30 @@ export async function renderImport(root) {
   $('pauseBtn').onclick = async () => { const s = await api('/api/status'); await api(s.queue.paused ? '/api/queue/resume' : '/api/queue/pause', {}); refresh(); };
   $('retryBtn').onclick = () => api('/api/queue/retry', {}).then(refresh);
   $('mode').onchange = () => api('/api/queue/mode', { mode: $('mode').value }).then(refresh).catch((e) => alert(e.message));
+
+  const REASONS = { quotidienne: 'automatique (quotidienne)', manuelle: 'manuelle', 'avant-restauration': 'avant une restauration' };
+  async function loadBackups() {
+    const b = await api('/api/backups');
+    $('keep').textContent = b.keep;
+    $('backups').innerHTML = b.backups.map((x) => `<tr><td>${new Date(x.createdAt).toLocaleString('fr-FR')}</td>
+      <td>${esc(REASONS[x.reason] ?? (x.reason.startsWith('avant-migration') ? 'avant une mise à jour de la base' : x.reason))}</td>
+      <td class="num">${(x.size / 1048576).toFixed(1).replace('.', ',')} Mo</td>
+      <td><button class="mini" data-restore="${esc(x.name)}">Restaurer</button></td></tr>`).join('')
+      || '<tr><td colspan="4" class="muted">Aucune sauvegarde pour le moment.</td></tr>';
+  }
+  $('backupNow').onclick = async () => { await api('/api/backups/create', {}); loadBackups(); };
+  $('backups').onclick = async (e) => {
+    const b = e.target.closest('button[data-restore]');
+    if (!b) return;
+    if (!confirm(`Remplacer votre base actuelle par cette sauvegarde ?\n\nVotre base actuelle sera d'abord sauvegardée, vous pourrez revenir en arrière.`)) return;
+    b.disabled = true;
+    try {
+      const r = await api('/api/backups/restore', { name: b.dataset.restore });
+      alert(`Sauvegarde restaurée.${r.safety ? ` L'ancienne base a été gardée (${r.safety}).` : ''}`);
+      location.reload();
+    } catch (err) { alert(err.message); b.disabled = false; }
+  };
+  loadBackups();
 
   await refresh();
   const timer = setInterval(refresh, 1500);

@@ -16,7 +16,9 @@ import { listPlayers } from './games.js';
 import { LABELS } from './analysis/classify.js';
 import { backfillOpenings, listMyGames, openingFamilies } from './library.js';
 import { buildGameView, liveMove } from './analysis/gameview.js';
-import { ensureStatsSchema, refreshAllStats, refreshGameStats } from './stats/compute.js';
+import { ensureStatsSchema, refreshAllStats, refreshGameStats, resetStatsSchema } from './stats/compute.js';
+import { KEEP, backupDatabase, exportDatabase, integrityCheck, latestHealthyBackup, listBackups, maybeDailyBackup, restoreBackup } from './backup.js';
+import os from 'node:os';
 import { dashboard, gamesSummary, recurringErrors, repertoire, timeStats } from './stats/queries.js';
 import { answerPuzzle, todaySession, trainingStats } from './stats/training.js';
 import { bilanText } from './stats/bilan.js';
@@ -26,6 +28,7 @@ const MAX_BODY = 200 * 1024 * 1024;
 
 const state = {
   stats: { refreshing: false },
+  integrity: { ok: true, messages: [] },
   engine: { status: 'starting', message: 'Démarrage…', pct: 0, name: null },
   imports: [], // historique des imports (le plus récent en premier)
 };
@@ -185,6 +188,22 @@ async function handle(req, res) {
     return send(res, 200, listMyGames(q, queue.current?.gameId ?? null));
   }
   if (req.method === 'GET' && p === '/api/openings') return send(res, 200, openingFamilies());
+  // --- Sauvegardes
+  if (req.method === 'GET' && p === '/api/backups') return send(res, 200, { backups: listBackups(), keep: KEEP, integrity: state.integrity });
+  if (req.method === 'GET' && p === '/api/backups/export') {
+    const tmp = path.join(os.tmpdir(), `echecs-export-${process.pid}-${Date.now()}.sqlite`);
+    exportDatabase(tmp);
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.sqlite3',
+      'Content-Disposition': `attachment; filename="echecs-${new Date().toISOString().slice(0, 10)}.sqlite"`,
+      'Content-Length': fs.statSync(tmp).size,
+      'Cache-Control': 'no-store',
+    });
+    const stream = fs.createReadStream(tmp);
+    stream.pipe(res);
+    stream.on('close', () => fs.rm(tmp, { force: true }, () => {}));
+    return undefined;
+  }
   // --- Étape 3 : progression, temps, erreurs, répertoire, entraînement, bilan
   if (req.method === 'GET' && p.startsWith('/api/stats/')) {
     const q = Object.fromEntries(url.searchParams.entries());
@@ -217,6 +236,8 @@ async function handle(req, res) {
       stats: stats(),
       players: listPlayers(),
       contactSet: !!String(config.contact || '').trim(),
+      integrity: state.integrity,
+      lastBackup: listBackups()[0] ?? null,
     });
   }
   if (req.method === 'GET' && p === '/api/games') {
@@ -249,6 +270,8 @@ async function handle(req, res) {
       return send(res, 200, await answerPuzzle(Number(body.id), String(body.uci ?? ''), { evaluator: state.engine.status === 'ready' ? liveEvaluator : null }));
     }
     if (p === '/api/training/session/new') return send(res, 200, todaySession({ reset: true }));
+    if (p === '/api/backups/create') return send(res, 200, backupDatabase(getDb(), 'manuelle'));
+    if (p === '/api/backups/restore') return send(res, 200, await restore(String(body.name ?? '')));
     if (p === '/api/live/move') {
       if (state.engine.status !== 'ready') return send(res, 503, { error: 'Le moteur démarre encore, réessayez dans un instant.' });
       liveActiveUntil = Date.now() + LIVE_PAUSE_MS;
@@ -268,6 +291,36 @@ function openBrowser(url) {
     else if (process.platform === 'darwin') spawn('open', [url], { detached: true, stdio: 'ignore' }).unref();
     else spawn('xdg-open', [url], { detached: true, stdio: 'ignore' }).unref();
   } catch { /* pas grave : l'adresse est affichée dans la console */ }
+}
+
+// File d'analyse (recréée après une restauration de la base).
+function setupQueue() {
+  queue = new AnalysisQueue(evaluator);
+  queue.recover();
+  // Statistiques : mises à jour après chaque analyse.
+  queue.onAnalyzed = (gameId) => refreshGameStats(gameId);
+}
+
+// Statistiques : mises à jour au démarrage pour les parties analysées depuis.
+function refreshStatsInBackground() {
+  backfillOpenings()
+    .then(() => { state.stats = { refreshing: true, done: 0, total: 0 }; return refreshAllStats({ onProgress: (done, total) => { state.stats = { refreshing: true, done, total }; } }); })
+    .then((r) => { state.stats = { refreshing: false, ...r }; })
+    .catch((e) => { state.stats = { refreshing: false, error: e.message }; console.error(`  Statistiques : ${e.message}`); });
+}
+
+// Restauration d'une sauvegarde : on arrête l'analyse, on remplace la base, on repart.
+async function restore(name) {
+  await queue.stop();
+  for (let i = 0; i < 100 && queue.running; i++) await new Promise((r) => setTimeout(r, 100));
+  const result = restoreBackup(name);
+  resetStatsSchema();
+  ensureStatsSchema();
+  state.integrity = integrityCheck();
+  setupQueue();
+  if (state.engine.status === 'ready' && state.integrity.ok) queue.start();
+  refreshStatsInBackground();
+  return result;
 }
 
 async function main() {
@@ -297,15 +350,21 @@ async function main() {
   if (!started) return;
 
   openDb();
-  queue = new AnalysisQueue(evaluator);
-  queue.recover();
+  // Contrôle d'intégrité, puis sauvegarde quotidienne d'une base saine.
+  state.integrity = integrityCheck();
+  if (!state.integrity.ok) {
+    state.integrity.healthyBackup = latestHealthyBackup();
+    console.error(`\n  ATTENTION : la base de données semble endommagée (${state.integrity.messages[0]}).`
+      + (state.integrity.healthyBackup ? `\n  Ouvrez l'application pour restaurer la sauvegarde saine du ${state.integrity.healthyBackup.createdAt.slice(0, 10)}.` : ''));
+  } else {
+    try {
+      const b = maybeDailyBackup();
+      if (b) console.log(`  Sauvegarde de la base : ${b.name}`);
+    } catch (e) { console.error(`  Sauvegarde impossible : ${e.message}`); }
+  }
+  setupQueue();
   ensureStatsSchema();
-  // Statistiques : mises à jour au démarrage pour les parties analysées depuis, puis après chaque analyse.
-  queue.onAnalyzed = (gameId) => refreshGameStats(gameId);
-  backfillOpenings()
-    .then(() => { state.stats = { refreshing: true, done: 0, total: 0 }; return refreshAllStats({ onProgress: (done, total) => { state.stats = { refreshing: true, done, total }; } }); })
-    .then((r) => { state.stats = { refreshing: false, ...r }; })
-    .catch((e) => { state.stats = { refreshing: false, error: e.message }; console.error(`  Statistiques : ${e.message}`); });
+  refreshStatsInBackground();
   console.log(`\n  Analyse d'échecs — prête sur ${url}\n  (laissez cette fenêtre ouverte ; Ctrl+C pour quitter)\n`);
   if (config.openBrowser) openBrowser(url);
 
@@ -326,7 +385,7 @@ async function main() {
     state.engine = { status: 'error', message: e.message, pct: 0 };
     console.error(`  Erreur moteur : ${e.message}`);
   }
-  if (state.engine.status === 'ready') queue.start();
+  if (state.engine.status === 'ready' && state.integrity.ok) queue.start();
   if (config.autoSyncOnStart) syncTrackedPlayers();
 
   const shutdown = async () => {

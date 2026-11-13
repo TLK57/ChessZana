@@ -41,9 +41,31 @@ async function route() {
   }
 }
 
+// Bandeau si la base est endommagée : proposer la dernière sauvegarde saine.
+function integrityBanner(integrity) {
+  let el = document.getElementById('integrityBanner');
+  if (!integrity || integrity.ok) { el?.remove(); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'integrityBanner';
+    el.className = 'card';
+    el.style.cssText = 'border-color:var(--blunder);margin:12px 18px 0';
+    document.body.insertBefore(el, document.getElementById('view'));
+  }
+  const b = integrity.healthyBackup;
+  el.innerHTML = `<b style="color:var(--blunder)">La base de données semble endommagée.</b> L'analyse est arrêtée pour ne rien aggraver.
+    ${b ? `<button class="primary" id="restoreHealthy" style="margin-left:8px">Restaurer la sauvegarde saine du ${new Date(b.createdAt).toLocaleString('fr-FR')}</button>` : ' Aucune sauvegarde saine n\'a été trouvée.'}`;
+  const btn = el.querySelector('#restoreHealthy');
+  if (btn) btn.onclick = async () => {
+    if (!confirm('Restaurer cette sauvegarde ? La base actuelle sera gardée à côté, au cas où.')) return;
+    try { await api('/api/backups/restore', { name: b.name }); location.reload(); } catch (e) { alert(e.message); }
+  };
+}
+
 async function refreshPills() {
   try {
     const s = await api('/api/status');
+    integrityBanner(s.integrity);
     const e = s.engine;
     const ep = document.getElementById('enginePill');
     ep.textContent = e.status === 'ready' ? `${e.name}` : e.message;

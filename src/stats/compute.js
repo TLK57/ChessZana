@@ -67,6 +67,8 @@ CREATE TABLE IF NOT EXISTS puzzle_attempts (
 `;
 
 let schemaReady = false;
+// Après une restauration, la base peut ne pas encore avoir les tables de statistiques.
+export function resetStatsSchema() { schemaReady = false; }
 export function ensureStatsSchema() {
   if (schemaReady) return;
   getDb().exec(SCHEMA);

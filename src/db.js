@@ -3,6 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { config } from './config.js';
+import { backupDatabase } from './backup.js';
+
+// Version du schéma : quand une base plus ancienne est ouverte, elle est sauvegardée avant d'être migrée.
+export const SCHEMA_VERSION = 3;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meta (
@@ -168,14 +172,29 @@ export function stmt(sql) {
   return s;
 }
 
+function currentVersion(d) {
+  try {
+    const row = d.prepare("SELECT value FROM meta WHERE key = 'schema_version'").get();
+    return row ? Number(row.value) : 0;
+  } catch {
+    return null; // base neuve : pas encore de table meta
+  }
+}
+
 export function openDb(file = config.dbPath) {
   if (db) return db;
   fs.mkdirSync(path.dirname(file), { recursive: true });
+  const existed = fs.existsSync(file) && fs.statSync(file).size > 0;
   db = new DatabaseSync(file);
   db.exec('PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
+  const version = currentVersion(db);
+  if (existed && version !== null && version < SCHEMA_VERSION) {
+    // Sauvegarde avant toute migration de schéma.
+    backupDatabase(db, `avant-migration-v${SCHEMA_VERSION}`);
+  }
   db.exec(SCHEMA);
   migrate(db);
-  db.prepare("INSERT OR IGNORE INTO meta(key, value) VALUES ('schema_version', '2')").run();
+  db.prepare('INSERT INTO meta(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run('schema_version', String(SCHEMA_VERSION));
   return db;
 }
 
@@ -192,7 +211,6 @@ function migrate(d) {
   // Optimisation : recherches à budget de nœuds (comme Lichess) au lieu d'une profondeur fixe.
   add('evaluations', 'nodes', 'INTEGER');
   d.exec('CREATE INDEX IF NOT EXISTS idx_games_book ON games(book_name)');
-  d.exec("UPDATE meta SET value = '2' WHERE key = 'schema_version'");
 }
 
 export function getDb() {
