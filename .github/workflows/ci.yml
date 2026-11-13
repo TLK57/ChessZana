@@ -1,0 +1,44 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.3'
+      - run: npm ci
+      - name: Installation de Stockfish
+        run: npm run install-engine
+      - name: Tests
+        run: npm test
+
+  lanceurs:
+    name: Lanceur (${{ matrix.os }}, Node portable)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, macos-15-intel, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      ANALYSE_ECHECS_NODE_PORTABLE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lanceur Windows (téléchargement de Node, installation, test de fumée)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: Lancer-Windows.bat --test
+      - name: Lanceur Mac / Linux (téléchargement de Node, installation, test de fumée)
+        if: runner.os != 'Windows'
+        run: ./Lancer-Mac.command --test

@@ -14,11 +14,21 @@ avec la précision de la partie et un Elo estimé.
 
 ---
 
-## 1. Installation (une seule fois)
+## 1. Installation
 
-1. Installez **Node.js** (version « LTS ») depuis <https://nodejs.org> : téléchargez, double-cliquez, suivez les étapes.
-2. C'est tout. Le moteur Stockfish 19 (environ 80 Mo) se télécharge tout seul au premier lancement,
-   depuis le site officiel <https://github.com/official-stockfish/Stockfish>, avec vérification de l'empreinte du fichier.
+Rien à installer : téléchargez le dossier de l'application et double-cliquez sur le lanceur (voir ci-dessous).
+Au premier lancement, il faut une connexion Internet :
+
+- si **Node.js** 22.13 ou plus récent est déjà sur l'ordinateur, il est utilisé ; sinon le lanceur télécharge une
+  **version portable** officielle de Node.js (24.22.3, environ 35 Mo) depuis <https://nodejs.org> dans le dossier
+  `runtime/` de l'application. Sa somme SHA-256 est comparée à celle publiée par nodejs.org ; rien n'est installé
+  sur le système et rien ne change pour les autres logiciels ;
+- les composants de l'application (échiquier, règles des échecs) sont téléchargés une fois ;
+- le moteur **Stockfish 19** (environ 80 Mo) est téléchargé depuis le site officiel
+  <https://github.com/official-stockfish/Stockfish>, lui aussi avec vérification de l'empreinte du fichier.
+  Windows (x64 et ARM), Mac (Apple Silicon et Intel) et Linux (x64 et ARM) sont pris en charge.
+
+Pour tout désinstaller : supprimez le dossier de l'application.
 
 ## 2. Lancement
 
@@ -344,7 +354,8 @@ l'analyse continue avec Stockfish seul, sans erreur.
 
 Tout est dans le dossier `data/` :
 - `data/echecs.sqlite` : la base (joueurs, parties avec PGN et pendules `%clk`, positions, évaluations, classements, file d'analyse) ;
-- `data/engine/` : Stockfish.
+- `data/engine/` : Stockfish ;
+- `runtime/` (s'il existe) : la version portable de Node.js téléchargée par le lanceur.
 
 Comptez environ 20 Mo pour 1 000 parties. Pour tout recommencer : supprimez `data/echecs.sqlite` (application fermée).
 
@@ -374,11 +385,21 @@ finale à 6 pièces (doit venir de la table), partie de plus de 150 coups, parti
 repli sur Stockfish quand Lichess est injoignable, import chess.com (429, incrémental, parties terminées seulement),
 import Lichess et PGN (pendules, doublons, parties en cours refusées).
 
+`npm run smoke` lance un test de fumée : l'application démarre dans un dossier temporaire, installe Stockfish si
+besoin et analyse une courte partie. Les lanceurs ont aussi un mode test (`Lancer-Windows.bat --test`,
+`./Lancer-Mac.command --test`) qui fait ce test au lieu d'ouvrir l'application.
+
+À chaque envoi sur GitHub, l'intégration continue (`.github/workflows/ci.yml`) refait tout cela sur Windows, macOS
+(Apple Silicon et Intel) et Linux : installation des dépendances, tests, installation de Stockfish, puis les lanceurs
+eux-mêmes avec téléchargement de Node.js portable.
+
 ## 8. Problèmes fréquents
 
 | Problème | Solution |
 |---|---|
-| « Node.js n'est pas installé » | Installez la version LTS depuis <https://nodejs.org>, puis relancez. Il faut Node.js 22.13 ou plus récent. |
+| « Impossible de préparer Node.js » | Le téléchargement de Node.js portable a échoué : vérifiez la connexion Internet et relancez. |
+| « Node.js … est trop ancien » | Lancez l'application avec le fichier `Lancer-…` (et non `npm start`) : il utilise une version portable récente. |
+| « La somme SHA-256 ne correspond pas » | Le fichier téléchargé est abîmé ou a été modifié : il est supprimé, relancez simplement. |
 | « Le port 3737 est déjà utilisé » | L'application est déjà ouverte : allez sur <http://127.0.0.1:3737>. Sinon changez `port` dans `config.json`. |
 | Le navigateur ne s'ouvre pas | Ouvrez vous-même <http://127.0.0.1:3737>. |
 | Le téléchargement de Stockfish échoue | Vérifiez la connexion Internet et relancez ; le téléchargement reprend du début. Antivirus : autorisez `data/engine`. |

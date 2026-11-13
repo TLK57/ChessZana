@@ -8,9 +8,10 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "start": "node src/start.js",
     "test": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 \"test/*.test.js\"",
-    "install-engine": "node --disable-warning=ExperimentalWarning src/engine/install.js"
+    "install-engine": "node --disable-warning=ExperimentalWarning src/engine/install.js",
+    "smoke": "node scripts/smoke.js"
   },
   "dependencies": {
     "chess.js": "^1.4.0",
