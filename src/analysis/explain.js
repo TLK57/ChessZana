@@ -1,4 +1,4 @@
-// Explications en français des coups ratés, générées par des règles (sans IA) à partir de la position
+// Explications en français des coups ratés, générées par des règles, à partir de la position
 // et des lignes de Stockfish : pièce en prise, gain de matériel, fourchette, clouage, enfilade,
 // attaque à la découverte, mat raté / subi, finale gagnante gâchée.
 import { Chess } from 'chess.js';

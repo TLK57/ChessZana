@@ -101,16 +101,25 @@ function resolve(cfg) {
   return cfg;
 }
 
-export function loadConfig(file = process.env.CHESS_CONFIG || path.join(ROOT, 'config.json')) {
-  let user = {};
-  if (fs.existsSync(file)) {
-    try {
-      user = JSON.parse(fs.readFileSync(file, 'utf8'));
-    } catch (e) {
-      throw new Error(`config.json illisible (${e.message}). Vérifiez les virgules et les guillemets.`);
-    }
+function readJson(file) {
+  if (!file || !fs.existsSync(file)) return {};
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    throw new Error(`${path.basename(file)} illisible (${e.message}). Vérifiez les virgules et les guillemets.`);
   }
-  return resolve(deepMerge(DEFAULTS, user));
+}
+
+// Réglages personnels (e-mail de contact…) : config.local.json, jamais publié, écrase config.json.
+export function localConfigPath() {
+  if (process.env.CHESS_CONFIG_LOCAL !== undefined) return process.env.CHESS_CONFIG_LOCAL || null;
+  return process.env.CHESS_CONFIG ? null : path.join(ROOT, 'config.local.json');
+}
+
+export function loadConfig(file = process.env.CHESS_CONFIG || path.join(ROOT, 'config.json')) {
+  const shared = readJson(file);
+  const personal = readJson(localConfigPath());
+  return resolve(deepMerge(deepMerge(DEFAULTS, shared), personal));
 }
 
 // Configuration partagée (modifiable par les tests via overrideConfig).

@@ -32,8 +32,9 @@ Si l'application est déjà ouverte, un nouveau double-clic rouvre simplement la
 
 L'application n'est accessible que depuis votre ordinateur (adresse 127.0.0.1), jamais depuis le réseau.
 
-> Avant le premier import, ouvrez `config.json` avec le Bloc-notes et mettez votre e-mail entre les guillemets de
-> `"contact": ""`. chess.com et Lichess demandent un moyen de contact dans les requêtes ; il n'est envoyé qu'à eux.
+> Avant le premier import, créez un fichier `config.local.json` à côté de `config.json` (Bloc-notes) contenant
+> `{ "contact": "votre@e-mail" }`. chess.com et Lichess demandent un moyen de contact dans les requêtes ; il n'est
+> envoyé qu'à eux. Ce fichier est personnel : il n'est jamais publié et ses réglages remplacent ceux de `config.json`.
 
 ## 3. Utilisation
 
@@ -107,7 +108,7 @@ Les filtres sont mémorisés.
   l'échiquier, le **meilleur coup**, une **explication en français** et la **suite de Stockfish**, jouable sur
   l'échiquier (cliquez un coup de la suite, ou « Voir la suite sur l'échiquier » pour la dérouler).
 
-### Explications en français (sans IA)
+### Explications en français (par des règles)
 
 Elles sont fabriquées par des règles à partir de la position et des lignes de Stockfish, dans cet ordre :
 1. **Mat subi** : « Ce coup permet à l'adversaire de mater en N : … ».
@@ -188,7 +189,11 @@ faiblesses ». Collez-le sur <https://claude.ai>.
 
 ---
 
-## 4. Configuration (`config.json`)
+## 4. Configuration (`config.json` et `config.local.json`)
+
+`config.json` contient les réglages partagés (publiés avec le code). Pour vos réglages personnels, créez
+`config.local.json` avec seulement les clés à changer, par exemple `{ "contact": "votre@e-mail", "engine": { "threads": 4 } }` :
+il n'est jamais publié et remplace les valeurs de `config.json`.
 
 Après une modification, fermez et relancez l'application.
 
