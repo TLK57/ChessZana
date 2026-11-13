@@ -1,0 +1,19 @@
+{
+  "name": "analyse-echecs-local",
+  "version": "0.1.0",
+  "description": "Analyse locale de parties d'échecs (chess.com, Lichess, PGN) avec Stockfish 19",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 \"test/*.test.js\"",
+    "install-engine": "node --disable-warning=ExperimentalWarning src/engine/install.js"
+  },
+  "dependencies": {
+    "chess.js": "^1.4.0",
+    "chessground": "^9.2.1"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "_aide": "Fichier de réglages. Après une modification, fermez puis relancez l'application. Les explications de chaque réglage sont dans le README (section Configuration).",
+
+  "contact": "",
+  "port": 3737,
+  "openBrowser": true,
+  "autoSyncOnStart": true,
+  "analysisMode": "manual",
+
+  "engine": {
+    "threads": "auto",
+    "hashMB": "auto",
+    "multiPV": 2,
+    "quickDepth": 12,
+    "deepDepth": 22,
+    "deepNodes": 1500000,
+    "deepNodesCritical": 0,
+    "deepSkipDecided": 97,
+    "maxSecondsPerPosition": 300,
+    "liveDepth": 18,
+    "backgroundLowPriority": true
+  },
+
+  "lichess": {
+    "cloudEval": true,
+    "cloudEvalMaxPly": 30,
+    "cloudEvalInQuickPass": false,
+    "tablebase": true,
+    "tablebaseMaxPieces": 7,
+    "timeoutMs": 6000,
+    "pauseAfterRateLimitSec": 60,
+    "pauseAfterErrorSec": 120
+  },
+
+  "classification": {
+    "bestMaxLoss": 0.1,
+    "thresholds": { "excellent": 2.5, "good": 6, "inaccuracy": 12, "mistake": 22 },
+    "lowElo": {
+      "below": 1400,
+      "thresholds": { "excellent": 3, "good": 7.5, "inaccuracy": 14, "mistake": 26 }
+    },
+    "greatMinGap": 10,
+    "greatIgnoreRecaptures": true,
+    "brilliantMinSacrifice": 2,
+    "brilliantMaxLoss": 1,
+    "brilliantMaxWinBefore": 90,
+    "missKeepIfWorseThanBeforeError": 5
+  },
+
+  "accuracy": {
+    "uncertaintyBonus": 0
+  },
+
+  "elo": {
+    "minMoves": 8,
+    "calibrate": true,
+    "calibrationMinPoints": 15,
+    "table": [
+      [0, 100], [40, 400], [55, 800], [65, 1100], [72, 1350], [78, 1600],
+      [83, 1850], [87, 2100], [90, 2350], [93, 2600], [96, 2850], [100, 3200]
+    ]
+  }
+}
