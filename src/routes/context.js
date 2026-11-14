@@ -6,11 +6,12 @@ import { AnalysisQueue } from '../queue.js';
 import { syncChessCom } from '../importers/chesscom.js';
 import { syncLichess } from '../importers/lichess.js';
 import { listPlayers } from '../games.js';
-import { PRESETS } from '../analysis/classify.js';
+import { CLASSIFICATION_VERSION, PRESETS } from '../analysis/classify.js';
 import { reclassifyAll } from '../analysis/reclassify.js';
 import { backfillOpenings } from '../library.js';
 import { ensureStatsSchema, refreshAllStats, refreshGameStats, resetStatsSchema } from '../stats/compute.js';
-import { integrityCheck, restoreBackup } from '../backup.js';
+import { backupDatabase, integrityCheck, restoreBackup } from '../backup.js';
+import { getDb } from '../db.js';
 
 export const state = {
   stats: { refreshing: false },
@@ -98,7 +99,20 @@ export function loadClassificationPreset() {
   } catch { /* base illisible : réglage par défaut */ }
 }
 
-function reclassifyInBackground() {
+// Nouvelles règles de classement (nouvelle version de l'application) : sauvegarde de la base, puis reclassement
+// de toutes les parties déjà analysées, sans moteur. Rien à faire si la base est déjà à jour.
+export function reclassifyIfRulesChanged() {
+  const done = Number(getMeta('classification_version', '1'));
+  if (done >= CLASSIFICATION_VERSION) return false;
+  const analysed = getDb().prepare('SELECT COUNT(*) AS n FROM game_analysis').get().n;
+  if (!analysed) { setMeta('classification_version', String(CLASSIFICATION_VERSION)); return false; }
+  const b = backupDatabase(getDb(), `avant-reclassement-v${CLASSIFICATION_VERSION}`);
+  console.log(`  Nouvelles règles de classement : sauvegarde ${b.name}, puis reclassement de ${analysed} analyses.`);
+  reclassifyInBackground(() => setMeta('classification_version', String(CLASSIFICATION_VERSION)));
+  return true;
+}
+
+function reclassifyInBackground(onDone = null) {
   if (state.reclassify.running) { state.reclassify.again = true; return; }
   state.reclassify = { running: true, done: 0, total: 0, preset: config.classification.preset };
   reclassifyAll({
@@ -109,6 +123,7 @@ function reclassifyInBackground() {
     const again = state.reclassify.again;
     state.reclassify = { running: false, done: r.total, total: r.total, failed: r.failed.length, preset: config.classification.preset };
     if (r.failed.length) console.error(`  Reclassement : ${r.failed.length} analyse(s) à relancer (${r.failed[0].error})`);
+    else onDone?.();
     if (again) reclassifyInBackground();
   }).catch((e) => { state.reclassify = { running: false, error: e.message }; });
 }

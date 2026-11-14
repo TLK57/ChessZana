@@ -10,7 +10,8 @@ import { installedEngine, ensureEngine } from './engine/install.js';
 import { ensureStatsSchema } from './stats/compute.js';
 import { integrityCheck, latestHealthyBackup, maybeDailyBackup } from './backup.js';
 import {
-  evaluator, getQueue, liveEvaluator, loadClassificationPreset, refreshStatsInBackground, setupQueue, state, syncTrackedPlayers,
+  evaluator, getQueue, liveEvaluator, loadClassificationPreset, reclassifyIfRulesChanged, refreshStatsInBackground, setupQueue, state,
+  syncTrackedPlayers,
 } from './routes/context.js';
 import { readJson, send } from './routes/respond.js';
 import { serveStatic } from './routes/static.js';
@@ -89,7 +90,7 @@ async function main() {
   }
   setupQueue();
   ensureStatsSchema();
-  refreshStatsInBackground();
+  if (!state.integrity.ok || !reclassifyIfRulesChanged()) refreshStatsInBackground();
   console.log(`\n  Analyse d'échecs — prête sur ${url}\n  (laissez cette fenêtre ouverte ; Ctrl+C pour quitter)\n`);
   if (config.openBrowser) openBrowser(url);
 

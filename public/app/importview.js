@@ -57,8 +57,8 @@ export async function renderImport(root) {
   </div>
   <section class="card" style="margin-top:16px">
     <h2>Classement des coups</h2>
-    <label class="radio"><input type="radio" name="preset" value="chesscom"> <b>Inspiré de chess.com</b> (par défaut) — imprécision dès 6 % de
-      chances de gain perdues, erreur dès 12 %, gaffe dès 22 % (seuils un peu plus larges sous 1400 Elo), avec les catégories
+    <label class="radio"><input type="radio" name="preset" value="chesscom"> <b>Inspiré de chess.com</b> (par défaut) — imprécision dès 5 % de
+      chances de gain perdues, erreur dès 10 %, gaffe dès 20 %, quel que soit le niveau, avec les catégories
       Meilleur, Excellent, Bon, Très bon, Brillant et Occasion manquée.</label>
     <label class="radio"><input type="radio" name="preset" value="lichess"> <b>Seuils Lichess (5 / 10 / 15 %)</b> — imprécision dès 5 %,
       erreur dès 10 %, gaffe dès 15 % de chances de gain perdues, quel que soit l'Elo.</label>

@@ -48,8 +48,9 @@ export const DEFAULTS = {
     // Se change aussi dans l'application (écran « Importer & file d'analyse »).
     preset: 'chesscom',
     bestMaxLoss: 0.1,
-    thresholds: { excellent: 2.5, good: 6, inaccuracy: 12, mistake: 22 },
-    lowElo: { below: 1400, thresholds: { excellent: 3, good: 7.5, inaccuracy: 14, mistake: 26 } },
+    // Seuils de perte (points de chances de gain) : < 2 excellent, < 5 bon, < 10 imprécision, < 20 erreur, sinon gaffe.
+    // Les mêmes pour tous les niveaux : le niveau du joueur compte seulement dans le calcul des chances de gain.
+    thresholds: { excellent: 2, good: 5, inaccuracy: 10, mistake: 20 },
     greatMinGap: 10,
     greatIgnoreRecaptures: true,
     brilliantMinSacrifice: 2,

@@ -26,12 +26,14 @@ export const PRESETS = ['chesscom', 'lichess'];
 // Seuils Lichess : perte de chances de gain d'au moins 5 % (imprécision), 10 % (erreur), 15 % (gaffe).
 export const LICHESS_THRESHOLDS = { excellent: 2.5, good: 5, inaccuracy: 10, mistake: 15 };
 
-// Seuils de perte (en % de chances de gain) selon le réglage et l'Elo du joueur qui a joué le coup.
-export function thresholdsFor(elo) {
+// Version des règles de classement : quand elle change, les parties déjà analysées sont reclassées
+// au lancement suivant (sans moteur, après une sauvegarde de la base).
+export const CLASSIFICATION_VERSION = 2;
+
+// Seuils de perte (en % de chances de gain) selon le réglage. Comme chess.com, ils ne dépendent pas du niveau.
+export function thresholdsFor() {
   const c = config.classification;
-  if (c.preset === 'lichess') return LICHESS_THRESHOLDS;
-  if (Number.isFinite(elo) && elo > 0 && c.lowElo && elo < c.lowElo.below) return c.lowElo.thresholds;
-  return c.thresholds;
+  return c.preset === 'lichess' ? LICHESS_THRESHOLDS : c.thresholds;
 }
 
 export function lossCategory(loss, th) {

@@ -297,8 +297,7 @@ Après une modification, fermez et relancez l'application.
 | `lichess.pauseAfterRateLimitSec` | `60` | Pause de la source Lichess après un « trop de requêtes » (429) |
 | `lichess.pauseAfterErrorSec` | `120` | Pause de la source Lichess après une panne |
 | `classification.preset` | `"chesscom"` | `"chesscom"` (inspiré de chess.com) ou `"lichess"` (seuils 5 / 10 / 15 %) ; se change aussi dans l'application, qui retient le choix |
-| `classification.thresholds` | `2.5 / 6 / 12 / 22` | Seuils de perte (voir ci-dessous) |
-| `classification.lowElo` | sous 1400 : `3 / 7.5 / 14 / 26` | Seuils plus indulgents sous 1400 Elo |
+| `classification.thresholds` | `2 / 5 / 10 / 20` | Seuils de perte (voir ci-dessous), les mêmes pour tous les niveaux |
 | `classification.greatMinGap` | `10` | Écart minimal (%) avec le 2e coup pour « Très bon » |
 | `classification.greatIgnoreRecaptures` | `true` | Une simple reprise de pièce n'est jamais « Très bon » |
 | `classification.brilliantMinSacrifice` | `2` | Matériel minimum sacrifié (en points) pour « Brillant » |
@@ -342,15 +341,16 @@ il est évalué à la même profondeur avec `searchmoves`. La **perte** est :
 | **Brillant** | Sacrifice d'au moins 2 points de matériel qui tient sur les coups suivants, perte < 1 %, position pas déjà gagnante à plus de 90 % avant le coup |
 | **Très bon** | Le joueur a joué le meilleur coup et c'était le seul qui tient : écart > 10 % avec le 2e coup du MultiPV |
 | **Meilleur** | Le coup du moteur (ou une perte ≤ 0,1 %) |
-| **Excellent** | perte < 2,5 % |
-| **Bon** | perte < 6 % |
-| **Imprécision** | perte < 12 % |
-| **Erreur** | perte < 22 % |
-| **Gaffe** | perte ≥ 22 % |
-| **Occasion manquée** | L'adversaire vient de faire une erreur ou une gaffe, et le coup joué ne la punit pas (perte ≥ 12 %) |
+| **Excellent** | perte < 2 % |
+| **Bon** | perte < 5 % |
+| **Imprécision** | perte < 10 % |
+| **Erreur** | perte < 20 % |
+| **Gaffe** | perte ≥ 20 % |
+| **Occasion manquée** | L'adversaire vient de faire une erreur ou une gaffe, et le coup joué ne la punit pas (perte ≥ 10 %) |
 
-**Seuils sous 1400 Elo** (Elo du joueur qui joue, lu dans la partie) : excellent < 3 %, bon < 7,5 %,
-imprécision < 14 %, erreur < 26 %, gaffe au-delà. L'occasion manquée utilise alors 14 %.
+Comme chess.com, ces seuils sont **les mêmes pour tous les niveaux** : le niveau des joueurs n'intervient que dans le
+calcul des chances de gain. Quand les règles de classement changent (nouvelle version de l'application), la base est
+sauvegardée puis toutes les parties déjà analysées sont reclassées au lancement suivant, sans recalcul par le moteur.
 
 Précisions :
 - **Sacrifice « qui tient »** : on suit la ligne principale du moteur après le coup. Le joueur doit être en déficit

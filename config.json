@@ -34,11 +34,7 @@
 
   "classification": {
     "bestMaxLoss": 0.1,
-    "thresholds": { "excellent": 2.5, "good": 6, "inaccuracy": 12, "mistake": 22 },
-    "lowElo": {
-      "below": 1400,
-      "thresholds": { "excellent": 3, "good": 7.5, "inaccuracy": 14, "mistake": 26 }
-    },
+    "thresholds": { "excellent": 2, "good": 5, "inaccuracy": 10, "mistake": 20 },
     "greatMinGap": 10,
     "greatIgnoreRecaptures": true,
     "brilliantMinSacrifice": 2,

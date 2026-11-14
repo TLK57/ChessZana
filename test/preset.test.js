@@ -57,7 +57,8 @@ test('seuils Lichess : imprécision dès 5 %, erreur dès 10 %, gaffe dès 15 %,
   assert.equal(lossCategory(14.9, th), 'mistake');
   assert.equal(lossCategory(15, th), 'blunder');
   overrideConfig({ classification: { preset: 'chesscom' } });
-  assert.equal(lossCategory(15, thresholdsFor(2000)), 'mistake', 'inspiré de chess.com : gaffe dès 22 %');
+  assert.equal(lossCategory(15, thresholdsFor(2000)), 'mistake', 'inspiré de chess.com : gaffe dès 20 %');
+  assert.equal(lossCategory(20, thresholdsFor(2000)), 'blunder');
 });
 
 test('changement de seuils : toutes les analyses sont reclassées sans recalcul, puis retour à l\'identique', async () => {

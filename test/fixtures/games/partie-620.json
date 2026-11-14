@@ -1,0 +1,5810 @@
+{
+ "_aide": "Partie 620 de la base de Dilo56 (chess.com 186787115286) : PGN et analyses enregistrées (passes rapide et profonde), pour tester le classement sans moteur.",
+ "pgn": "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2026.11.08\"]\n[Round \"-\"]\n[White \"Dilo56\"]\n[Black \"youssef_Ratib\"]\n[Result \"0-1\"]\n[CurrentPosition \"5k2/R7/2p2rPK/8/2P5/8/8/8 w - - 0 59\"]\n[Timezone \"UTC\"]\n[ECO \"C28\"]\n[ECOUrl \"https://www.chess.com/openings/Bishops-Opening-Berlin-Vienna-Hybrid-Variation-4...Bb4-5.Nf3\"]\n[UTCDate \"2026.11.08\"]\n[UTCTime \"14:56:30\"]\n[WhiteElo \"1082\"]\n[BlackElo \"1106\"]\n[TimeControl \"300\"]\n[Termination \"youssef_Ratib won on time\"]\n[StartTime \"14:56:30\"]\n[EndDate \"2026.11.08\"]\n[EndTime \"15:06:02\"]\n[Link \"https://www.chess.com/game/live/186787115286\"]\n\n1. e4 {[%clk 0:04:59]} 1... e5 {[%clk 0:04:58.8]} 2. Nf3 {[%clk 0:04:58.9]} 2... Nc6 {[%clk 0:04:57.8]} 3. Bc4 {[%clk 0:04:56.1]} 3... Nf6 {[%clk 0:04:55.3]} 4. Nc3 {[%clk 0:04:55.5]} 4... Bb4 {[%clk 0:04:53.6]} 5. d3 {[%clk 0:04:53]} 5... Bxc3+ {[%clk 0:04:52.9]} 6. bxc3 {[%clk 0:04:52.8]} 6... h6 {[%clk 0:04:52.3]} 7. Be3 {[%clk 0:04:46.8]} 7... d5 {[%clk 0:04:45.1]} 8. exd5 {[%clk 0:04:41.4]} 8... Nxd5 {[%clk 0:04:44.2]} 9. Bxd5 {[%clk 0:04:28.4]} 9... Qxd5 {[%clk 0:04:42.4]} 10. c4 {[%clk 0:04:26.5]} 10... Qa5+ {[%clk 0:04:38.9]} 11. Bd2 {[%clk 0:04:19.8]} 11... Qc5 {[%clk 0:04:35.4]} 12. O-O {[%clk 0:04:18.6]} 12... O-O {[%clk 0:04:32.1]} 13. Re1 {[%clk 0:04:17.6]} 13... Bg4 {[%clk 0:04:29.8]} 14. Rb1 {[%clk 0:04:09.8]} 14... Nd4 {[%clk 0:04:22.3]} 15. Bb4 {[%clk 0:03:56.4]} 15... Nxf3+ {[%clk 0:04:18]} 16. gxf3 {[%clk 0:03:52.7]} 16... Qd4 {[%clk 0:03:43]} 17. Bxf8 {[%clk 0:03:35.6]} 17... Bh3 {[%clk 0:03:37.1]} 18. Re4 {[%clk 0:03:24.3]} 18... Qd8 {[%clk 0:03:32.1]} 19. Qd2 {[%clk 0:02:46.4]} 19... Qf6 {[%clk 0:02:59.9]} 20. Qe3 {[%clk 0:02:26.5]} 20... Qg6+ {[%clk 0:02:52.7]} 21. Rg4 {[%clk 0:02:13.1]} 21... Bxg4 {[%clk 0:02:49.2]} 22. fxg4 {[%clk 0:02:13]} 22... Qxg4+ {[%clk 0:02:45]} 23. Qg3 {[%clk 0:02:06.2]} 23... Qxg3+ {[%clk 0:02:43.7]} 24. hxg3 {[%clk 0:02:05]} 24... Rxf8 {[%clk 0:02:43.6]} 25. Rxb7 {[%clk 0:02:02.8]} 25... Rc8 {[%clk 0:02:34.3]} 26. Rxa7 {[%clk 0:02:01.3]} 26... f6 {[%clk 0:02:33.7]} 27. Kf1 {[%clk 0:01:57]} 27... g5 {[%clk 0:02:32.8]} 28. Ke2 {[%clk 0:01:56]} 28... Kg7 {[%clk 0:02:32.3]} 29. a4 {[%clk 0:01:50.2]} 29... Kg6 {[%clk 0:02:26]} 30. a5 {[%clk 0:01:47.9]} 30... Kf5 {[%clk 0:02:18.6]} 31. Ra6 {[%clk 0:01:37.6]} 31... h5 {[%clk 0:02:14.9]} 32. Kf3 {[%clk 0:01:30.5]} 32... h4 {[%clk 0:02:01.2]} 33. g4+ {[%clk 0:01:21.1]} 33... Kg6 {[%clk 0:01:58.7]} 34. Kg2 {[%clk 0:01:18.9]} 34... Rh8 {[%clk 0:01:51.1]} 35. Kh3 {[%clk 0:01:11.7]} 35... Kf7 {[%clk 0:01:40.4]} 36. Rc6 {[%clk 0:01:08.6]} 36... Rc8 {[%clk 0:01:30.3]} 37. a6 {[%clk 0:01:06.8]} 37... Ke7 {[%clk 0:01:29.3]} 38. a7 {[%clk 0:01:04.2]} 38... Kd7 {[%clk 0:01:26.8]} 39. Rxf6 {[%clk 0:01:02.5]} 39... Ra8 {[%clk 0:01:24.3]} 40. Rf5 {[%clk 0:00:52.3]} 40... Rxa7 {[%clk 0:01:23.2]} 41. Rxg5 {[%clk 0:00:48.8]} 41... Ra2 {[%clk 0:01:23.1]} 42. Rxe5 {[%clk 0:00:44]} 42... Rxc2 {[%clk 0:01:22]} 43. Rf5 {[%clk 0:00:33.5]} 43... Rc3 {[%clk 0:01:20.2]} 44. Rd5+ {[%clk 0:00:28.8]} 44... Ke6 {[%clk 0:01:16.3]} 45. f4 {[%clk 0:00:25.9]} 45... c6 {[%clk 0:01:14.3]} 46. Re5+ {[%clk 0:00:23.1]} 46... Kf6 {[%clk 0:01:12.8]} 47. Kxh4 {[%clk 0:00:19]} 47... Rxd3 {[%clk 0:01:10.8]} 48. Rf5+ {[%clk 0:00:17.4]} 48... Kg6 {[%clk 0:01:09.4]} 49. Rc5 {[%clk 0:00:16.1]} 49... Rd6 {[%clk 0:01:06.7]} 50. f5+ {[%clk 0:00:14]} 50... Kf6 {[%clk 0:01:04.1]} 51. g5+ {[%clk 0:00:12.3]} 51... Kg7 {[%clk 0:01:01.2]} 52. Kh5 {[%clk 0:00:10.9]} 52... Kh7 {[%clk 0:00:56.2]} 53. g6+ {[%clk 0:00:09.1]} 53... Kg7 {[%clk 0:00:55.6]} 54. Kg5 {[%clk 0:00:07.8]} 54... Rf6 {[%clk 0:00:53.2]} 55. Ra5 {[%clk 0:00:04.6]} 55... Rd6 {[%clk 0:00:50.5]} 56. Ra7+ {[%clk 0:00:03]} 56... Kg8 {[%clk 0:00:49.1]} 57. f6 {[%clk 0:00:01.5]} 57... Kf8 {[%clk 0:00:47.4]} 58. Kh6 {[%clk 0:00:00.9]} 58... Rxf6 {[%clk 0:00:45.9]} 0-1\n",
+ "analyses": {
+  "quick": [
+   {
+    "ply": 1,
+    "best_uci": "e2e4",
+    "best_san": "e4",
+    "eval_best": {
+     "cp": 29,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 29,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 52.66697440308632,
+    "win_played": 52.66697440308632,
+    "win_second": 51.19644756166626,
+    "win_white_after": 52.94226081270875,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "book",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 2,
+    "best_uci": "c7c5",
+    "best_san": "c5",
+    "eval_best": {
+     "cp": -32,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -37,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 47.05773918729125,
+    "win_played": 46.599334214366536,
+    "win_second": 46.599334214366536,
+    "win_white_after": 51.74827500461166,
+    "loss": 0.4584049729247113,
+    "accuracy": 97.96100402679612,
+    "classification": "book",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 3,
+    "best_uci": "g1f3",
+    "best_san": "Nf3",
+    "eval_best": {
+     "cp": 19,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 19,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.74827500461166,
+    "win_played": 51.74827500461166,
+    "win_second": 51.012433597084375,
+    "win_white_after": 51.47240615881283,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "book",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 4,
+    "best_uci": "g8f6",
+    "best_san": "Nf6",
+    "eval_best": {
+     "cp": -16,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -18,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 48.52759384118717,
+    "win_played": 48.343670268785594,
+    "win_second": 48.343670268785594,
+    "win_white_after": 52.85051773118131,
+    "loss": 0.1839235724015751,
+    "accuracy": 99.17694314727532,
+    "classification": "book",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 5,
+    "best_uci": "f1b5",
+    "best_san": "Bb5",
+    "eval_best": {
+     "cp": 31,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 24,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 52.85051773118131,
+    "win_played": 52.207811409029105,
+    "win_second": 52.207811409029105,
+    "win_white_after": 51.47240615881283,
+    "loss": 0.6427063221522076,
+    "accuracy": 97.15267534645997,
+    "classification": "book",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 6,
+    "best_uci": "g8f6",
+    "best_san": "Nf6",
+    "eval_best": {
+     "cp": -16,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -16,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 48.52759384118717,
+    "win_played": 48.52759384118717,
+    "win_second": 48.25172499538834,
+    "win_white_after": 51.19644756166626,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "book",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 7,
+    "best_uci": "d2d3",
+    "best_san": "d3",
+    "eval_best": {
+     "cp": 13,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -13,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.19644756166626,
+    "win_played": 48.80355243833374,
+    "win_second": 50.73636275599663,
+    "win_white_after": 48.527593841187176,
+    "loss": 2.392895123332522,
+    "accuracy": 89.79133756920584,
+    "classification": "book",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 8,
+    "best_uci": "f6e4",
+    "best_san": "Nxe4",
+    "eval_best": {
+     "cp": 16,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -24,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.472406158812824,
+    "win_played": 47.7921885909709,
+    "win_second": 49.079583987119136,
+    "win_white_after": 52.115931524066205,
+    "loss": 3.6802175678419218,
+    "accuracy": 84.72388392767117,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 9,
+    "best_uci": "c3d5",
+    "best_san": "Nd5",
+    "eval_best": {
+     "cp": 23,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 7,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 52.115931524066205,
+    "win_played": 50.644328329952096,
+    "win_second": 51.1044443209752,
+    "win_white_after": 50.920416012880864,
+    "loss": 1.4716031941141097,
+    "accuracy": 93.59634501201438,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 10,
+    "best_uci": "d7d6",
+    "best_san": "d6",
+    "eval_best": {
+     "cp": -10,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -7,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 49.079583987119136,
+    "win_played": 49.355671670047904,
+    "win_second": 48.98756640291563,
+    "win_white_after": 51.472406158812824,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 11,
+    "best_uci": "b2c3",
+    "best_san": "bxc3",
+    "eval_best": {
+     "cp": 16,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 16,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.472406158812824,
+    "win_played": 51.472406158812824,
+    "win_second": 6.683411803730024,
+    "win_white_after": 51.19644756166626,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 12,
+    "best_uci": "h7h6",
+    "best_san": "h6",
+    "eval_best": {
+     "cp": -13,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -13,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 48.80355243833374,
+    "win_played": 48.80355243833374,
+    "win_second": 48.52759384118717,
+    "win_white_after": 51.19644756166626,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 13,
+    "best_uci": "e1g1",
+    "best_san": "O-O",
+    "eval_best": {
+     "cp": 13,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -10,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.19644756166626,
+    "win_played": 49.079583987119136,
+    "win_second": 51.012433597084375,
+    "win_white_after": 48.43562675785791,
+    "loss": 2.116863574547125,
+    "accuracy": 90.9153968183894,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 14,
+    "best_uci": "d7d5",
+    "best_san": "d5",
+    "eval_best": {
+     "cp": 17,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 17,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.56437324214209,
+    "win_played": 51.56437324214209,
+    "win_second": 51.472406158812824,
+    "win_white_after": 48.343670268785594,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 15,
+    "best_uci": "e4d5",
+    "best_san": "exd5",
+    "eval_best": {
+     "cp": -18,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -18,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 48.343670268785594,
+    "win_played": 48.343670268785594,
+    "win_second": 47.42482461063748,
+    "win_white_after": 48.25172499538834,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 16,
+    "best_uci": "f6d5",
+    "best_san": "Nxd5",
+    "eval_best": {
+     "cp": 19,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 19,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.74827500461166,
+    "win_played": 51.74827500461166,
+    "win_second": 36.1070151536204,
+    "win_white_after": 47.97596267877326,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 17,
+    "best_uci": "e1g1",
+    "best_san": "O-O",
+    "eval_best": {
+     "cp": -22,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -54,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 47.97596267877326,
+    "win_played": 45.04550396254112,
+    "win_second": 47.7921885909709,
+    "win_white_after": 44.226590014833256,
+    "loss": 2.9304587162321383,
+    "accuracy": 87.64066306397163,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 18,
+    "best_uci": "d8d5",
+    "best_san": "Qxd5",
+    "eval_best": {
+     "cp": 63,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 63,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 55.773409985166744,
+    "win_played": 55.773409985166744,
+    "win_second": 8.172578028842459,
+    "win_white_after": 45.59296988800415,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 19,
+    "best_uci": "c3c4",
+    "best_san": "c4",
+    "eval_best": {
+     "cp": -48,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -48,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 45.59296988800415,
+    "win_played": 45.59296988800415,
+    "win_second": 44.49923515875464,
+    "win_white_after": 44.40831581551713,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 20,
+    "best_uci": "d5d6",
+    "best_san": "Qd6",
+    "eval_best": {
+     "cp": 61,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -10,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 55.59168418448287,
+    "win_played": 49.079583987119136,
+    "win_second": 55.59168418448287,
+    "win_white_after": 50,
+    "loss": 6.512100197363736,
+    "accuracy": 74.52748441096382,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 21,
+    "best_uci": "f3d2",
+    "best_san": "Nd2",
+    "eval_best": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -109,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50,
+    "win_played": 40.09888189823705,
+    "win_second": 45.501647940453175,
+    "win_white_after": 41.79031343602754,
+    "loss": 9.901118101762947,
+    "accuracy": 63.867841465306974,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 22,
+    "best_uci": "a5a4",
+    "best_san": "Qa4",
+    "eval_best": {
+     "cp": 90,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 42,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 58.20968656397246,
+    "win_played": 53.85849714102531,
+    "win_second": 53.85849714102531,
+    "win_white_after": 46.14150285897469,
+    "loss": 4.351189422947151,
+    "accuracy": 82.19313712448269,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 23,
+    "best_uci": "e1g1",
+    "best_san": "O-O",
+    "eval_best": {
+     "cp": -42,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -42,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 46.14150285897469,
+    "win_played": 46.14150285897469,
+    "win_second": 45.501647940453175,
+    "win_white_after": 44.68118376315084,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 24,
+    "best_uci": "c8g4",
+    "best_san": "Bg4",
+    "eval_best": {
+     "cp": 58,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 31,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 55.31881623684916,
+    "win_played": 52.85051773118131,
+    "win_second": 52.85051773118131,
+    "win_white_after": 47.51664103476072,
+    "loss": 2.468298505667846,
+    "accuracy": 89.48662112004381,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 25,
+    "best_uci": "f1e1",
+    "best_san": "Re1",
+    "eval_best": {
+     "cp": -27,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -27,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 47.51664103476072,
+    "win_played": 47.51664103476072,
+    "win_second": 47.42482461063748,
+    "win_white_after": 47.70032364323007,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 26,
+    "best_uci": "f7f6",
+    "best_san": "f6",
+    "eval_best": {
+     "cp": 25,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 5,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 52.29967635676993,
+    "win_played": 50.46024700028845,
+    "win_second": 52.115931524066205,
+    "win_white_after": 50.09205189599892,
+    "loss": 1.8394293564814816,
+    "accuracy": 92.05886431563998,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 27,
+    "best_uci": "h2h3",
+    "best_san": "h3",
+    "eval_best": {
+     "cp": 1,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -7,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50.09205189599892,
+    "win_played": 49.355671670047904,
+    "win_second": 49.355671670047904,
+    "win_white_after": 49.355671670047904,
+    "loss": 0.7363802259510166,
+    "accuracy": 96.74431004256714,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 28,
+    "best_uci": "a8b8",
+    "best_san": "Rab8",
+    "eval_best": {
+     "cp": 7,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -4,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50.644328329952096,
+    "win_played": 49.63179865593352,
+    "win_second": 50.36820134406646,
+    "win_white_after": 50,
+    "loss": 1.0125296740185732,
+    "accuracy": 95.5501023917567,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 29,
+    "best_uci": "d2b4",
+    "best_san": "Bb4",
+    "eval_best": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50,
+    "win_played": 50,
+    "win_second": 49.17160780856239,
+    "win_white_after": 49.63179865593354,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 30,
+    "best_uci": "g4f3",
+    "best_san": "Bxf3",
+    "eval_best": {
+     "cp": 4,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -629,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50.36820134406646,
+    "win_played": 8.980417354795868,
+    "win_second": 44.04501867400794,
+    "win_white_after": 90.83735610512753,
+    "loss": 41.387783989270595,
+    "accuracy": 13.849025595618755,
+    "classification": "blunder",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 31,
+    "best_uci": "g2f3",
+    "best_san": "gxf3",
+    "eval_best": {
+     "cp": 623,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 623,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 90.83735610512753,
+    "win_played": 90.83735610512753,
+    "win_second": 81.2928143673567,
+    "win_white_after": 91.10946574526662,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 32,
+    "best_uci": "c5b6",
+    "best_san": "Qb6",
+    "eval_best": {
+     "cp": -632,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -642,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.890534254733389,
+    "win_played": 8.596761401203977,
+    "win_second": 8.596761401203977,
+    "win_white_after": 91.13924591731603,
+    "loss": 0.2937728535294113,
+    "accuracy": 98.68857128236978,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 33,
+    "best_uci": "f3g4",
+    "best_san": "fxg4",
+    "eval_best": {
+     "cp": 633,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 486,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 91.13924591731603,
+    "win_played": 85.6864845578129,
+    "win_second": 88.67818698711389,
+    "win_white_after": 87.9175039302338,
+    "loss": 5.452761359503128,
+    "accuracy": 78.19531774329344,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 34,
+    "best_uci": "g4h3",
+    "best_san": "Bh3",
+    "eval_best": {
+     "cp": -539,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -539,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 12.082496069766194,
+    "win_played": 12.082496069766194,
+    "win_second": 9.63282427017441,
+    "win_white_after": 87.9175039302338,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 35,
+    "best_uci": "f8a3",
+    "best_san": "Ba3",
+    "eval_best": {
+     "cp": 539,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 501,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 87.9175039302338,
+    "win_played": 86.35062229486782,
+    "win_second": 87.15441882967353,
+    "win_white_after": 87.27758018992468,
+    "loss": 1.5668816353659878,
+    "accuracy": 93.19572333777116,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 36,
+    "best_uci": "d4d8",
+    "best_san": "Qd8",
+    "eval_best": {
+     "cp": -523,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -523,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 12.722419810075323,
+    "win_played": 12.722419810075323,
+    "win_second": 11.211381938667216,
+    "win_white_after": 87.35912627088476,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 37,
+    "best_uci": "f3f4",
+    "best_san": "f4",
+    "eval_best": {
+     "cp": 525,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 120,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 87.35912627088476,
+    "win_played": 60.86996650452808,
+    "win_second": 84.71171687859334,
+    "win_white_after": 59.546838358330426,
+    "loss": 26.48915976635668,
+    "accuracy": 29.387039314536416,
+    "classification": "blunder",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 38,
+    "best_uci": "d8f6",
+    "best_san": "Qf6",
+    "eval_best": {
+     "cp": -105,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -105,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 40.453161641669574,
+    "win_played": 40.453161641669574,
+    "win_second": 16.166523433017105,
+    "win_white_after": 61.04522820914586,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 39,
+    "best_uci": "d2e2",
+    "best_san": "Qe2",
+    "eval_best": {
+     "cp": 122,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 18,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 61.04522820914586,
+    "win_played": 51.65632973121441,
+    "win_second": 51.65632973121441,
+    "win_white_after": 51.656329731214406,
+    "loss": 9.388898477931448,
+    "accuracy": 65.37979504975623,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 40,
+    "best_uci": "f6g6",
+    "best_san": "Qg6+",
+    "eval_best": {
+     "cp": -18,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -18,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 48.343670268785594,
+    "win_played": 48.343670268785594,
+    "win_second": 19.27360397463046,
+    "win_white_after": 53.675438329054,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 41,
+    "best_uci": "e4g4",
+    "best_san": "Rg4",
+    "eval_best": {
+     "cp": 40,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 40,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 53.675438329054,
+    "win_played": 53.675438329054,
+    "win_second": 4.976742674428337,
+    "win_white_after": 51.1044443209752,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 42,
+    "best_uci": "h3g4",
+    "best_san": "Bxg4",
+    "eval_best": {
+     "cp": -12,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -12,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 48.8955556790248,
+    "win_played": 48.8955556790248,
+    "win_second": 8.831063994889789,
+    "win_white_after": 52.57517538936253,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 43,
+    "best_uci": "f3g4",
+    "best_san": "fxg4",
+    "eval_best": {
+     "cp": 28,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 28,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 52.57517538936253,
+    "win_played": 52.57517538936253,
+    "win_second": 9.071118696593636,
+    "win_white_after": 51.840208441219374,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 44,
+    "best_uci": "a8f8",
+    "best_san": "Rxf8",
+    "eval_best": {
+     "cp": -20,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -120,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 48.159791558780626,
+    "win_played": 39.13003349547192,
+    "win_second": 42.68863060981179,
+    "win_white_after": 61.22020503513589,
+    "loss": 9.029758063308705,
+    "accuracy": 66.46018637335038,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 45,
+    "best_uci": "e3g3",
+    "best_san": "Qg3",
+    "eval_best": {
+     "cp": 124,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 124,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 61.22020503513589,
+    "win_played": 61.22020503513589,
+    "win_second": 49.53975299971157,
+    "win_white_after": 60.51860475782357,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 46,
+    "best_uci": "g4g3",
+    "best_san": "Qxg3+",
+    "eval_best": {
+     "cp": -116,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -116,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 39.48139524217643,
+    "win_played": 39.48139524217643,
+    "win_second": 10.921491048911157,
+    "win_white_after": 60.3425129353426,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 47,
+    "best_uci": "f2g3",
+    "best_san": "fxg3",
+    "eval_best": {
+     "cp": 114,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 85,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 60.3425129353426,
+    "win_played": 57.76116974476763,
+    "win_second": 57.76116974476763,
+    "win_white_after": 57.04090259445696,
+    "loss": 2.5813431905749695,
+    "accuracy": 89.03166072398261,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 48,
+    "best_uci": "g8f8",
+    "best_san": "Kxf8",
+    "eval_best": {
+     "cp": -77,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -105,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 42.95909740554304,
+    "win_played": 40.453161641669574,
+    "win_second": 40.453161641669574,
+    "win_white_after": 60.86996650452808,
+    "loss": 2.5059357638734667,
+    "accuracy": 89.33489720218529,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 49,
+    "best_uci": "b1b7",
+    "best_san": "Rxb7",
+    "eval_best": {
+     "cp": 120,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 120,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 60.86996650452808,
+    "win_played": 60.86996650452808,
+    "win_second": 49.355671670047904,
+    "win_white_after": 60.69442398881179,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 50,
+    "best_uci": "f8c8",
+    "best_san": "Rc8",
+    "eval_best": {
+     "cp": -118,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -118,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 39.30557601118821,
+    "win_played": 39.30557601118821,
+    "win_second": 32.94571208942188,
+    "win_white_after": 61.22020503513589,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 51,
+    "best_uci": "b7a7",
+    "best_san": "Rxa7",
+    "eval_best": {
+     "cp": 124,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 124,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 61.22020503513589,
+    "win_played": 61.22020503513589,
+    "win_second": 61.13275248507526,
+    "win_white_after": 61.91718321143754,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 52,
+    "best_uci": "g8f8",
+    "best_san": "Kf8",
+    "eval_best": {
+     "cp": -132,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -191,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 38.08281678856246,
+    "win_played": 33.108601360457975,
+    "win_second": 37.390714490240256,
+    "win_white_after": 66.23581358171663,
+    "loss": 4.974215428104486,
+    "accuracy": 79.90852197777247,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 53,
+    "best_uci": "g3g4",
+    "best_san": "g4",
+    "eval_best": {
+     "cp": 183,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 126,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 66.23581358171663,
+    "win_played": 61.39489294360486,
+    "win_second": 63.892984846379605,
+    "win_white_after": 59.36932221056322,
+    "loss": 4.840920638111768,
+    "accuracy": 80.39211128948124,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 54,
+    "best_uci": "h6h5",
+    "best_san": "h5",
+    "eval_best": {
+     "cp": -103,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -272,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 40.63067778943678,
+    "win_played": 26.864154452347183,
+    "win_second": 39.30557601118821,
+    "win_white_after": 71.81388417094263,
+    "loss": 13.766523337089598,
+    "accuracy": 53.48327895078467,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 55,
+    "best_uci": "a2a4",
+    "best_san": "a4",
+    "eval_best": {
+     "cp": 254,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 168,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 71.81388417094263,
+    "win_played": 64.9897670785642,
+    "win_second": 67.13557948833915,
+    "win_white_after": 64.40107489122192,
+    "loss": 6.82411709237843,
+    "accuracy": 73.47902698080951,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 56,
+    "best_uci": "h6h5",
+    "best_san": "h5",
+    "eval_best": {
+     "cp": -161,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -194,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 35.59892510877808,
+    "win_played": 32.86442051166087,
+    "win_second": 35.59892510877808,
+    "win_white_after": 65.49075932826014,
+    "loss": 2.7345045971172155,
+    "accuracy": 88.41880810232519,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 57,
+    "best_uci": "a2a4",
+    "best_san": "a4",
+    "eval_best": {
+     "cp": 174,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 174,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 65.49075932826014,
+    "win_played": 65.49075932826014,
+    "win_second": 64.9897670785642,
+    "win_white_after": 64.23206501894636,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 58,
+    "best_uci": "h6h5",
+    "best_san": "h5",
+    "eval_best": {
+     "cp": -159,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -193,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 35.76793498105364,
+    "win_played": 32.94571208942188,
+    "win_second": 32.94571208942188,
+    "win_white_after": 69.29058344072114,
+    "loss": 2.8222228916317604,
+    "accuracy": 88.06965274966194,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 59,
+    "best_uci": "a4a5",
+    "best_san": "a5",
+    "eval_best": {
+     "cp": 221,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 221,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 69.29058344072114,
+    "win_played": 69.29058344072114,
+    "win_second": 68.73942354748303,
+    "win_white_after": 69.44706044506174,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 60,
+    "best_uci": "h6h5",
+    "best_san": "h5",
+    "eval_best": {
+     "cp": -223,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -224,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 30.55293955493827,
+    "win_played": 30.47486873684638,
+    "win_second": 30.47486873684638,
+    "win_white_after": 72.18503805722688,
+    "loss": 0.07807081809189143,
+    "accuracy": 99.64976236436665,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 61,
+    "best_uci": "a7a6",
+    "best_san": "Ra6",
+    "eval_best": {
+     "cp": 259,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 259,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 72.18503805722688,
+    "win_played": 72.18503805722688,
+    "win_second": 71.73929335708206,
+    "win_white_after": 70.37644505807509,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 62,
+    "best_uci": "h6h5",
+    "best_san": "h5",
+    "eval_best": {
+     "cp": -235,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -235,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 29.62355494192491,
+    "win_played": 29.62355494192491,
+    "win_second": 27.227406568891393,
+    "win_white_after": 72.62643485404467,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 63,
+    "best_uci": "e2f3",
+    "best_san": "Kf3",
+    "eval_best": {
+     "cp": 265,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 265,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 72.62643485404467,
+    "win_played": 72.62643485404467,
+    "win_second": 63.97788635128212,
+    "win_white_after": 70.45315144213936,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 64,
+    "best_uci": "c8b8",
+    "best_san": "Rb8",
+    "eval_best": {
+     "cp": -236,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -468,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 29.546848557860635,
+    "win_played": 15.145771517415682,
+    "win_second": 29.393782392203825,
+    "win_white_after": 85.82143057859048,
+    "loss": 14.401077040444953,
+    "accuracy": 51.939399053871526,
+    "classification": "mistake",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 65,
+    "best_uci": "g3g4",
+    "best_san": "g4+",
+    "eval_best": {
+     "cp": 489,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 489,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 85.82143057859048,
+    "win_played": 85.82143057859048,
+    "win_second": 64.56972666879179,
+    "win_white_after": 85.86617598408057,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 66,
+    "best_uci": "f5g6",
+    "best_san": "Kg6",
+    "eval_best": {
+     "cp": -490,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -490,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 14.13382401591943,
+    "win_played": 14.13382401591943,
+    "win_second": null,
+    "win_white_after": 84.03209554949015,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 67,
+    "best_uci": "a6c6",
+    "best_san": "Rc6",
+    "eval_best": {
+     "cp": 451,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 217,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 84.03209554949015,
+    "win_played": 68.97629617356685,
+    "win_second": 68.97629617356685,
+    "win_white_after": 67.94279896334919,
+    "loss": 15.0557993759233,
+    "accuracy": 50.39053807751504,
+    "classification": "mistake",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 68,
+    "best_uci": "c8b8",
+    "best_san": "Rb8",
+    "eval_best": {
+     "cp": -204,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -424,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 32.05720103665081,
+    "win_played": 17.34742469694894,
+    "win_second": 25.02536698554691,
+    "win_white_after": 87.52087753348772,
+    "loss": 14.709776339701868,
+    "accuracy": 51.20361341847841,
+    "classification": "miss",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 69,
+    "best_uci": "a6c6",
+    "best_san": "Rc6",
+    "eval_best": {
+     "cp": 529,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 204,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 87.52087753348772,
+    "win_played": 67.94279896334919,
+    "win_second": 74.20703085283178,
+    "win_white_after": 72.47978839371,
+    "loss": 19.57807857013853,
+    "accuracy": 40.817532536178284,
+    "classification": "miss",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 70,
+    "best_uci": "h8b8",
+    "best_san": "Rb8",
+    "eval_best": {
+     "cp": -263,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -436,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 27.520211606290008,
+    "win_played": 16.723007007829523,
+    "win_second": 17.189613488694256,
+    "win_white_after": 86.39396241959597,
+    "loss": 10.797204598460485,
+    "accuracy": 61.302563098355044,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 71,
+    "best_uci": "a6c6",
+    "best_san": "Rc6",
+    "eval_best": {
+     "cp": 502,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 502,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 86.39396241959597,
+    "win_played": 86.39396241959597,
+    "win_second": 78.64161013518402,
+    "win_white_after": 86.65157323943802,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 72,
+    "best_uci": "h8a8",
+    "best_san": "Ra8",
+    "eval_best": {
+     "cp": -508,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -591,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 13.348426760561978,
+    "win_played": 10.191649247758733,
+    "win_second": 12.681590743681205,
+    "win_white_after": 89.70679952534644,
+    "loss": 3.156777512803245,
+    "accuracy": 86.75016204238236,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 73,
+    "best_uci": "a5a6",
+    "best_san": "a6",
+    "eval_best": {
+     "cp": 588,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 588,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 89.70679952534644,
+    "win_played": 89.70679952534644,
+    "win_second": 87.11313970842215,
+    "win_white_after": 89.67275055826845,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 74,
+    "best_uci": "f7e7",
+    "best_san": "Ke7",
+    "eval_best": {
+     "cp": -587,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -587,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 10.327249441731553,
+    "win_played": 10.327249441731553,
+    "win_second": 9.505375590046164,
+    "win_white_after": 90.00879120702844,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 75,
+    "best_uci": "a6a7",
+    "best_san": "a7",
+    "eval_best": {
+     "cp": 597,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 597,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 90.00879120702844,
+    "win_played": 90.00879120702844,
+    "win_second": 89.25633384935145,
+    "win_white_after": 90.4310898025287,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 76,
+    "best_uci": "e7d7",
+    "best_san": "Kd7",
+    "eval_best": {
+     "cp": -610,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -610,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 9.56891019747129,
+    "win_played": 9.56891019747129,
+    "win_second": 9.162643894872474,
+    "win_white_after": 90.39918030317814,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 77,
+    "best_uci": "c6f6",
+    "best_san": "Rxf6",
+    "eval_best": {
+     "cp": 609,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 609,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 90.39918030317814,
+    "win_played": 90.39918030317814,
+    "win_second": 88.07308573242653,
+    "win_white_after": 90.33507587485441,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 78,
+    "best_uci": "c8a8",
+    "best_san": "Ra8",
+    "eval_best": {
+     "cp": -607,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -607,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 9.664924125145589,
+    "win_played": 9.664924125145589,
+    "win_second": 7.4314751549304106,
+    "win_white_after": 90.49462440995383,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 79,
+    "best_uci": "f6f5",
+    "best_san": "Rf5",
+    "eval_best": {
+     "cp": 612,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 612,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 90.49462440995383,
+    "win_played": 90.49462440995383,
+    "win_second": 90.00879120702844,
+    "win_white_after": 90.33507587485441,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 80,
+    "best_uci": "d7e6",
+    "best_san": "Ke6",
+    "eval_best": {
+     "cp": -607,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -640,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 9.664924125145589,
+    "win_played": 8.654803604674946,
+    "win_second": 8.683957548832154,
+    "win_white_after": 91.77198589157038,
+    "loss": 1.0101205204706432,
+    "accuracy": 95.56045880054762,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 81,
+    "best_uci": "f5e5",
+    "best_san": "Rxe5",
+    "eval_best": {
+     "cp": 655,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 611,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 91.77198589157038,
+    "win_played": 90.46290443554744,
+    "win_second": 90.46290443554744,
+    "win_white_after": 89.87555723308256,
+    "loss": 1.3090814560229376,
+    "accuracy": 94.28355502519693,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 82,
+    "best_uci": "d7e6",
+    "best_san": "Ke6",
+    "eval_best": {
+     "cp": -593,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -688,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 10.124442766917433,
+    "win_played": 7.355842196199994,
+    "win_second": 8.890534254733389,
+    "win_white_after": 92.41510955819464,
+    "loss": 2.768600570717439,
+    "accuracy": 88.2829334572805,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 83,
+    "best_uci": "g5e5",
+    "best_san": "Rxe5",
+    "eval_best": {
+     "cp": 679,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 679,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.41510955819464,
+    "win_played": 92.41510955819464,
+    "win_second": 89.04263551648037,
+    "win_white_after": 92.33731631034334,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 84,
+    "best_uci": "a2c2",
+    "best_san": "Rxc2",
+    "eval_best": {
+     "cp": -676,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -676,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 7.662683689656653,
+    "win_played": 7.662683689656653,
+    "win_second": 7.133176859971577,
+    "win_white_after": 92.04577812176484,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 85,
+    "best_uci": "e5f5",
+    "best_san": "Rf5",
+    "eval_best": {
+     "cp": 665,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 665,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.04577812176484,
+    "win_played": 92.04577812176484,
+    "win_second": 91.57525465633049,
+    "win_white_after": 91.9916940199384,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 86,
+    "best_uci": "c2c3",
+    "best_san": "Rc3",
+    "eval_best": {
+     "cp": -663,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -663,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.008305980061614,
+    "win_played": 8.008305980061614,
+    "win_second": 7.873721253163218,
+    "win_white_after": 92.28504835073755,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 87,
+    "best_uci": "f5f3",
+    "best_san": "Rf3",
+    "eval_best": {
+     "cp": 674,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 657,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.28504835073755,
+    "win_played": 91.82742197115755,
+    "win_second": 91.82742197115755,
+    "win_white_after": 91.96452624848273,
+    "loss": 0.45762637958000596,
+    "accuracy": 97.96443264413803,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 88,
+    "best_uci": "d7c8",
+    "best_san": "Kc8",
+    "eval_best": {
+     "cp": -662,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -668,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.035473751517273,
+    "win_played": 7.873721253163218,
+    "win_second": 7.873721253163218,
+    "win_white_after": 92.17953120023012,
+    "loss": 0.1617524983540548,
+    "accuracy": 99.27579574122133,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 89,
+    "best_uci": "h3h4",
+    "best_san": "Kxh4",
+    "eval_best": {
+     "cp": 670,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 650,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.17953120023012,
+    "win_played": 91.63189534721607,
+    "win_second": 91.0496343170818,
+    "win_white_after": 91.68818979865915,
+    "loss": 0.547635853014043,
+    "accuracy": 97.56883553673208,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 90,
+    "best_uci": "c7c6",
+    "best_san": "c6",
+    "eval_best": {
+     "cp": -652,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -652,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.31181020134084,
+    "win_played": 8.31181020134084,
+    "win_second": 7.927305137721596,
+    "win_white_after": 91.93727438968193,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 91,
+    "best_uci": "d5d4",
+    "best_san": "Rd4",
+    "eval_best": {
+     "cp": 661,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 659,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 91.93727438968193,
+    "win_played": 91.8825175883201,
+    "win_second": 91.8825175883201,
+    "win_white_after": 91.85501223458378,
+    "loss": 0.05475680136183314,
+    "accuracy": 99.75419374751277,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 92,
+    "best_uci": "e6f7",
+    "best_san": "Kf7",
+    "eval_best": {
+     "cp": -658,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -677,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.144987765416218,
+    "win_played": 7.636671651344663,
+    "win_second": 7.48229381279323,
+    "win_white_after": 92.28504835073755,
+    "loss": 0.5083161140715546,
+    "accuracy": 97.74145747579622,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 93,
+    "best_uci": "g4g5",
+    "best_san": "g5+",
+    "eval_best": {
+     "cp": 674,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 603,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.28504835073755,
+    "win_played": 90.20571948855387,
+    "win_second": 91.43212727289114,
+    "win_white_after": 90.07482200375526,
+    "loss": 2.0793288621836865,
+    "accuracy": 91.069292321955,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 94,
+    "best_uci": "c3d3",
+    "best_san": "Rxd3",
+    "eval_best": {
+     "cp": -599,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -599,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 9.925177996244749,
+    "win_played": 9.925177996244749,
+    "win_second": 7.456844680878731,
+    "win_white_after": 90.46290443554744,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 95,
+    "best_uci": "e5c5",
+    "best_san": "Rc5",
+    "eval_best": {
+     "cp": 611,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 615,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 90.46290443554744,
+    "win_played": 90.5892184593496,
+    "win_second": 90.14046421228699,
+    "win_white_after": 90.62056187734751,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 96,
+    "best_uci": "f6e6",
+    "best_san": "Ke6",
+    "eval_best": {
+     "cp": -616,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -637,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 9.37943812265248,
+    "win_played": 8.742532159410736,
+    "win_second": 9.162643894872474,
+    "win_white_after": 91.01958264520412,
+    "loss": 0.6369059632417446,
+    "accuracy": 97.17801644057943,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 97,
+    "best_uci": "f5c5",
+    "best_san": "Rc5",
+    "eval_best": {
+     "cp": 629,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 629,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 91.01958264520412,
+    "win_played": 91.01958264520412,
+    "win_second": 90.83735610512753,
+    "win_white_after": 91.2867996687703,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 98,
+    "best_uci": "g6f7",
+    "best_san": "Kf7",
+    "eval_best": {
+     "cp": -638,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -668,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.713200331229707,
+    "win_played": 7.873721253163218,
+    "win_second": 8.683957548832154,
+    "win_white_after": 92.09952833572686,
+    "loss": 0.8394790780664891,
+    "accuracy": 96.29677862761767,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 99,
+    "best_uci": "f4f5",
+    "best_san": "f5+",
+    "eval_best": {
+     "cp": 667,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 667,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.09952833572686,
+    "win_played": 92.09952833572686,
+    "win_second": 91.9916940199384,
+    "win_white_after": 92.76863940933961,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 100,
+    "best_uci": "g6f7",
+    "best_san": "Kf7",
+    "eval_best": {
+     "cp": -693,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -720,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 7.23136059066038,
+    "win_played": 6.592139172568842,
+    "win_second": 6.479677651561552,
+    "win_white_after": 93.67477040415197,
+    "loss": 0.6392214180915374,
+    "accuracy": 97.16789971983974,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 101,
+    "best_uci": "g4g5",
+    "best_san": "g5+",
+    "eval_best": {
+     "cp": 732,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 732,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 93.67477040415197,
+    "win_played": 93.67477040415197,
+    "win_second": 91.82742197115755,
+    "win_white_after": 94.11774404221362,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 102,
+    "best_uci": "f6g7",
+    "best_san": "Kg7",
+    "eval_best": {
+     "cp": -753,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -753,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 5.882255957786384,
+    "win_played": 5.882255957786384,
+    "win_second": 5.5451325623559455,
+    "win_white_after": 94.88209305808851,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 103,
+    "best_uci": "c5a5",
+    "best_san": "Ra5",
+    "eval_best": {
+     "cp": 793,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 642,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 94.88209305808851,
+    "win_played": 91.40323859879604,
+    "win_second": 94.64459479923957,
+    "win_white_after": 92.89117607815936,
+    "loss": 3.478854459292478,
+    "accuracy": 85.4979153686179,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 104,
+    "best_uci": "d6d1",
+    "best_san": "Rd1",
+    "eval_best": {
+     "cp": -698,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -830,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 7.1088239218406315,
+    "win_played": 4.495371501658809,
+    "win_second": 5.4875595527497225,
+    "win_white_after": 98.26312222130889,
+    "loss": 2.6134524201818223,
+    "accuracy": 88.90284157478692,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 105,
+    "best_uci": "c5a5",
+    "best_san": "Ra5",
+    "eval_best": {
+     "cp": 1096,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 1078,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 98.26312222130889,
+    "win_played": 98.14631211519271,
+    "win_second": 97.25601481823759,
+    "win_white_after": 97.54474363414323,
+    "loss": 0.11681010611617637,
+    "accuracy": 99.47647023060355,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 106,
+    "best_uci": "h7g7",
+    "best_san": "Kg7",
+    "eval_best": {
+     "cp": -1000,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -1000,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 2.4552563658567763,
+    "win_played": 2.4552563658567763,
+    "win_second": 0.12550887433986446,
+    "win_white_after": 99.72745002160259,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 107,
+    "best_uci": "h5g5",
+    "best_san": "Kg5",
+    "eval_best": {
+     "cp": 1603,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 1603,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 99.72745002160259,
+    "win_played": 99.72745002160259,
+    "win_second": 91.01958264520412,
+    "win_white_after": 97.87384298283985,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 108,
+    "best_uci": "g7f8",
+    "best_san": "Kf8",
+    "eval_best": {
+     "cp": -1040,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -1486,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 2.1261570171601534,
+    "win_played": 0.4187017186236872,
+    "win_second": 0.41564242642200355,
+    "win_white_after": 100,
+    "loss": 1.7074552985364662,
+    "accuracy": 92.60767364302288,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 109,
+    "best_uci": "c5a5",
+    "best_san": "Ra5",
+    "eval_best": {
+     "cp": null,
+     "mate": 9,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": 9,
+     "wdl": null
+    },
+    "win_best": 100,
+    "win_played": 100,
+    "win_second": 100,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 110,
+    "best_uci": "f6f8",
+    "best_san": "Rf8",
+    "eval_best": {
+     "cp": null,
+     "mate": -8,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": -6,
+     "wdl": null
+    },
+    "win_best": 0,
+    "win_played": 0,
+    "win_second": 0,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 111,
+    "best_uci": "f5f6",
+    "best_san": "f6+",
+    "eval_best": {
+     "cp": null,
+     "mate": 6,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": 7,
+     "wdl": null
+    },
+    "win_best": 100,
+    "win_played": 100,
+    "win_second": 100,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 112,
+    "best_uci": "g7g8",
+    "best_san": "Kg8",
+    "eval_best": {
+     "cp": null,
+     "mate": -6,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": -6,
+     "wdl": null
+    },
+    "win_best": 0,
+    "win_played": 0,
+    "win_second": 0,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 113,
+    "best_uci": "f5f6",
+    "best_san": "f6",
+    "eval_best": {
+     "cp": null,
+     "mate": 6,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": 6,
+     "wdl": null
+    },
+    "win_best": 100,
+    "win_played": 100,
+    "win_second": 100,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 114,
+    "best_uci": "d6d8",
+    "best_san": "Rd8",
+    "eval_best": {
+     "cp": null,
+     "mate": -5,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": -2,
+     "wdl": null
+    },
+    "win_best": 0,
+    "win_played": 0,
+    "win_second": 0,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 115,
+    "best_uci": "a7a8",
+    "best_san": "Ra8+",
+    "eval_best": {
+     "cp": null,
+     "mate": 2,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 1557,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 100,
+    "win_played": 99.67730913886251,
+    "win_second": 100,
+    "win_white_after": 99.85566932291039,
+    "loss": 0.3226908611374881,
+    "accuracy": 98.56039452329564,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 116,
+    "best_uci": "d6f6",
+    "best_san": "Rxf6",
+    "eval_best": {
+     "cp": -1776,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -1776,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 0.1443306770896129,
+    "win_played": 0.1443306770896129,
+    "win_second": 0,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   }
+  ],
+  "deep": [
+   {
+    "ply": 1,
+    "best_uci": "e2e4",
+    "best_san": "e4",
+    "eval_best": {
+     "cp": 19,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 19,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.74827500461166,
+    "win_played": 51.74827500461166,
+    "win_second": 51.380429102931544,
+    "win_white_after": 52.02403732122674,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "book",
+    "source": "lichess-cloud",
+    "depth": 75,
+    "verified": 0
+   },
+   {
+    "ply": 2,
+    "best_uci": "e7e5",
+    "best_san": "e5",
+    "eval_best": {
+     "cp": -22,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -22,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 47.97596267877326,
+    "win_played": 47.97596267877326,
+    "win_second": 47.51664103476072,
+    "win_white_after": 51.9321294202434,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "book",
+    "source": "lichess-cloud",
+    "depth": 60,
+    "verified": 0
+   },
+   {
+    "ply": 3,
+    "best_uci": "g1f3",
+    "best_san": "Nf3",
+    "eval_best": {
+     "cp": 21,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 21,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.9321294202434,
+    "win_played": 51.9321294202434,
+    "win_second": 50.36820134406646,
+    "win_white_after": 51.19644756166626,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "book",
+    "source": "lichess-cloud",
+    "depth": 61,
+    "verified": 0
+   },
+   {
+    "ply": 4,
+    "best_uci": "b8c6",
+    "best_san": "Nc6",
+    "eval_best": {
+     "cp": -13,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -13,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 48.80355243833374,
+    "win_played": 48.80355243833374,
+    "win_second": 47.51664103476072,
+    "win_white_after": 52.02403732122674,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "book",
+    "source": "lichess-cloud",
+    "depth": 57,
+    "verified": 0
+   },
+   {
+    "ply": 5,
+    "best_uci": "f1b5",
+    "best_san": "Bb5",
+    "eval_best": {
+     "cp": 22,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 19,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 52.02403732122674,
+    "win_played": 51.74827500461166,
+    "win_second": 51.74827500461166,
+    "win_white_after": 50.644328329952096,
+    "loss": 0.27576231661507933,
+    "accuracy": 98.76848315234099,
+    "classification": "book",
+    "source": "lichess-cloud",
+    "depth": 65,
+    "verified": 0
+   },
+   {
+    "ply": 6,
+    "best_uci": "g8f6",
+    "best_san": "Nf6",
+    "eval_best": {
+     "cp": -7,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -7,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 49.355671670047904,
+    "win_played": 49.355671670047904,
+    "win_second": 49.079583987119136,
+    "win_white_after": 50.920416012880864,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "book",
+    "source": "lichess-cloud",
+    "depth": 55,
+    "verified": 0
+   },
+   {
+    "ply": 7,
+    "best_uci": "d2d3",
+    "best_san": "d3",
+    "eval_best": {
+     "cp": 10,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -8,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50.920416012880864,
+    "win_played": 49.26363724400336,
+    "win_second": 50,
+    "win_white_after": 50,
+    "loss": 1.6567787688775013,
+    "accuracy": 92.81924960382689,
+    "classification": "book",
+    "source": "lichess-cloud",
+    "depth": 60,
+    "verified": 0
+   },
+   {
+    "ply": 8,
+    "best_uci": "f6e4",
+    "best_san": "Nxe4",
+    "eval_best": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -34,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50,
+    "win_played": 46.8743132675129,
+    "win_second": 49.53975299971157,
+    "win_white_after": 52.02403732122674,
+    "loss": 3.1256867324870967,
+    "accuracy": 86.87197618635457,
+    "classification": "good",
+    "source": "lichess-cloud",
+    "depth": 55,
+    "verified": 0
+   },
+   {
+    "ply": 9,
+    "best_uci": "c3d5",
+    "best_san": "Nd5",
+    "eval_best": {
+     "cp": 22,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 10,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 52.02403732122674,
+    "win_played": 50.920416012880864,
+    "win_second": 50.920416012880864,
+    "win_white_after": 50.2761531920014,
+    "loss": 1.103621308345879,
+    "accuracy": 95.15931604094376,
+    "classification": "excellent",
+    "source": "lichess-cloud",
+    "depth": 48,
+    "verified": 0
+   },
+   {
+    "ply": 10,
+    "best_uci": "d7d6",
+    "best_san": "d6",
+    "eval_best": {
+     "cp": -3,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -7,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 49.7238468079986,
+    "win_played": 49.355671670047904,
+    "win_second": 49.355671670047904,
+    "win_white_after": 51.84020844121936,
+    "loss": 0.36817513795069345,
+    "accuracy": 98.35911539419659,
+    "classification": "excellent",
+    "source": "lichess-cloud",
+    "depth": 44,
+    "verified": 0
+   },
+   {
+    "ply": 11,
+    "best_uci": "b2c3",
+    "best_san": "bxc3",
+    "eval_best": {
+     "cp": 20,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 20,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.84020844121936,
+    "win_played": 51.84020844121936,
+    "win_second": 18.37353232049962,
+    "win_white_after": 50.55228953683342,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "lichess-cloud",
+    "depth": 34,
+    "verified": 0
+   },
+   {
+    "ply": 12,
+    "best_uci": "h7h6",
+    "best_san": "h6",
+    "eval_best": {
+     "cp": -6,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -6,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 49.44771046316658,
+    "win_played": 49.44771046316658,
+    "win_second": 49.079583987119136,
+    "win_white_after": 52.02403732122674,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "lichess-cloud",
+    "depth": 34,
+    "verified": 0
+   },
+   {
+    "ply": 13,
+    "best_uci": "e1g1",
+    "best_san": "O-O",
+    "eval_best": {
+     "cp": 22,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -20,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 52.02403732122674,
+    "win_played": 48.159791558780626,
+    "win_second": 51.74827500461166,
+    "win_white_after": 48.43562675785791,
+    "loss": 3.8642457624461173,
+    "accuracy": 84.02239831765098,
+    "classification": "good",
+    "source": "lichess-cloud",
+    "depth": 30,
+    "verified": 0
+   },
+   {
+    "ply": 14,
+    "best_uci": "e8g8",
+    "best_san": "O-O",
+    "eval_best": {
+     "cp": 17,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 17,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.56437324214209,
+    "win_played": 51.56437324214209,
+    "win_second": 51.56437324214209,
+    "win_white_after": 49.079583987119136,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "lichess-cloud",
+    "depth": 30,
+    "verified": 0
+   },
+   {
+    "ply": 15,
+    "best_uci": "c4b5",
+    "best_san": "Bb5",
+    "eval_best": {
+     "cp": -10,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -15,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 49.079583987119136,
+    "win_played": 48.619570897068456,
+    "win_second": 48.619570897068456,
+    "win_white_after": 48.80355243833374,
+    "loss": 0.4600130900506798,
+    "accuracy": 97.95392288257108,
+    "classification": "excellent",
+    "source": "lichess-cloud",
+    "depth": 31,
+    "verified": 0
+   },
+   {
+    "ply": 16,
+    "best_uci": "f6d5",
+    "best_san": "Nxd5",
+    "eval_best": {
+     "cp": 13,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 13,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.19644756166626,
+    "win_played": 51.19644756166626,
+    "win_second": 35.346082798513365,
+    "win_white_after": 47.60847425165294,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 17,
+    "best_uci": "e1g1",
+    "best_san": "O-O",
+    "eval_best": {
+     "cp": -26,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -50,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 47.60847425165294,
+    "win_played": 45.4103562397001,
+    "win_second": 47.33302559691369,
+    "win_white_after": 45.13666864926168,
+    "loss": 2.198118011952843,
+    "accuracy": 90.58310710678433,
+    "classification": "excellent",
+    "source": "lichess-cloud",
+    "depth": 25,
+    "verified": 0
+   },
+   {
+    "ply": 18,
+    "best_uci": "d8d5",
+    "best_san": "Qxd5",
+    "eval_best": {
+     "cp": 53,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 53,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 54.86333135073832,
+    "win_played": 54.86333135073832,
+    "win_second": 8.144987765416218,
+    "win_white_after": 45.501647940453175,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 19,
+    "best_uci": "c3c4",
+    "best_san": "c4",
+    "eval_best": {
+     "cp": -49,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -49,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 45.501647940453175,
+    "win_played": 45.501647940453175,
+    "win_second": 44.95437253179166,
+    "win_white_after": 45.04550396254112,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 20,
+    "best_uci": "d5e6",
+    "best_san": "Qe6",
+    "eval_best": {
+     "cp": 54,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -16,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 54.95449603745888,
+    "win_played": 48.52759384118717,
+    "win_second": 54.40703011199586,
+    "win_white_after": 51.380429102931544,
+    "loss": 6.426902196271712,
+    "accuracy": 74.81625626944567,
+    "classification": "good",
+    "source": "lichess-cloud",
+    "depth": 25,
+    "verified": 0
+   },
+   {
+    "ply": 21,
+    "best_uci": "f3d2",
+    "best_san": "Nd2",
+    "eval_best": {
+     "cp": 15,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -66,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.380429102931544,
+    "win_played": 43.95429240174578,
+    "win_second": 45.775702105393144,
+    "win_white_after": 43.229985238261435,
+    "loss": 7.4261367011857615,
+    "accuracy": 71.49590349679872,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 22,
+    "best_uci": "a5a4",
+    "best_san": "Qa4",
+    "eval_best": {
+     "cp": 74,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 35,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 56.770014761738565,
+    "win_played": 53.21736834106171,
+    "win_second": 52.85051773118131,
+    "win_white_after": 47.24124461074959,
+    "loss": 3.552646420676858,
+    "accuracy": 85.21347397837353,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 23,
+    "best_uci": "a1b1",
+    "best_san": "Rb1",
+    "eval_best": {
+     "cp": -30,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -41,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 47.24124461074959,
+    "win_played": 46.23301956955016,
+    "win_second": 46.23301956955016,
+    "win_white_after": 45.4103562397001,
+    "loss": 1.008225041199431,
+    "accuracy": 95.56860780294717,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 24,
+    "best_uci": "c8g4",
+    "best_san": "Bg4",
+    "eval_best": {
+     "cp": 50,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 21,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 54.5896437602999,
+    "win_played": 51.9321294202434,
+    "win_second": 51.9321294202434,
+    "win_white_after": 47.97596267877326,
+    "loss": 2.657514340056501,
+    "accuracy": 88.72636228285572,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 25,
+    "best_uci": "d2c3",
+    "best_san": "Bc3",
+    "eval_best": {
+     "cp": -22,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -24,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 47.97596267877326,
+    "win_played": 47.7921885909709,
+    "win_second": 47.7921885909709,
+    "win_white_after": 47.51664103476071,
+    "loss": 0.18377408780235527,
+    "accuracy": 99.17760932414126,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 26,
+    "best_uci": "b7b6",
+    "best_san": "b6",
+    "eval_best": {
+     "cp": 27,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 1,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 52.48335896523929,
+    "win_played": 50.09205189599892,
+    "win_second": 52.29967635676993,
+    "win_white_after": 50,
+    "loss": 2.3913070692403693,
+    "accuracy": 89.79776589915498,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 27,
+    "best_uci": "h2h3",
+    "best_san": "h3",
+    "eval_best": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50,
+    "win_played": 50,
+    "win_second": 50,
+    "win_white_after": 50,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 28,
+    "best_uci": "b7b6",
+    "best_san": "b6",
+    "eval_best": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 4,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50,
+    "win_played": 50.36820134406646,
+    "win_second": 50,
+    "win_white_after": 50,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 29,
+    "best_uci": "d2e3",
+    "best_san": "Be3",
+    "eval_best": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -1,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50,
+    "win_played": 49.90794810400108,
+    "win_second": 49.90794810400108,
+    "win_white_after": 49.355671670047904,
+    "loss": 0.09205189599892094,
+    "accuracy": 99.58718721043925,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 30,
+    "best_uci": "g4f3",
+    "best_san": "Bxf3",
+    "eval_best": {
+     "cp": 7,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -670,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50.644328329952096,
+    "win_played": 7.820468799769884,
+    "win_second": 44.31743390334964,
+    "win_white_after": 92.12627874683679,
+    "loss": 42.82385953018221,
+    "accuracy": 12.817558671113318,
+    "classification": "blunder",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 31,
+    "best_uci": "g2f3",
+    "best_san": "gxf3",
+    "eval_best": {
+     "cp": 668,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 668,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.12627874683679,
+    "win_played": 92.12627874683679,
+    "win_second": 61.04522820914586,
+    "win_white_after": 92.25879202258773,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 32,
+    "best_uci": "c5d4",
+    "best_san": "Qd4",
+    "eval_best": {
+     "cp": -673,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -673,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 7.741207977412266,
+    "win_played": 7.741207977412266,
+    "win_second": 7.584890441805335,
+    "win_white_after": 92.12627874683679,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 33,
+    "best_uci": "f3g4",
+    "best_san": "fxg4",
+    "eval_best": {
+     "cp": 668,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 659,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.12627874683679,
+    "win_played": 91.8825175883201,
+    "win_second": 91.93727438968193,
+    "win_white_after": 91.82742197115755,
+    "loss": 0.24376115851669056,
+    "accuracy": 98.9106254195481,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 34,
+    "best_uci": "g4h3",
+    "best_san": "Bh3",
+    "eval_best": {
+     "cp": -657,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -657,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.172578028842459,
+    "win_played": 8.172578028842459,
+    "win_second": 7.873721253163218,
+    "win_white_after": 92.04577812176484,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 35,
+    "best_uci": "f8a3",
+    "best_san": "Ba3",
+    "eval_best": {
+     "cp": 665,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 576,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.04577812176484,
+    "win_played": 89.2915917931922,
+    "win_second": 88.9343946637704,
+    "win_white_after": 88.26512446263817,
+    "loss": 2.7541863285726436,
+    "accuracy": 88.3403505246483,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 36,
+    "best_uci": "d4d8",
+    "best_san": "Qd8",
+    "eval_best": {
+     "cp": -548,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -548,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 11.734875537361837,
+    "win_played": 11.734875537361837,
+    "win_second": 10.993341208440889,
+    "win_white_after": 88.15022519586654,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 37,
+    "best_uci": "f3f4",
+    "best_san": "f4",
+    "eval_best": {
+     "cp": 545,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 116,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 88.15022519586654,
+    "win_played": 60.51860475782355,
+    "win_second": 85.77656698131324,
+    "win_white_after": 61.48212729952695,
+    "loss": 27.631620438042987,
+    "accuracy": 27.80718424590488,
+    "classification": "blunder",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 38,
+    "best_uci": "d8f6",
+    "best_san": "Qf6",
+    "eval_best": {
+     "cp": -127,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -127,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 38.51787270047305,
+    "win_played": 38.51787270047305,
+    "win_second": 14.771073929444967,
+    "win_white_after": 61.22020503513589,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 39,
+    "best_uci": "d2e2",
+    "best_san": "Qe2",
+    "eval_best": {
+     "cp": 124,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 61.22020503513589,
+    "win_played": 50,
+    "win_second": 53.675438329054,
+    "win_white_after": 51.47240615881283,
+    "loss": 11.22020503513589,
+    "accuracy": 60.12595630013689,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 17,
+    "verified": 0
+   },
+   {
+    "ply": 40,
+    "best_uci": "f6g6",
+    "best_san": "Qg6+",
+    "eval_best": {
+     "cp": -16,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -16,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 48.52759384118717,
+    "win_played": 48.52759384118717,
+    "win_second": 16.316792744377253,
+    "win_white_after": 50.18410316799476,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 41,
+    "best_uci": "e4g4",
+    "best_san": "Rg4",
+    "eval_best": {
+     "cp": 2,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 2,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50.18410316799476,
+    "win_played": 50.18410316799476,
+    "win_second": 2.0957232355090696,
+    "win_white_after": 50.55228953683342,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 42,
+    "best_uci": "h3g4",
+    "best_san": "Bxg4",
+    "eval_best": {
+     "cp": -6,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -6,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 49.44771046316658,
+    "win_played": 49.44771046316658,
+    "win_second": 8.596761401203977,
+    "win_white_after": 51.9321294202434,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 43,
+    "best_uci": "f3g4",
+    "best_san": "fxg4",
+    "eval_best": {
+     "cp": 21,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 21,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 51.9321294202434,
+    "win_played": 51.9321294202434,
+    "win_second": 12.082496069766194,
+    "win_white_after": 50,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 16,
+    "verified": 0
+   },
+   {
+    "ply": 44,
+    "best_uci": "a8f8",
+    "best_san": "Rxf8",
+    "eval_best": {
+     "cp": 0,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -187,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 50,
+    "win_played": 33.43559420193419,
+    "win_second": 42.86889425850106,
+    "win_white_after": 67.13557948833915,
+    "loss": 16.564405798065813,
+    "accuracy": 46.98536437267939,
+    "classification": "mistake",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 0
+   },
+   {
+    "ply": 45,
+    "best_uci": "e3g3",
+    "best_san": "Qg3",
+    "eval_best": {
+     "cp": 194,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 194,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 67.13557948833915,
+    "win_played": 67.13557948833915,
+    "win_second": 50,
+    "win_white_after": 70.5297423779081,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 1
+   },
+   {
+    "ply": 46,
+    "best_uci": "g4g3",
+    "best_san": "Qxg3+",
+    "eval_best": {
+     "cp": -237,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -237,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 29.470257622091907,
+    "win_played": 29.470257622091907,
+    "win_second": 9.826859886598243,
+    "win_white_after": 65.57392814366,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 1
+   },
+   {
+    "ply": 47,
+    "best_uci": "f2g3",
+    "best_san": "fxg3",
+    "eval_best": {
+     "cp": 175,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 139,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 65.57392814366,
+    "win_played": 62.52304785769166,
+    "win_second": 62.52304785769166,
+    "win_white_after": 61.48212729952695,
+    "loss": 3.05088028596834,
+    "accuracy": 87.16574560923117,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 18,
+    "verified": 0
+   },
+   {
+    "ply": 48,
+    "best_uci": "g8f8",
+    "best_san": "Kxf8",
+    "eval_best": {
+     "cp": -127,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -200,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 38.51787270047305,
+    "win_played": 32.378836251494604,
+    "win_second": 32.378836251494604,
+    "win_white_after": 67.45971709209249,
+    "loss": 6.139036448978445,
+    "accuracy": 75.7999174895996,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 16,
+    "verified": 0
+   },
+   {
+    "ply": 49,
+    "best_uci": "b1b7",
+    "best_san": "Rxb7",
+    "eval_best": {
+     "cp": 198,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 198,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 67.45971709209249,
+    "win_played": 67.45971709209249,
+    "win_second": 51.472406158812824,
+    "win_white_after": 65.65700162843596,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 1
+   },
+   {
+    "ply": 50,
+    "best_uci": "f8c8",
+    "best_san": "Rc8",
+    "eval_best": {
+     "cp": -176,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -176,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 34.342998371564036,
+    "win_played": 34.342998371564036,
+    "win_second": 30.787822162318474,
+    "win_white_after": 67.05428791057813,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 16,
+    "verified": 0
+   },
+   {
+    "ply": 51,
+    "best_uci": "g1g2",
+    "best_san": "Kg2",
+    "eval_best": {
+     "cp": 193,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 187,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 67.05428791057813,
+    "win_played": 66.5644057980658,
+    "win_second": 66.5644057980658,
+    "win_white_after": 66.56440579806582,
+    "loss": 0.48988211251231917,
+    "accuracy": 97.82248844501667,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 19,
+    "verified": 0
+   },
+   {
+    "ply": 52,
+    "best_uci": "g8f8",
+    "best_san": "Kf8",
+    "eval_best": {
+     "cp": -187,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -193,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 33.43559420193419,
+    "win_played": 32.94571208942188,
+    "win_second": 33.271896373429854,
+    "win_white_after": 67.54049255580262,
+    "loss": 0.48988211251230496,
+    "accuracy": 97.82248844501675,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 53,
+    "best_uci": "g3g4",
+    "best_san": "g4",
+    "eval_best": {
+     "cp": 199,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 166,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 67.54049255580262,
+    "win_played": 64.8220254322344,
+    "win_second": 65.40749558280547,
+    "win_white_after": 63.03926375862741,
+    "loss": 2.7184671235682174,
+    "accuracy": 88.4827882568904,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 16,
+    "verified": 0
+   },
+   {
+    "ply": 54,
+    "best_uci": "g8f7",
+    "best_san": "Kf7",
+    "eval_best": {
+     "cp": -145,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -307,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 36.96073624137259,
+    "win_played": 24.408755556920003,
+    "win_second": 36.874985869153015,
+    "win_white_after": 75.99656213987137,
+    "loss": 12.551980684452584,
+    "accuracy": 56.55993405047939,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 55,
+    "best_uci": "a2a4",
+    "best_san": "a4",
+    "eval_best": {
+     "cp": 313,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 226,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 75.99656213987137,
+    "win_played": 69.68093609074745,
+    "win_second": 70.06847027264081,
+    "win_white_after": 68.3424562860005,
+    "loss": 6.315626049123921,
+    "accuracy": 75.19503490757079,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 56,
+    "best_uci": "h6h5",
+    "best_san": "h5",
+    "eval_best": {
+     "cp": -209,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -313,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 31.657543713999498,
+    "win_played": 24.003437860128628,
+    "win_second": 30.944966094531424,
+    "win_white_after": 74.20703085283178,
+    "loss": 7.65410585387087,
+    "accuracy": 70.75841270788125,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 57,
+    "best_uci": "a2a4",
+    "best_san": "a4",
+    "eval_best": {
+     "cp": 287,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 287,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 74.20703085283178,
+    "win_played": 74.20703085283178,
+    "win_second": 69.68093609074745,
+    "win_white_after": 69.83628994701436,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 58,
+    "best_uci": "h6h5",
+    "best_san": "h5",
+    "eval_best": {
+     "cp": -228,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -325,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 30.163710052985643,
+    "win_played": 23.206706534704953,
+    "win_second": 24.818682246504544,
+    "win_white_after": 73.35231920150605,
+    "loss": 6.95700351828069,
+    "accuracy": 73.03680146487649,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 16,
+    "verified": 0
+   },
+   {
+    "ply": 59,
+    "best_uci": "a4a5",
+    "best_san": "a5",
+    "eval_best": {
+     "cp": 275,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 275,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 73.35231920150605,
+    "win_played": 73.35231920150605,
+    "win_second": 72.99091321665176,
+    "win_white_after": 73.71063102310785,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 60,
+    "best_uci": "h6h5",
+    "best_san": "h5",
+    "eval_best": {
+     "cp": -280,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -326,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 26.289368976892156,
+    "win_played": 23.141152218477828,
+    "win_second": 23.141152218477828,
+    "win_white_after": 77.24945149239734,
+    "loss": 3.1482167584143284,
+    "accuracy": 86.78368675545438,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 61,
+    "best_uci": "e2f3",
+    "best_san": "Kf3",
+    "eval_best": {
+     "cp": 332,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 314,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 77.24945149239734,
+    "win_played": 76.06366555288884,
+    "win_second": 76.06366555288884,
+    "win_white_after": 75.59124444308,
+    "loss": 1.1857859395085057,
+    "accuracy": 94.80815403109393,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 62,
+    "best_uci": "c8b8",
+    "best_san": "Rb8",
+    "eval_best": {
+     "cp": -307,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -309,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 24.408755556920003,
+    "win_played": 24.27313650702102,
+    "win_second": 24.27313650702102,
+    "win_white_after": 75.72686349297898,
+    "loss": 0.1356190498989811,
+    "accuracy": 99.39243770108767,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 63,
+    "best_uci": "e2f3",
+    "best_san": "Kf3",
+    "eval_best": {
+     "cp": 309,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 309,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 75.72686349297898,
+    "win_played": 75.72686349297898,
+    "win_second": 68.73942354748303,
+    "win_white_after": 74.76680474600357,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 64,
+    "best_uci": "c8b8",
+    "best_san": "Rb8",
+    "eval_best": {
+     "cp": -295,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -509,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 25.23319525399643,
+    "win_played": 13.30589498020094,
+    "win_second": 23.73579657373579,
+    "win_white_after": 90.77587883502571,
+    "loss": 11.927300273795492,
+    "accuracy": 58.206872875302004,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 65,
+    "best_uci": "g3g4",
+    "best_san": "g4+",
+    "eval_best": {
+     "cp": 621,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 621,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 90.77587883502571,
+    "win_played": 90.77587883502571,
+    "win_second": 72.91826261225229,
+    "win_white_after": 88.45447646163959,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "great",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 1
+   },
+   {
+    "ply": 66,
+    "best_uci": "f5g6",
+    "best_san": "Kg6",
+    "eval_best": {
+     "cp": -553,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -553,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 11.545523538360413,
+    "win_played": 11.545523538360413,
+    "win_second": null,
+    "win_white_after": 88.18863274708717,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 67,
+    "best_uci": "a6c6",
+    "best_san": "Rc6",
+    "eval_best": {
+     "cp": 546,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 373,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 88.18863274708717,
+    "win_played": 79.79314733413094,
+    "win_second": 79.79314733413094,
+    "win_white_after": 75.52324281876815,
+    "loss": 8.395485412956234,
+    "accuracy": 68.41001023623888,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 68,
+    "best_uci": "c7c5",
+    "best_san": "c5",
+    "eval_best": {
+     "cp": -306,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -574,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 24.476757181231847,
+    "win_played": 10.779026169080517,
+    "win_second": 22.237016798603204,
+    "win_white_after": 89.14994675781045,
+    "loss": 13.69773101215133,
+    "accuracy": 53.65322925515487,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 69,
+    "best_uci": "a6c6",
+    "best_san": "Rc6",
+    "eval_best": {
+     "cp": 572,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 401,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 89.14994675781045,
+    "win_played": 81.40454756112642,
+    "win_second": 72.40628269004114,
+    "win_white_after": 80.08836319239998,
+    "loss": 7.745399196684033,
+    "accuracy": 70.46512129779948,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 70,
+    "best_uci": "h8b8",
+    "best_san": "Rb8",
+    "eval_best": {
+     "cp": -378,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -571,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 19.91163680760002,
+    "win_played": 10.885720702563226,
+    "win_second": 16.46818444286432,
+    "win_white_after": 91.5468039542362,
+    "loss": 9.025916105036792,
+    "accuracy": 66.4718356029213,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 71,
+    "best_uci": "a6c6",
+    "best_san": "Rc6",
+    "eval_best": {
+     "cp": 647,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 647,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 91.5468039542362,
+    "win_played": 91.5468039542362,
+    "win_second": 83.58240437072985,
+    "win_white_after": 87.27758018992468,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 22,
+    "verified": 1
+   },
+   {
+    "ply": 72,
+    "best_uci": "h8a8",
+    "best_san": "Ra8",
+    "eval_best": {
+     "cp": -523,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -639,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 12.722419810075323,
+    "win_played": 8.683957548832154,
+    "win_second": 12.160941498126412,
+    "win_white_after": 91.0496343170818,
+    "loss": 4.038462261243168,
+    "accuracy": 83.36347301945156,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 73,
+    "best_uci": "a5a6",
+    "best_san": "a6",
+    "eval_best": {
+     "cp": 630,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 630,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 91.0496343170818,
+    "win_played": 91.0496343170818,
+    "win_second": 85.45919878415965,
+    "win_white_after": 90.4310898025287,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 74,
+    "best_uci": "e5e4",
+    "best_san": "e4",
+    "eval_best": {
+     "cp": -610,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -623,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 9.56891019747129,
+    "win_played": 9.162643894872474,
+    "win_second": 9.162643894872474,
+    "win_white_after": 90.77587883502571,
+    "loss": 0.4062663025988158,
+    "accuracy": 98.19085905560199,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 75,
+    "best_uci": "a6a7",
+    "best_san": "a7",
+    "eval_best": {
+     "cp": 621,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 621,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 90.77587883502571,
+    "win_played": 90.77587883502571,
+    "win_second": 88.78861806133278,
+    "win_white_after": 90.30288053070555,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 76,
+    "best_uci": "c8a8",
+    "best_san": "Ra8",
+    "eval_best": {
+     "cp": -606,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -665,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 9.69711946929445,
+    "win_played": 7.95422187823516,
+    "win_second": 9.010559942406182,
+    "win_white_after": 92.07269486227841,
+    "loss": 1.7428975910592897,
+    "accuracy": 92.45997825983657,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 77,
+    "best_uci": "c6f6",
+    "best_san": "Rxf6",
+    "eval_best": {
+     "cp": 666,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 666,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.07269486227841,
+    "win_played": 92.07269486227841,
+    "win_second": 89.46635751884418,
+    "win_white_after": 91.85501223458378,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 78,
+    "best_uci": "c8a8",
+    "best_san": "Ra8",
+    "eval_best": {
+     "cp": -658,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -658,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.144987765416218,
+    "win_played": 8.144987765416218,
+    "win_second": 6.7064126085952935,
+    "win_white_after": 91.93727438968193,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 79,
+    "best_uci": "f6f5",
+    "best_san": "Rf5",
+    "eval_best": {
+     "cp": 661,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 661,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 91.93727438968193,
+    "win_played": 91.93727438968193,
+    "win_second": 91.96452624848273,
+    "win_white_after": 91.96452624848273,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 80,
+    "best_uci": "d7e6",
+    "best_san": "Ke6",
+    "eval_best": {
+     "cp": -662,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -702,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.035473751517273,
+    "win_played": 7.0121781731283335,
+    "win_second": 8.035473751517273,
+    "win_white_after": 92.44087913527328,
+    "loss": 1.0232955783889395,
+    "accuracy": 95.50383546541715,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 81,
+    "best_uci": "f5e5",
+    "best_san": "Rxe5",
+    "eval_best": {
+     "cp": 680,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 650,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 92.44087913527328,
+    "win_played": 91.63189534721607,
+    "win_second": 91.63189534721607,
+    "win_white_after": 90.7450014345987,
+    "loss": 0.8089837880572048,
+    "accuracy": 96.42894337467268,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 82,
+    "best_uci": "d7e6",
+    "best_san": "Ke6",
+    "eval_best": {
+     "cp": -620,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -768,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 9.254998565401294,
+    "win_played": 5.583829947200051,
+    "win_second": 8.396381614947103,
+    "win_white_after": 94.51244044725027,
+    "loss": 3.671168618201243,
+    "accuracy": 84.75852226622325,
+    "classification": "good",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 83,
+    "best_uci": "g5e5",
+    "best_san": "Rxe5",
+    "eval_best": {
+     "cp": 773,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 773,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 94.51244044725027,
+    "win_played": 94.51244044725027,
+    "win_second": 91.01958264520412,
+    "win_white_after": 93.97341654156807,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 84,
+    "best_uci": "a2c2",
+    "best_san": "Rxc2",
+    "eval_best": {
+     "cp": -746,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -746,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 6.026583458431929,
+    "win_played": 6.026583458431929,
+    "win_second": 5.841618363161601,
+    "win_white_after": 94.15838163683839,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 85,
+    "best_uci": "f2f4",
+    "best_san": "f4",
+    "eval_best": {
+     "cp": 755,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 729,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 94.15838163683839,
+    "win_played": 93.60900321837804,
+    "win_second": 93.60900321837804,
+    "win_white_after": 93.40786082743116,
+    "loss": 0.5493784184603498,
+    "accuracy": 97.56119214451456,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 86,
+    "best_uci": "c2d2",
+    "best_san": "Rd2",
+    "eval_best": {
+     "cp": -720,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -760,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 6.592139172568842,
+    "win_played": 5.741173715737126,
+    "win_second": 6.569502690193751,
+    "win_white_after": 93.88946215797787,
+    "loss": 0.850965456831716,
+    "accuracy": 96.24704283887696,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 87,
+    "best_uci": "f5d5",
+    "best_san": "Rd5+",
+    "eval_best": {
+     "cp": 742,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 742,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 93.88946215797787,
+    "win_played": 93.88946215797787,
+    "win_second": 92.61902588592949,
+    "win_white_after": 93.65291843248164,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 88,
+    "best_uci": "d7c8",
+    "best_san": "Kc8",
+    "eval_best": {
+     "cp": -731,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -761,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 6.347081567518352,
+    "win_played": 5.721280349603731,
+    "win_second": 6.195584660125633,
+    "win_white_after": 94.17860155204971,
+    "loss": 0.6258012179146206,
+    "accuracy": 97.22654964277119,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 89,
+    "best_uci": "f2f4",
+    "best_san": "f4",
+    "eval_best": {
+     "cp": 756,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 756,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 94.17860155204971,
+    "win_played": 94.17860155204971,
+    "win_second": 94.0973259942673,
+    "win_white_after": 93.88946215797787,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 90,
+    "best_uci": "c3a3",
+    "best_san": "Ra3",
+    "eval_best": {
+     "cp": -742,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -765,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 6.110537842022126,
+    "win_played": 5.642352684427998,
+    "win_second": 5.8012442089562555,
+    "win_white_after": 93.9942358504555,
+    "loss": 0.46818515759412804,
+    "accuracy": 97.91794585855229,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 91,
+    "best_uci": "d5e5",
+    "best_san": "Re5+",
+    "eval_best": {
+     "cp": 747,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 747,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 93.9942358504555,
+    "win_played": 93.9942358504555,
+    "win_second": 93.95252970481944,
+    "win_white_after": 92.12627874683679,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 92,
+    "best_uci": "e6f7",
+    "best_san": "Kf7",
+    "eval_best": {
+     "cp": -668,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -677,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 7.873721253163218,
+    "win_played": 7.636671651344663,
+    "win_second": 7.636671651344663,
+    "win_white_after": 93.82578011823652,
+    "loss": 0.23704960181855483,
+    "accuracy": 98.94046184700127,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 93,
+    "best_uci": "e5f5",
+    "best_san": "Rf5+",
+    "eval_best": {
+     "cp": 739,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 735,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 93.82578011823652,
+    "win_played": 93.73990606603658,
+    "win_second": 93.73990606603658,
+    "win_white_after": 93.58693959358769,
+    "loss": 0.08587405219994082,
+    "accuracy": 99.61483270766057,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 94,
+    "best_uci": "c3d3",
+    "best_san": "Rxd3",
+    "eval_best": {
+     "cp": -728,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -728,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 6.413060406412313,
+    "win_played": 6.413060406412313,
+    "win_second": 5.821398447950266,
+    "win_white_after": 93.31658819626998,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 95,
+    "best_uci": "e5f5",
+    "best_san": "Rf5+",
+    "eval_best": {
+     "cp": 716,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 716,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 93.31658819626998,
+    "win_played": 93.31658819626998,
+    "win_second": 92.81788606935652,
+    "win_white_after": 92.939651755744,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 96,
+    "best_uci": "f6e7",
+    "best_san": "Ke7",
+    "eval_best": {
+     "cp": -700,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -779,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 7.060348244255998,
+    "win_played": 5.374098905684278,
+    "win_second": 6.6148481310316285,
+    "win_white_after": 94.21884453732744,
+    "loss": 1.68624933857172,
+    "accuracy": 92.6961523283191,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 97,
+    "best_uci": "f5a5",
+    "best_san": "Ra5",
+    "eval_best": {
+     "cp": 758,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 733,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 94.21884453732744,
+    "win_played": 93.69655220668454,
+    "win_second": 93.69655220668454,
+    "win_white_after": 93.0117927561057,
+    "loss": 0.5222923306428982,
+    "accuracy": 97.68006508083101,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 98,
+    "best_uci": "g6f6",
+    "best_san": "Kf6",
+    "eval_best": {
+     "cp": -703,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -772,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 6.988207243894301,
+    "win_played": 5.50668771900947,
+    "win_second": 6.546938490211808,
+    "win_white_after": 94.62590109431572,
+    "loss": 1.4815195248848312,
+    "accuracy": 93.55457182257126,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 99,
+    "best_uci": "f4f5",
+    "best_san": "f5+",
+    "eval_best": {
+     "cp": 779,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 779,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 94.62590109431572,
+    "win_played": 94.62590109431572,
+    "win_second": 92.61902588592949,
+    "win_white_after": 93.9315751534127,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 14,
+    "verified": 0
+   },
+   {
+    "ply": 100,
+    "best_uci": "g6f7",
+    "best_san": "Kf7",
+    "eval_best": {
+     "cp": -744,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -800,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 6.068424846587305,
+    "win_played": 4.994184357695218,
+    "win_second": 5.583829947200051,
+    "win_white_after": 95.1776546622597,
+    "loss": 1.0742404888920873,
+    "accuracy": 95.2851914907847,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 101,
+    "best_uci": "g4g5",
+    "best_san": "g5+",
+    "eval_best": {
+     "cp": 810,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 810,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 95.1776546622597,
+    "win_played": 95.1776546622597,
+    "win_second": 92.98782182687168,
+    "win_white_after": 92.98782182687167,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 102,
+    "best_uci": "f6g7",
+    "best_san": "Kg7",
+    "eval_best": {
+     "cp": -702,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -702,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 7.0121781731283335,
+    "win_played": 7.0121781731283335,
+    "win_second": 6.413060406412313,
+    "win_white_after": 94.05629047351269,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 103,
+    "best_uci": "c5a5",
+    "best_san": "Ra5",
+    "eval_best": {
+     "cp": 750,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 728,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 94.05629047351269,
+    "win_played": 93.58693959358769,
+    "win_second": 93.58693959358769,
+    "win_white_after": 91.19853621643293,
+    "loss": 0.4693508799250026,
+    "accuracy": 97.91281488106691,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 13,
+    "verified": 0
+   },
+   {
+    "ply": 104,
+    "best_uci": "d6d1",
+    "best_san": "Rd1",
+    "eval_best": {
+     "cp": -635,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -1448,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 8.801463783567065,
+    "win_played": 0.48127999273533817,
+    "win_second": 7.900471664273127,
+    "win_white_after": 98.26312222130889,
+    "loss": 8.320183790831727,
+    "accuracy": 68.64509229938024,
+    "classification": "inaccuracy",
+    "source": "stockfish",
+    "depth": 15,
+    "verified": 0
+   },
+   {
+    "ply": 105,
+    "best_uci": "c5a5",
+    "best_san": "Ra5",
+    "eval_best": {
+     "cp": 1096,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 1078,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 98.26312222130889,
+    "win_played": 98.14631211519271,
+    "win_second": 97.25601481823759,
+    "win_white_after": 97.54474363414323,
+    "loss": 0.11681010611617637,
+    "accuracy": 99.47647023060355,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 106,
+    "best_uci": "h7g7",
+    "best_san": "Kg7",
+    "eval_best": {
+     "cp": -1000,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -1000,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 2.4552563658567763,
+    "win_played": 2.4552563658567763,
+    "win_second": 0.12550887433986446,
+    "win_white_after": 99.72745002160259,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 107,
+    "best_uci": "h5g5",
+    "best_san": "Kg5",
+    "eval_best": {
+     "cp": 1603,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 1603,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 99.72745002160259,
+    "win_played": 99.72745002160259,
+    "win_second": 91.01958264520412,
+    "win_white_after": 97.87384298283985,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 108,
+    "best_uci": "g7f8",
+    "best_san": "Kf8",
+    "eval_best": {
+     "cp": -1040,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -1486,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 2.1261570171601534,
+    "win_played": 0.4187017186236872,
+    "win_second": 0.41564242642200355,
+    "win_white_after": 100,
+    "loss": 1.7074552985364662,
+    "accuracy": 92.60767364302288,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 109,
+    "best_uci": "c5a5",
+    "best_san": "Ra5",
+    "eval_best": {
+     "cp": null,
+     "mate": 9,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": 9,
+     "wdl": null
+    },
+    "win_best": 100,
+    "win_played": 100,
+    "win_second": 100,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 110,
+    "best_uci": "f6f8",
+    "best_san": "Rf8",
+    "eval_best": {
+     "cp": null,
+     "mate": -8,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": -6,
+     "wdl": null
+    },
+    "win_best": 0,
+    "win_played": 0,
+    "win_second": 0,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 111,
+    "best_uci": "f5f6",
+    "best_san": "f6+",
+    "eval_best": {
+     "cp": null,
+     "mate": 6,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": 7,
+     "wdl": null
+    },
+    "win_best": 100,
+    "win_played": 100,
+    "win_second": 100,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 112,
+    "best_uci": "g7g8",
+    "best_san": "Kg8",
+    "eval_best": {
+     "cp": null,
+     "mate": -6,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": -6,
+     "wdl": null
+    },
+    "win_best": 0,
+    "win_played": 0,
+    "win_second": 0,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 113,
+    "best_uci": "f5f6",
+    "best_san": "f6",
+    "eval_best": {
+     "cp": null,
+     "mate": 6,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": 6,
+     "wdl": null
+    },
+    "win_best": 100,
+    "win_played": 100,
+    "win_second": 100,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 114,
+    "best_uci": "d6d8",
+    "best_san": "Rd8",
+    "eval_best": {
+     "cp": null,
+     "mate": -5,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": null,
+     "mate": -2,
+     "wdl": null
+    },
+    "win_best": 0,
+    "win_played": 0,
+    "win_second": 0,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 115,
+    "best_uci": "a7a8",
+    "best_san": "Ra8+",
+    "eval_best": {
+     "cp": null,
+     "mate": 2,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": 1557,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 100,
+    "win_played": 99.67730913886251,
+    "win_second": 100,
+    "win_white_after": 99.85566932291039,
+    "loss": 0.3226908611374881,
+    "accuracy": 98.56039452329564,
+    "classification": "excellent",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   },
+   {
+    "ply": 116,
+    "best_uci": "d6f6",
+    "best_san": "Rxf6",
+    "eval_best": {
+     "cp": -1776,
+     "mate": null,
+     "wdl": null
+    },
+    "eval_played": {
+     "cp": -1776,
+     "mate": null,
+     "wdl": null
+    },
+    "win_best": 0.1443306770896129,
+    "win_played": 0.1443306770896129,
+    "win_second": 0,
+    "win_white_after": 100,
+    "loss": 0,
+    "accuracy": 100,
+    "classification": "best",
+    "source": "stockfish",
+    "depth": 12,
+    "verified": 0
+   }
+  ]
+ }
+}

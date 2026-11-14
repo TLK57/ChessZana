@@ -3,7 +3,6 @@
 // Théorie, brillant et très bon ne dépendent pas des seuils (et sont décidés avant eux) : ils sont gardés tels quels.
 import { config } from '../config.js';
 import { getDb, transaction } from '../db.js';
-import { getGame } from '../games.js';
 import { lossCategory, thresholdsFor } from './classify.js';
 import { VERIFIED_CLASSES } from './analyze.js';
 
@@ -12,7 +11,6 @@ const THRESHOLD_FREE = new Set(['book', 'brilliant', 'great']);
 /** Reclasse une analyse enregistrée avec les seuils actuels. Renvoie le nombre de coups qui changent de catégorie. */
 export function reclassifyStored(gameId, pass) {
   const d = getDb();
-  const game = getGame(gameId);
   const rows = d.prepare(`SELECT ma.ply, ma.classification, ma.loss, ma.win_best, ma.win_played, ma.best_uci, ma.verified, ma.depth,
         ma.source, gm.uci, gm.color
       FROM move_analysis ma JOIN game_moves gm ON gm.game_id = ma.game_id AND gm.ply = ma.ply
@@ -29,7 +27,7 @@ export function reclassifyStored(gameId, pass) {
       let cls = r.classification;
       if (!THRESHOLD_FREE.has(cls)) {
         // Mêmes règles, dans le même ordre, que classifyMove (src/analysis/classify.js).
-        const th = thresholdsFor(r.color === 'w' ? game.white_elo : game.black_elo);
+        const th = thresholdsFor();
         const loss = r.loss ?? Math.max(0, r.win_best - r.win_played);
         if (prev && ['mistake', 'blunder', 'miss'].includes(prev.classification) && loss >= th.inaccuracy
             && r.win_played >= 100 - prev.winBest - c.missKeepIfWorseThanBeforeError) cls = 'miss';
