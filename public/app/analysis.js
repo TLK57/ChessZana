@@ -359,6 +359,13 @@ export async function renderGame(root, id, startPly = 0) {
     return '<button id="askClaude" title="Copie une question prête à coller sur claude.ai">🤖 Demander à Claude</button>';
   }
 
+  function depthNote(m) {
+    if (m.source === 'tablebase') return 'Évaluation exacte (table de finales Lichess).';
+    const src = m.source === 'lichess-cloud' ? 'analyse cloud de Lichess' : 'Stockfish';
+    if (m.verified) return `✓ Vérifié par ${src} à la profondeur ${m.depth}.`;
+    return `Profondeur atteinte par ${src} pour ce coup : ${m.depth ?? '?'}.`;
+  }
+
   function moveDetailHtml(m, basePly, { live = false } = {}) {
     // m : coup de la partie, ou résultat d'analyse en direct (mêmes champs)
     const cls = m.classification;
@@ -384,6 +391,7 @@ export async function renderGame(root, id, startPly = 0) {
       parts.push(`<p class="small">Stockfish préférait ${esc(fig(m.bestSan))}.</p>`);
     }
     parts.push(linesHtml(m.lines, basePly));
+    if (!live && cls && cls !== 'book') parts.push(`<p class="small muted">${esc(depthNote(m))}</p>`);
     if (cls) parts.push(`<div class="actions">${claudeButton()}</div>`);
     return parts.join('');
   }
@@ -415,6 +423,11 @@ export async function renderGame(root, id, startPly = 0) {
         ${g.pass ? '' : '<p>Cette partie n\'est pas encore analysée.</p>'}`;
     } else {
       box.innerHTML = moveDetailHtml(g.moves[S.ply - 1], S.ply - 1);
+    }
+    if (g.pass === 'deep' && !g.verifyDepth && g.verifyTarget > 0 && g.status !== 'running') {
+      box.insertAdjacentHTML('beforeend', g.requested
+        ? '<p class="small">Vérification demandée : elle démarrera dès que le moteur sera libre.</p>'
+        : `<div class="actions"><button id="reverify" title="Les positions déjà calculées sont réutilisées : seuls les coups douteux sont recalculés">Revérifier les coups douteux à la profondeur ${g.verifyTarget}</button></div>`);
     }
     if (g.pass !== 'deep') {
       box.insertAdjacentHTML('beforeend', g.status === 'running'
@@ -461,7 +474,17 @@ export async function renderGame(root, id, startPly = 0) {
     renderDetail(nd);
     if (g.pass) graph.update(graphData());
     $('#graphBox').hidden = !g.pass;
-    $('#graphNote').textContent = g.pass ? `Analyse ${g.pass === 'deep' ? 'profonde' : 'rapide'} (profondeur ${g.pass === 'deep' ? 'médiane ' : ''}${g.depth ?? '?'}). Cliquez sur le graphe pour aller à un coup. Points : gaffes (rouge), erreurs (orange), occasions manquées.` : 'Graphe disponible après l\'analyse.';
+    $('#graphNote').textContent = g.pass ? `${depthSummary()} Cliquez sur le graphe pour aller à un coup. Points : gaffes (rouge), erreurs (orange), occasions manquées.` : 'Graphe disponible après l\'analyse.';
+  }
+
+  // Profondeur réellement atteinte par Stockfish dans cette analyse.
+  function depthSummary() {
+    if (g.pass === 'quick') return `Analyse rapide (profondeur ${g.depth ?? '?'}).`;
+    const span = g.depthMin != null && g.depthMax != null && g.depthMin !== g.depthMax ? `de ${g.depthMin} à ${g.depthMax}, médiane ${g.depth}` : `${g.depth ?? '?'}`;
+    const verify = g.verifyDepth
+      ? (g.verified ? ` ${g.verified} coup(s) douteux revérifié(s) à la profondeur ${g.verifyDepth}.` : ` Aucun coup douteux à revérifier à la profondeur ${g.verifyDepth}.`)
+      : ' Coups douteux pas encore revérifiés à profondeur fixe (analyse antérieure).';
+    return `Analyse profonde : profondeur atteinte ${span}.${verify}`;
   }
 
   function renderHeader() {
@@ -550,6 +573,7 @@ export async function renderGame(root, id, startPly = 0) {
     if (t.closest('#playLine')) { if (S.free.cursor >= S.free.items.length) S.free.cursor = 0; playLine(); return; }
     if (t.closest('#askClaude')) { askClaude(); return; }
     if (t.closest('#prio')) { await api(`/api/games/${id}/prioritize`, {}); g.requested = true; render(); toast("Analyse demandée : la partie passe en tête de la file. Le résultat s'affichera automatiquement."); return; }
+    if (t.closest('#reverify')) { await api(`/api/games/${id}/prioritize`, { reverify: true }); g.requested = true; render(); toast('Vérification demandée : seuls les coups douteux seront recalculés.'); return; }
     if (t.closest('#unprio')) { await api(`/api/games/${id}/unrequest`, {}); g.requested = false; render(); toast("Demande d'analyse annulée."); return; }
   });
 

@@ -13,6 +13,15 @@ const MODE_FILTER = {
   quick: "(q.priority > 0 OR q.pass = 'quick')",
   auto: '1 = 1',
 };
+// « Analyser tout mon historique » : toutes mes parties, après les parties demandées (priorité basse).
+// Mes parties : celles d'un compte suivi (import chess.com / Lichess) ou dont un joueur porte le nom d'un compte suivi (PGN).
+const MINE = `q.game_id IN (
+  SELECT pg.game_id FROM player_games pg JOIN players p ON p.id = pg.player_id WHERE p.tracked = 1
+  UNION SELECT g.id FROM games g WHERE lower(g.white_name) IN (SELECT lower(username) FROM players WHERE tracked = 1)
+    OR lower(g.black_name) IN (SELECT lower(username) FROM players WHERE tracked = 1))`;
+export const HISTORY_STATES = ['off', 'on', 'paused'];
+// Durée par défaut d'une analyse (en secondes) tant qu'aucune n'a été mesurée sur cet ordinateur.
+const DEFAULT_SECONDS = { quick: 20, deep: 300 };
 import { analyzeGame } from './analysis/analyze.js';
 import { AbortError } from './engine/stockfish.js';
 
@@ -40,13 +49,44 @@ export class AnalysisQueue {
   setMode(mode) {
     if (!MODES.includes(mode)) throw Object.assign(new Error('Mode inconnu'), { status: 400 });
     setMeta('queue_mode', mode);
-    // Une analyse en cours qui ne fait plus partie du nouveau mode est remise en attente.
-    if (this.current && !this.isWanted(this.current.gameId, this.current.pass)) this.ctrl?.abort();
+    this.abortIfUnwanted();
     this.notify();
   }
 
+  get history() {
+    const h = getMeta('history_run', 'off');
+    return HISTORY_STATES.includes(h) ? h : 'off';
+  }
+
+  // start : lance l'analyse de tout l'historique ; pause / resume ; stop : arrête (le travail fait est gardé).
+  setHistory(action) {
+    const next = { start: 'on', resume: 'on', pause: 'paused', stop: 'off' }[action];
+    if (!next) throw Object.assign(new Error('Action inconnue'), { status: 400 });
+    if (action === 'start') {
+      // Les analyses profondes faites avant la vérification à profondeur fixe sont refaites : les positions
+      // sont en cache, seule la vérification des coups douteux est calculée.
+      getDb().prepare(`UPDATE analysis_queue SET status = 'pending', error = NULL
+        WHERE pass = 'deep' AND status = 'done' AND ${MINE.replaceAll('q.game_id', 'analysis_queue.game_id')}
+          AND game_id IN (SELECT game_id FROM game_analysis WHERE pass = 'deep' AND verify_depth IS NULL)`).run();
+    }
+    setMeta('history_run', next);
+    this.abortIfUnwanted();
+    this.notify(); // la boucle de la file (déjà lancée) prend les nouvelles parties
+    return this.progress();
+  }
+
+  filter() {
+    const base = MODE_FILTER[this.mode];
+    return this.history === 'on' ? `(${base} OR ${MINE})` : base;
+  }
+
   isWanted(gameId, pass) {
-    return !!getDb().prepare(`SELECT 1 FROM analysis_queue q WHERE q.game_id = ? AND q.pass = ? AND ${MODE_FILTER[this.mode]}`).get(gameId, pass);
+    return !!getDb().prepare(`SELECT 1 FROM analysis_queue q WHERE q.game_id = ? AND q.pass = ? AND ${this.filter()}`).get(gameId, pass);
+  }
+
+  // Une analyse en cours qui ne fait plus partie de ce qui est demandé est remise en attente.
+  abortIfUnwanted() {
+    if (this.current && !this.isWanted(this.current.gameId, this.current.pass)) this.ctrl?.abort();
   }
 
   // Au démarrage : une analyse interrompue par la fermeture redevient « à faire ».
@@ -58,7 +98,7 @@ export class AnalysisQueue {
     return getDb().prepare(`
       SELECT q.game_id, q.pass, g.white_name, g.black_name, g.played_at
       FROM analysis_queue q JOIN games g ON g.id = q.game_id
-      WHERE q.status = 'pending' AND ${MODE_FILTER[this.mode]}
+      WHERE q.status = 'pending' AND ${this.filter()}
       ORDER BY q.priority DESC, CASE q.pass WHEN 'quick' THEN 0 ELSE 1 END, COALESCE(g.end_time, 0) DESC, g.id DESC
       LIMIT 1`).get();
   }
@@ -99,7 +139,12 @@ export class AnalysisQueue {
         await analyzeGame(item.game_id, item.pass, {
           evaluator: this.evaluator,
           signal: this.ctrl.signal,
-          onProgress: (ply, total) => { if (this.current) { this.current.ply = ply; this.current.total = total; } },
+          onProgress: (ply, total, extra) => {
+            if (!this.current) return;
+            this.current.ply = ply;
+            this.current.total = total;
+            this.current.verify = extra?.phase === 'verify' ? { done: extra.done, total: extra.total, depth: extra.depth } : null;
+          },
         });
         this.setStatus(item.game_id, item.pass, 'done');
         try { this.onAnalyzed?.(item.game_id, item.pass); } catch { /* les statistiques seront recalculées au prochain lancement */ }
@@ -138,11 +183,13 @@ export class AnalysisQueue {
   }
 
   // Met une partie en tête de file (passe rapide puis passe profonde).
-  prioritize(gameId) {
+  // reverify : refait la passe profonde déjà faite (positions en cache) pour vérifier les coups douteux.
+  prioritize(gameId, { reverify = false } = {}) {
     const d = getDb();
     const top = d.prepare('SELECT COALESCE(MAX(priority), 0) AS p FROM analysis_queue').get().p + 1;
-    d.prepare("UPDATE analysis_queue SET priority = ?, status = CASE WHEN status = 'error' THEN 'pending' ELSE status END WHERE game_id = ?")
-      .run(top, gameId);
+    d.prepare(`UPDATE analysis_queue SET priority = ?,
+        status = CASE WHEN status = 'error' OR (? AND pass = 'deep' AND status = 'done') THEN 'pending' ELSE status END
+      WHERE game_id = ?`).run(top, reverify ? 1 : 0, gameId);
     // La partie demandée démarre tout de suite : l'analyse en cours d'une autre partie est remise en file
     // (les positions déjà calculées restent en cache, elle reprendra ensuite là où elle en était).
     if (this.current && this.current.gameId !== gameId) this.ctrl?.abort();
@@ -152,7 +199,7 @@ export class AnalysisQueue {
   // Retire une partie de la file (seulement ce qui n'a pas encore été analysé).
   unrequest(gameId) {
     getDb().prepare("UPDATE analysis_queue SET priority = 0 WHERE game_id = ? AND status IN ('pending', 'error')").run(gameId);
-    if (this.current?.gameId === gameId && !this.isWanted(gameId, this.current.pass)) this.ctrl?.abort();
+    if (this.current?.gameId === gameId) this.abortIfUnwanted();
     this.notify();
   }
 
@@ -181,10 +228,42 @@ export class AnalysisQueue {
       paused: this.paused,
       running: this.running,
       mode: this.mode,
+      history: this.historyProgress(),
       current: this.current,
       passes: p,
       requested: { waiting: req.waiting, total: req.total },
       lastError: this.lastError,
+    };
+  }
+
+  // Historique : parties restantes et temps estimé d'après les dernières analyses mesurées sur cet ordinateur.
+  historyProgress() {
+    const d = getDb();
+    const left = d.prepare(`SELECT
+        COUNT(DISTINCT q.game_id) AS games,
+        SUM(q.pass = 'quick') AS quick,
+        SUM(q.pass = 'deep') AS deep
+      FROM analysis_queue q WHERE q.status IN ('pending', 'running') AND ${MINE}`).get();
+    const total = d.prepare(`SELECT COUNT(DISTINCT q.game_id) AS n FROM analysis_queue q WHERE ${MINE}`).get().n;
+    const avg = {};
+    let measured = true;
+    for (const pass of ['quick', 'deep']) {
+      const r = d.prepare(`SELECT AVG(duration_ms) AS ms, COUNT(*) AS n FROM (
+          SELECT duration_ms FROM game_analysis WHERE pass = ? AND duration_ms > 0 ORDER BY analyzed_at DESC LIMIT 30)`).get(pass);
+      if (r.n >= 3) avg[pass] = r.ms / 1000;
+      else { avg[pass] = DEFAULT_SECONDS[pass]; measured = false; }
+    }
+    const quick = left.quick ?? 0;
+    const deep = left.deep ?? 0;
+    return {
+      state: this.history,
+      totalGames: total,
+      remainingGames: left.games ?? 0,
+      remainingQuick: quick,
+      remainingDeep: deep,
+      etaSec: Math.round(quick * avg.quick + deep * avg.deep),
+      avgSec: { quick: Math.round(avg.quick), deep: Math.round(avg.deep) },
+      measured,
     };
   }
 }

@@ -80,6 +80,8 @@ export function listMyGames(filters = {}, currentGameId = null) {
       COALESCE(gd.elo_white, gq.elo_white) AS est_elo_white,
       COALESCE(gd.elo_black, gq.elo_black) AS est_elo_black,
       CASE WHEN gd.game_id IS NOT NULL THEN 'deep' WHEN gq.game_id IS NOT NULL THEN 'quick' END AS analysis_pass,
+      COALESCE(gd.depth, gq.depth) AS analysis_depth, gd.depth_min AS depth_min, gd.depth_max AS depth_max,
+      gd.verify_depth AS verify_depth, gd.verified AS verified_moves,
       (SELECT COUNT(*) FROM analysis_queue aq WHERE aq.game_id = g.id AND aq.priority > 0 AND aq.status IN ('pending', 'running')) AS requested
       ${base}`;
   const fargs = [];
@@ -118,6 +120,7 @@ export function listMyGames(filters = {}, currentGameId = null) {
       plies: g.ply_count,
       analysis: g.id === currentGameId ? 'running' : (g.analysis_pass ?? (g.parse_error ? 'error' : 'pending')),
       requested: g.requested > 0,
+      depth: g.analysis_depth, depthMin: g.depth_min, depthMax: g.depth_max, verifyDepth: g.verify_depth, verifiedMoves: g.verified_moves,
     };
   });
   return { total, games };

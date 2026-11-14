@@ -93,7 +93,7 @@ export function buildGameView(gameId, { currentGameId = null } = {}) {
       winBest: a?.win_best ?? null, winPlayed: a?.win_played ?? null, winWhiteAfter: a?.win_white_after ?? null,
       evalAfter: evalPlayed ? toWhite(evalPlayed, r.color) : null,
       bestUci: a?.best_uci ?? null, bestSan: a?.best_san ?? null,
-      depth: a?.depth ?? null, source: a?.source ?? null,
+      depth: a?.depth ?? null, source: a?.source ?? null, verified: !!a?.verified,
       lines: multipv ? formatLines(r.fen_before, multipv.lines, r.color) : [],
       explanation: null,
     };
@@ -136,6 +136,9 @@ export function buildGameView(gameId, { currentGameId = null } = {}) {
     white: side('white'), black: side('black'),
     opening: { name: g.book_name, eco: g.book_eco, exitPly: g.book_exit_ply, exitSan: exitMove?.san ?? null, chesscomName: g.opening_name },
     pass, depth: analysis?.depth ?? null,
+    depthMin: analysis?.depth_min ?? null, depthMax: analysis?.depth_max ?? null,
+    verified: analysis?.verified ?? null, verifyDepth: analysis?.verify_depth ?? null,
+    nodes: pass === 'deep' ? config.engine.deepNodes : null, verifyTarget: config.engine.verifyDepth,
     status: g.id === currentGameId ? 'running' : (pass ?? 'pending'),
     queue: queueRows,
     requested: getDb().prepare("SELECT COUNT(*) AS n FROM analysis_queue WHERE game_id = ? AND priority > 0 AND status IN ('pending', 'running')").get(gameId).n > 0,

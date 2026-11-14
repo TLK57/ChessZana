@@ -6,7 +6,7 @@ import { config } from './config.js';
 import { backupDatabase } from './backup.js';
 
 // Version du schéma : quand une base plus ancienne est ouverte, elle est sauvegardée avant d'être migrée.
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meta (
@@ -210,6 +210,13 @@ function migrate(d) {
   add('analysis_queue', 'priority', 'INTEGER NOT NULL DEFAULT 0');
   // Optimisation : recherches à budget de nœuds (comme Lichess) au lieu d'une profondeur fixe.
   add('evaluations', 'nodes', 'INTEGER');
+  // Profondeur réellement atteinte, vérification à profondeur fixe des coups douteux, durée des analyses.
+  add('move_analysis', 'verified', 'INTEGER NOT NULL DEFAULT 0');
+  add('game_analysis', 'depth_min', 'INTEGER');
+  add('game_analysis', 'depth_max', 'INTEGER');
+  add('game_analysis', 'verified', 'INTEGER');
+  add('game_analysis', 'verify_depth', 'INTEGER');
+  add('game_analysis', 'duration_ms', 'INTEGER');
   d.exec('CREATE INDEX IF NOT EXISTS idx_games_book ON games(book_name)');
 }
 

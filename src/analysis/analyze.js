@@ -19,15 +19,19 @@ export const PASSES = {
     criticalNodes: config.engine.deepNodes > 0 ? config.engine.deepNodesCritical : null,
     allowCloud: true,
     skipDecided: config.engine.deepSkipDecided < 100,
+    verifyDepth: config.engine.verifyDepth,
   }),
 };
+
+// Classements revérifiés à profondeur fixe (ceux qui comptent le plus pour le joueur).
+export const VERIFIED_CLASSES = new Set(['mistake', 'blunder', 'miss', 'brilliant', 'great']);
 
 const scoreOf = (l) => (l ? { cp: l.cp ?? null, mate: l.mate ?? null, wdl: l.wdl ?? null } : null);
 
 /**
  * Analyse une suite de coups.
  * moves : [{ ply, color, san, uci, fenBefore }]
- * opts  : { depth, allowCloud, whiteElo, blackElo, standardStart, finalFen, evaluator, signal, onProgress }
+ * opts  : { depth, nodes, verifyDepth, allowCloud, whiteElo, blackElo, standardStart, finalFen, evaluator, signal, onProgress }
  */
 export async function analyzeMoveList(moves, opts) {
   const { evaluator, depth, signal } = opts;
@@ -116,46 +120,83 @@ export async function analyzeMoveList(moves, opts) {
     }
   }
 
+  // Profondeur réellement atteinte pour un coup : la plus faible des deux recherches (position et coup joué).
+  const moveDepth = (e) => {
+    const d = e.before.depth ?? 0;
+    return e.played?.depth != null && e.before.source === 'stockfish' ? Math.min(d, e.played.depth) : d;
+  };
+
   // 4) Chances de gain, perte, classement.
-  const results = [];
-  for (let i = 0; i < n; i++) {
-    const m = moves[i];
-    const { before, played } = evals[i];
-    const best = before.lines[0];
-    const second = before.lines[1] ?? null;
-    const winBest = winPct(scoreOf(best));
-    const winPlayed = winPct(scoreOf(played));
-    const winSecond = second ? winPct(scoreOf(second)) : null;
-    const playedIsBest = best?.move === m.uci;
-    const altLine = playedIsBest ? second : best;
-    const c = new Chess(m.fenBefore);
-    const prevMove = i > 0 ? moves[i - 1] : null;
-    const isRecapture = !!prevMove && /x/.test(prevMove.san) && /x/.test(m.san) && prevMove.uci.slice(2, 4) === m.uci.slice(2, 4);
-    const prev = i > 0 && results[i - 1] ? { classification: results[i - 1].classification, winBest: results[i - 1].winBest } : null;
-    const { classification, loss } = classifyMove({
-      book: book[i],
-      legalMoves: c.moves().length,
-      inCheck: c.inCheck(),
-      playedIsBest,
-      winBest, winPlayed, winSecond,
-      elo: m.color === 'w' ? opts.whiteElo : opts.blackElo,
-      fenBefore: m.fenBefore,
-      playedPv: played?.pv?.length ? played.pv : [m.uci],
-      altPv: altLine?.pv ?? null,
-      isRecapture,
-      prev,
-    });
-    results.push({
-      ply: m.ply, color: m.color, san: m.san, uci: m.uci,
-      bestUci: best?.move ?? null,
-      bestSan: best?.move ? (best.san ?? uciToSan(m.fenBefore, best.move)) : null,
-      evalBest: scoreOf(best), evalPlayed: scoreOf(played),
-      winBest, winPlayed, winSecond, loss,
-      accuracy: moveAccuracy(loss),
-      classification,
-      source: before.source,
-      depth: before.depth,
-    });
+  const classifyAll = () => {
+    const results = [];
+    for (let i = 0; i < n; i++) {
+      const m = moves[i];
+      const { before, played } = evals[i];
+      const best = before.lines[0];
+      const second = before.lines[1] ?? null;
+      const winBest = winPct(scoreOf(best));
+      const winPlayed = winPct(scoreOf(played));
+      const winSecond = second ? winPct(scoreOf(second)) : null;
+      const playedIsBest = best?.move === m.uci;
+      const altLine = playedIsBest ? second : best;
+      const c = new Chess(m.fenBefore);
+      const prevMove = i > 0 ? moves[i - 1] : null;
+      const isRecapture = !!prevMove && /x/.test(prevMove.san) && /x/.test(m.san) && prevMove.uci.slice(2, 4) === m.uci.slice(2, 4);
+      const prev = i > 0 && results[i - 1] ? { classification: results[i - 1].classification, winBest: results[i - 1].winBest } : null;
+      const { classification, loss } = classifyMove({
+        book: book[i],
+        legalMoves: c.moves().length,
+        inCheck: c.inCheck(),
+        playedIsBest,
+        winBest, winPlayed, winSecond,
+        elo: m.color === 'w' ? opts.whiteElo : opts.blackElo,
+        fenBefore: m.fenBefore,
+        playedPv: played?.pv?.length ? played.pv : [m.uci],
+        altPv: altLine?.pv ?? null,
+        isRecapture,
+        prev,
+      });
+      results.push({
+        ply: m.ply, color: m.color, san: m.san, uci: m.uci,
+        bestUci: best?.move ?? null,
+        bestSan: best?.move ? (best.san ?? uciToSan(m.fenBefore, best.move)) : null,
+        evalBest: scoreOf(best), evalPlayed: scoreOf(played),
+        winBest, winPlayed, winSecond, loss,
+        accuracy: moveAccuracy(loss),
+        classification,
+        source: before.source,
+        depth: moveDepth(evals[i]),
+        verified: !!evals[i].verified,
+      });
+    }
+    return results;
+  };
+  let results = classifyAll();
+
+  // 4b) Vérification : les coups classés erreur, gaffe, occasion manquée, très bon ou brillant sont recalculés
+  //     à la vraie profondeur verifyDepth (sans limite de nœuds), puis toute la partie est reclassée
+  //     (le classement d'un coup peut dépendre du précédent, d'où quelques tours au plus).
+  let verifiedCount = 0;
+  if (opts.verifyDepth > 0) {
+    const vs = { depth: opts.verifyDepth, nodes: null, signal };
+    for (let round = 0; round < 3; round++) {
+      const todo = [];
+      results.forEach((r, i) => {
+        const e = evals[i];
+        if (VERIFIED_CLASSES.has(r.classification) && !e.verified && e.before.source !== 'tablebase' && moveDepth(e) < opts.verifyDepth) todo.push(i);
+      });
+      if (!todo.length) break;
+      for (const [k, i] of todo.entries()) {
+        if (signal?.aborted) throw new AbortError();
+        opts.onProgress?.(n, n, { phase: 'verify', done: k, total: todo.length, depth: opts.verifyDepth });
+        const m = moves[i];
+        const before = await evaluator.evaluatePosition(m.fenBefore, { ...vs, allowCloud: false });
+        const played = before.lines.find((l) => l.move === m.uci) ?? await evaluator.evaluateMove(m.fenBefore, m.uci, vs);
+        evals[i] = { before, played, verified: true };
+        verifiedCount++;
+      }
+      results = classifyAll();
+    }
   }
 
   // 5) Série des chances de gain des Blancs P0…Pn, précision de la partie et Elo estimé.
@@ -166,10 +207,14 @@ export async function analyzeMoveList(moves, opts) {
   const counts = { w: {}, b: {} };
   for (const r of results) counts[r.color][r.classification] = (counts[r.color][r.classification] ?? 0) + 1;
   const nonBook = (color) => results.filter((r) => r.color === color && r.classification !== 'book').length;
-  // Profondeur typique atteinte par Stockfish (médiane), pour l'affichage.
-  const depths = evals.filter((x) => !x.light && x.before.source === 'stockfish').map((x) => x.before.depth).sort((a, b) => a - b);
+  // Profondeur réellement atteinte par Stockfish (médiane, minimum, maximum), pour l'affichage.
+  const depths = evals.filter((x) => !x.light && x.before.source === 'stockfish').map(moveDepth).sort((a, b) => a - b);
   return {
     depthUsed: depths.length ? depths[Math.floor(depths.length / 2)] : depth,
+    depthMin: depths.length ? depths[0] : null,
+    depthMax: depths.length ? depths.at(-1) : null,
+    verifiedCount,
+    verifyDepth: opts.verifyDepth > 0 ? opts.verifyDepth : null,
     lightPositions: evals.filter((x) => x.light).length,
     criticalPositions: criticalCount,
     moves: results,
@@ -189,6 +234,7 @@ export async function analyzeGame(gameId, pass, { evaluator, signal, onProgress 
   const rows = getGameMoves(gameId);
   if (!rows.length) throw new Error('Partie sans coups');
   const p = PASSES[pass]();
+  const startedAt = Date.now();
   const lastFen = (() => {
     const c = new Chess(rows[rows.length - 1].fen_before);
     const u = rows[rows.length - 1].uci;
@@ -200,11 +246,13 @@ export async function analyzeGame(gameId, pass, { evaluator, signal, onProgress 
     {
       evaluator, signal, onProgress,
       depth: p.depth, nodes: p.nodes, criticalNodes: p.criticalNodes, allowCloud: p.allowCloud, skipDecided: p.skipDecided,
+      verifyDepth: p.verifyDepth ?? 0,
       whiteElo: game.white_elo, blackElo: game.black_elo,
       standardStart: !game.start_fen || game.start_fen === START_FEN,
       finalFen: lastFen,
     },
   );
+  res.durationMs = Date.now() - startedAt;
   saveAnalysis(gameId, pass, res.depthUsed ?? p.depth, res);
   return res;
 }
@@ -214,17 +262,20 @@ export function saveAnalysis(gameId, pass, depth, res) {
   transaction(() => {
     d.prepare('DELETE FROM move_analysis WHERE game_id = ? AND pass = ?').run(gameId, pass);
     const ins = d.prepare(`INSERT INTO move_analysis(game_id, pass, ply, best_uci, best_san, eval_best, eval_played, win_best,
-        win_played, win_second, win_white_after, loss, accuracy, classification, source, depth)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        win_played, win_second, win_white_after, loss, accuracy, classification, source, depth, verified)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
     for (const m of res.moves) {
       ins.run(gameId, pass, m.ply, m.bestUci, m.bestSan, JSON.stringify(m.evalBest), JSON.stringify(m.evalPlayed),
-        m.winBest, m.winPlayed, m.winSecond, m.winWhiteAfter, m.loss, m.accuracy, m.classification, m.source, m.depth);
+        m.winBest, m.winPlayed, m.winSecond, m.winWhiteAfter, m.loss, m.accuracy, m.classification, m.source, m.depth, m.verified ? 1 : 0);
     }
-    d.prepare(`INSERT INTO game_analysis(game_id, pass, depth, accuracy_white, accuracy_black, elo_white, elo_black, counts, analyzed_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    d.prepare(`INSERT INTO game_analysis(game_id, pass, depth, accuracy_white, accuracy_black, elo_white, elo_black, counts,
+          depth_min, depth_max, verified, verify_depth, duration_ms, analyzed_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         ON CONFLICT(game_id, pass) DO UPDATE SET depth = excluded.depth, accuracy_white = excluded.accuracy_white,
           accuracy_black = excluded.accuracy_black, elo_white = excluded.elo_white, elo_black = excluded.elo_black,
-          counts = excluded.counts, analyzed_at = excluded.analyzed_at`)
-      .run(gameId, pass, depth, res.accuracyWhite, res.accuracyBlack, res.eloWhite, res.eloBlack, JSON.stringify(res.counts));
+          counts = excluded.counts, depth_min = excluded.depth_min, depth_max = excluded.depth_max, verified = excluded.verified,
+          verify_depth = excluded.verify_depth, duration_ms = excluded.duration_ms, analyzed_at = excluded.analyzed_at`)
+      .run(gameId, pass, depth, res.accuracyWhite, res.accuracyBlack, res.eloWhite, res.eloBlack, JSON.stringify(res.counts),
+        res.depthMin ?? null, res.depthMax ?? null, res.verifiedCount ?? 0, res.verifyDepth ?? null, res.durationMs ?? null);
   });
 }

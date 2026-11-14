@@ -171,3 +171,13 @@ test('coup hors des 2 lignes MultiPV : évalué à la même profondeur avec sear
   assert.ok(m.evalPlayed && (m.evalPlayed.cp != null || m.evalPlayed.mate != null));
   assert.ok(config.engine.multiPV >= 2);
 });
+
+test('vérification à profondeur fixe avec Stockfish : la gaffe 2. Dg4?? est recalculée sans limite de nœuds', async () => {
+  const r = await analyse(START_FEN, ['e4', 'd5', 'Qg4'], { nodes: 5000, verifyDepth: DEPTH + 2 });
+  const m = r.moves[2];
+  assert.equal(m.classification, 'blunder');
+  assert.equal(m.verified, true);
+  assert.ok(m.depth >= DEPTH + 2, `profondeur ${m.depth}`);
+  assert.ok(r.verifiedCount >= 1);
+  assert.equal(r.moves[0].verified, false, 'les coups de théorie ne sont pas revérifiés');
+});

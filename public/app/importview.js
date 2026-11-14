@@ -2,6 +2,14 @@
 import { api, esc } from './util.js';
 
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
+const fmtInt = (n) => Number(n).toLocaleString('fr-FR');
+function fmtDuration(sec) {
+  if (sec < 90) return `${Math.max(1, Math.round(sec))} s`;
+  if (sec < 5400) return `${Math.round(sec / 60)} min`;
+  if (sec < 172800) return `${Math.round(sec / 3600)} h`;
+  return `${Math.round(sec / 86400)} jours`;
+}
+const range = (r) => (r.min != null && r.max != null && r.min !== r.max ? ` (de ${r.min} à ${r.max})` : '');
 
 export async function renderImport(root) {
   root.innerHTML = `
@@ -16,7 +24,7 @@ export async function renderImport(root) {
       <textarea id="pgn" class="pgn" placeholder='[White "..."]&#10;[Black "..."]&#10;[Result "1-0"]&#10;&#10;1. e4 e5 2. Nf3 ... 1-0'></textarea>
       <div class="drop" id="drop">Déposez un fichier .pgn ici, ou <label style="display:inline;color:var(--accent);cursor:pointer"><input type="file" id="file" accept=".pgn,.txt" multiple hidden>choisissez-le</label></div>
       <div class="actions"><button class="primary" id="pgnBtn">Importer le PGN</button><button id="syncBtn">Synchroniser mes comptes</button></div>
-      <p id="contactWarn" class="small muted" hidden>Conseil : indiquez votre e-mail dans « contact » de config.json (demandé par chess.com et Lichess).</p>
+      <p id="contactWarn" class="small muted" hidden>Conseil : indiquez votre e-mail dans « contact » du fichier config.local.json (demandé par chess.com et Lichess).</p>
     </section>
     <section class="card">
       <h2>File d'analyse</h2>
@@ -27,14 +35,22 @@ export async function renderImport(root) {
         <option value="auto">Toutes mes parties automatiquement (rapide puis profonde)</option>
       </select>
       <p class="small muted" id="modeHelp" style="margin:6px 0 12px"></p>
-      <div class="small">Passe rapide (profondeur <span id="qd"></span>) : <b id="qTxt">–</b></div>
+      <div class="small">Passe rapide : <b id="qTxt">–</b></div>
+      <div class="small muted" id="qd"></div>
       <div class="bar"><div id="qBar"></div></div>
-      <div class="small" style="margin-top:8px">Passe profonde (profondeur <span id="dd"></span>) : <b id="dTxt">–</b></div>
+      <div class="small" style="margin-top:8px">Passe profonde : <b id="dTxt">–</b></div>
+      <div class="small muted" id="dd"></div>
       <div class="bar"><div id="dBar"></div></div>
       <p class="small" id="current" style="margin:10px 0 4px">–</p>
       <div class="bar"><div id="cBar"></div></div>
       <div class="actions"><button id="pauseBtn">Pause</button><button id="retryBtn" hidden>Relancer les parties en erreur</button></div>
       <p class="small muted" id="qErr"></p>
+      <h2 style="margin-top:12px">Tout mon historique</h2>
+      <p class="small" id="histTxt">–</p>
+      <p class="small muted">Toutes vos parties, passe rapide puis profonde. Les parties que vous demandez passent toujours avant,
+        et le moteur tourne en priorité basse : l'ordinateur reste utilisable. Vous pouvez mettre en pause et reprendre plus tard,
+        même après avoir fermé l'application.</p>
+      <div class="actions"><button class="primary" id="histBtn">Analyser tout mon historique</button><button id="histStop" hidden>Arrêter</button></div>
       <h2 style="margin-top:12px">Imports</h2>
       <ul id="log" class="small" style="padding-left:18px;margin:0"></ul>
     </section>
@@ -52,7 +68,12 @@ export async function renderImport(root) {
     let s;
     try { s = await api('/api/status'); } catch { return; }
     $('contactWarn').hidden = s.contactSet;
-    $('qd').textContent = s.engine.quickDepth; $('dd').textContent = s.engine.deepDepth;
+    const E = s.engine, R = E.reached ?? {};
+    $('qd').textContent = `Profondeur fixe ${E.quickDepth}.`;
+    $('dd').textContent = (E.deepNodes > 0
+      ? `${fmtInt(E.deepNodes)} positions calculées par coup : la profondeur atteinte varie selon la position${R.deep ? ` — ${String(R.deep.avg).replace('.', ',')} en moyenne${range(R.deep)} sur vos ${R.deep.n} analyses profondes` : ''}.`
+      : `Profondeur fixe ${E.deepDepth}.`)
+      + (E.verifyDepth > 0 ? ` Les erreurs, gaffes, occasions manquées, très bons coups et coups brillants sont ensuite revérifiés à la profondeur ${E.verifyDepth}${R.deep?.verified ? ` (${R.deep.verified} coups revérifiés jusqu'ici)` : ''}.` : '');
     const q = s.queue, Q = q.passes.quick, D = q.passes.deep;
     if (document.activeElement !== $('mode')) $('mode').value = q.mode;
     $('modeHelp').textContent = q.mode === 'manual'
@@ -65,13 +86,26 @@ export async function renderImport(root) {
     $('qBar').style.width = `${pct(Q.done + Q.error, Q.total)}%`;
     $('dBar').style.width = `${pct(D.done + D.error, D.total)}%`;
     if (q.current) {
-      $('current').innerHTML = `En cours (${q.current.pass === 'quick' ? 'rapide' : 'profonde'}) : <a href="#/partie/${q.current.gameId}">${esc(q.current.label)}</a> — coup ${q.current.ply} / ${q.current.total || '?'}`;
-      $('cBar').style.width = `${pct(q.current.ply, q.current.total)}%`;
+      const c = q.current;
+      $('current').innerHTML = `En cours (${c.pass === 'quick' ? 'rapide' : 'profonde'}) : <a href="#/partie/${c.gameId}">${esc(c.label)}</a> — `
+        + (c.verify ? `vérification à la profondeur ${c.verify.depth} : coup douteux ${c.verify.done + 1} / ${c.verify.total}` : `coup ${c.ply} / ${c.total || '?'}`);
+      $('cBar').style.width = `${c.verify ? pct(c.verify.done, c.verify.total) : pct(c.ply, c.total)}%`;
     } else {
       $('current').textContent = q.paused ? 'En pause.' : (Q.pending + D.pending === 0 ? 'Rien à analyser pour le moment.' : 'En attente du moteur…');
       $('cBar').style.width = '0%';
     }
     $('pauseBtn').textContent = q.paused ? 'Reprendre' : 'Pause';
+    const H = q.history;
+    $('histTxt').innerHTML = H.totalGames === 0 ? 'Importez d\'abord vos parties.'
+      : H.remainingGames === 0 ? `<b>Tout votre historique est analysé</b> (${H.totalGames} parties).`
+        : `<b>${H.remainingGames} partie(s) restante(s)</b> sur ${H.totalGames} (passe rapide : ${H.remainingQuick}, passe profonde : ${H.remainingDeep})`
+          + ` — temps estimé : <b>environ ${fmtDuration(H.etaSec)}</b>`
+          + (H.measured ? ` (d'après vos dernières analyses : ${fmtDuration(H.avgSec.quick)} en rapide, ${fmtDuration(H.avgSec.deep)} en profondeur par partie)` : ' (estimation grossière : pas encore assez d\'analyses mesurées sur cet ordinateur)')
+          + (H.state === 'paused' ? '. <b>En pause.</b>' : H.state === 'on' ? '. <b>En cours.</b>' : '.');
+    $('histBtn').textContent = H.state === 'on' ? 'Mettre en pause' : H.state === 'paused' ? 'Reprendre' : 'Analyser tout mon historique';
+    $('histBtn').dataset.action = H.state === 'on' ? 'pause' : H.state === 'paused' ? 'resume' : 'start';
+    $('histBtn').hidden = H.state === 'off' && H.remainingGames === 0;
+    $('histStop').hidden = H.state === 'off';
     $('retryBtn').hidden = !(Q.error + D.error);
     $('qErr').textContent = q.lastError ? `Dernière erreur : ${q.lastError}` : '';
     $('log').innerHTML = s.imports.map((j) => `<li><b>${j.kind === 'chesscom' ? 'chess.com' : 'Lichess'} ${esc(j.username)}</b> — ${esc(j.status === 'error' ? `Erreur : ${j.error}` : j.message)}${j.total ? ` (${j.done}/${j.total})` : ''}</li>`).join('') || '<li>Aucun import pendant cette session.</li>';
@@ -110,6 +144,8 @@ export async function renderImport(root) {
   drop.addEventListener('drop', (e) => { e.preventDefault(); readFiles(e.dataTransfer.files); });
   $('pauseBtn').onclick = async () => { const s = await api('/api/status'); await api(s.queue.paused ? '/api/queue/resume' : '/api/queue/pause', {}); refresh(); };
   $('retryBtn').onclick = () => api('/api/queue/retry', {}).then(refresh);
+  $('histBtn').onclick = () => api('/api/queue/history', { action: $('histBtn').dataset.action }).then(refresh).catch((e) => alert(e.message));
+  $('histStop').onclick = () => api('/api/queue/history', { action: 'stop' }).then(refresh).catch((e) => alert(e.message));
   $('mode').onchange = () => api('/api/queue/mode', { mode: $('mode').value }).then(refresh).catch((e) => alert(e.message));
 
   const REASONS = { quotidienne: 'automatique (quotidienne)', manuelle: 'manuelle', 'avant-restauration': 'avant une restauration' };

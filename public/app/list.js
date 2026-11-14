@@ -7,7 +7,10 @@ const STATUS = { pending: 'Non analysée', quick: 'Rapide', deep: 'Profonde', ru
 function statusCell(g) {
   if (g.analysis === 'running') return '<span class="status running">En cours…</span>';
   if (g.analysis === 'error') return '<span class="status error">Erreur</span>';
-  const badge = g.analysis === 'pending' ? '' : `<span class="status ${g.analysis}">${STATUS[g.analysis]}</span> `;
+  const depthTitle = g.analysis === 'deep'
+    ? `Profondeur atteinte : ${g.depthMin != null && g.depthMax != null && g.depthMin !== g.depthMax ? `${g.depthMin} à ${g.depthMax} (médiane ${g.depth})` : g.depth ?? '?'}${g.verifyDepth ? ` — ${g.verifiedMoves ?? 0} coup(s) douteux revérifié(s) à ${g.verifyDepth}` : ''}`
+    : g.analysis === 'quick' ? `Profondeur ${g.depth ?? '?'}` : '';
+  const badge = g.analysis === 'pending' ? '' : `<span class="status ${g.analysis}"${depthTitle ? ` title="${esc(depthTitle)}"` : ''}>${STATUS[g.analysis]}${g.depth != null && ['quick', 'deep'].includes(g.analysis) ? ` · ${g.depth}` : ''}</span> `;
   if (g.analysis === 'deep') return badge;
   if (g.requested) return `${badge}<span class="status requested" title="Analyse demandée">En file</span>`;
   const label = g.analysis === 'quick' ? 'Approfondir' : 'Analyser';

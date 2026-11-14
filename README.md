@@ -66,6 +66,25 @@ L'application n'est accessible que depuis votre ordinateur (adresse 127.0.0.1), 
    lancement là où elle en était (les positions déjà calculées sont gardées).
 5. Aux lancements suivants, les comptes déjà importés sont **synchronisés automatiquement** : seuls le mois en
    cours et les nouveaux mois sont téléchargés (bouton **Synchroniser mes comptes** pour le faire à la demande).
+6. **Analyser tout mon historique** (même écran) : toutes vos parties passent par la passe rapide puis la passe
+   profonde, en priorité basse. Les parties que vous demandez passent toujours avant. L'écran indique le nombre de
+   parties restantes et le temps estimé (d'après la durée de vos dernières analyses sur cet ordinateur). Boutons
+   **Mettre en pause**, **Reprendre** et **Arrêter** ; la progression est gardée même si vous fermez l'application.
+
+### Profondeur affichée : la vraie
+
+La passe profonde ne calcule pas « à la profondeur 22 » : elle donne au moteur un budget de 1,5 million de positions
+par coup, et la profondeur atteinte dépend de la position (souvent 14 à 20). L'application affiche donc **la
+profondeur réellement atteinte** partout : dans la liste (« Profonde · 16 », détail en survolant), sous le graphe de la
+partie (minimum, maximum, médiane) et pour chaque coup (« Profondeur atteinte par Stockfish pour ce coup : 17 »).
+
+**Vérification à la profondeur 22.** Les coups qui comptent le plus — erreurs, gaffes, occasions manquées, très bons
+coups et coups brillants — sont ensuite recalculés à la vraie profondeur 22 (sans limite de positions), puis la partie
+est reclassée. Ces coups portent la mention « ✓ Vérifié par Stockfish à la profondeur 22 ». Une recherche qui avait
+déjà atteint la profondeur 22, une table de finales ou une analyse cloud de Lichess assez profonde n'ont pas besoin
+d'être revérifiées. Pour une partie analysée avant cette vérification, le bouton **Revérifier les coups douteux**
+(écran de la partie) ne recalcule que ces coups ; « Analyser tout mon historique » le fait pour toutes vos parties.
+Réglage : `engine.verifyDepth` (0 = pas de vérification).
 
 ### Combien de temps ça prend ?
 
@@ -74,7 +93,7 @@ Mesuré sur un portable AMD Ryzen 5 7520U (4 cœurs / 8 threads), sur une vraie 
 | Analyse | Réglage | Durée de la partie |
 |---|---|---|
 | Passe rapide | profondeur 12 | environ 30 secondes |
-| **Passe profonde (réglage actuel)** | **1,5 million de positions calculées par coup** (profondeur ≈ 15 à 20) | **3 min 30 s** |
+| **Passe profonde (réglage actuel)** | **1,5 million de positions calculées par coup** (profondeur ≈ 15 à 20), puis vérification à 22 des coups douteux | **3 min 30 s**, plus quelques secondes à une minute par coup douteux |
 | Passe profonde, budget doublé sur les coups douteux | `deepNodesCritical: 8000000` | 11 min 20 s |
 | Passe profonde « maximale » (réglage d'origine) | profondeur 22 fixe (`deepNodes: 0`) | environ 45 minutes |
 
@@ -221,6 +240,7 @@ Après une modification, fermez et relancez l'application.
 | `engine.deepNodes` | `1500000` | Passe profonde : positions calculées par coup (0 = profondeur fixe `deepDepth`, beaucoup plus lent) |
 | `engine.deepDepth` | `22` | Profondeur fixe si `deepNodes` vaut 0 ; une évaluation déjà faite à cette profondeur est toujours réutilisée |
 | `engine.deepNodesCritical` | `0` | Si > 0 : budget plus gros pour les coups douteux (perte ≥ 2 %) |
+| `engine.verifyDepth` | `22` | Erreurs, gaffes, occasions manquées, très bons et brillants revérifiés à cette profondeur (0 = jamais) |
 | `engine.deepSkipDecided` | `97` | Passe profonde : garder l'analyse rapide quand la partie est déjà jouée (≥ 97 % ou ≤ 3 %) ; 100 = jamais |
 | `engine.maxSecondsPerPosition` | `300` | Sécurité : temps maximum par position |
 | `engine.liveDepth` | `18` | Profondeur de l'analyse en direct du mode libre (16 = plus rapide) |

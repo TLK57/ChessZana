@@ -229,7 +229,11 @@ async function handle(req, res) {
   }
   if (req.method === 'GET' && p === '/api/status') {
     return send(res, 200, {
-      engine: { ...state.engine, threads: config.engine.threadsResolved, hashMB: config.engine.hashMB, quickDepth: config.engine.quickDepth, deepDepth: config.engine.deepDepth, multiPV: config.engine.multiPV, evalStats: evaluator.stats },
+      engine: {
+        ...state.engine, threads: config.engine.threadsResolved, hashMB: config.engine.hashMB, quickDepth: config.engine.quickDepth,
+        deepDepth: config.engine.deepDepth, deepNodes: config.engine.deepNodes, verifyDepth: config.engine.verifyDepth,
+        multiPV: config.engine.multiPV, evalStats: evaluator.stats, reached: depthReached(),
+      },
       queue: { ...queue.progress(), waitingForLive: Date.now() < liveActiveUntil },
       imports: state.imports,
       lichess: lichessStatus(),
@@ -261,10 +265,11 @@ async function handle(req, res) {
       return send(res, 200, r);
     }
     const pm = /^\/api\/games\/(\d+)\/prioritize$/.exec(p);
-    if (pm) { queue.prioritize(Number(pm[1])); return send(res, 200, { ok: true }); }
+    if (pm) { queue.prioritize(Number(pm[1]), { reverify: !!body.reverify }); return send(res, 200, { ok: true }); }
     const um = /^\/api\/games\/(\d+)\/unrequest$/.exec(p);
     if (um) { queue.unrequest(Number(um[1])); return send(res, 200, { ok: true }); }
     if (p === '/api/queue/mode') { queue.setMode(String(body.mode)); return send(res, 200, queue.progress()); }
+    if (p === '/api/queue/history') return send(res, 200, queue.setHistory(String(body.action)));
     if (p === '/api/training/answer') {
       liveActiveUntil = Date.now() + LIVE_PAUSE_MS;
       return send(res, 200, await answerPuzzle(Number(body.id), String(body.uci ?? ''), { evaluator: state.engine.status === 'ready' ? liveEvaluator : null }));
@@ -283,6 +288,18 @@ async function handle(req, res) {
     if (p === '/api/queue/retry') { queue.retryErrors(); return send(res, 200, queue.progress()); }
   }
   return send(res, 404, { error: 'Introuvable' });
+}
+
+// Profondeur réellement atteinte par passe, sur toutes les analyses faites.
+function depthReached() {
+  const out = {};
+  for (const pass of ['quick', 'deep']) {
+    const r = getDb().prepare(`SELECT COUNT(*) AS n, ROUND(AVG(depth), 1) AS avg, MIN(COALESCE(depth_min, depth)) AS min,
+        MAX(COALESCE(depth_max, depth)) AS max, SUM(verified) AS verified, SUM(verify_depth IS NOT NULL) AS checkedGames
+      FROM game_analysis WHERE pass = ?`).get(pass);
+    out[pass] = r.n ? r : null;
+  }
+  return out;
 }
 
 function openBrowser(url) {
