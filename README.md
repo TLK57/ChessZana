@@ -377,7 +377,19 @@ Dans un terminal ouvert dans ce dossier :
 
     npm test
 
-Ils vérifient notamment les règles de l'étape 3 (découpage en phases, pendule sous 30 s, coups évidents trop lents,
+Ce sont les **tests unitaires** : rapides (une quinzaine de secondes), sans Stockfish et sans Internet. Le moteur y est
+remplacé par un faux programme UCI (`test/fake-uci.js`) qui rejoue des réponses de Stockfish enregistrées dans
+`test/fixtures/uci/`, et le réseau est coupé : seules des réponses d'API enregistrées (`test/fixtures/http/`) sont servies.
+
+    npm run test:integration
+
+Ce sont les **tests d'intégration** : les mêmes vérifications avec le vrai Stockfish et le vrai réseau (tables de
+finales Lichess), plus un test de l'application complète. Comptez une à deux minutes.
+
+Si l'analyse change et demande d'autres positions au moteur, un test unitaire signale « Position non enregistrée » :
+`npm run test:record` réenregistre alors les réponses avec le vrai Stockfish et les vraies API.
+
+Les tests vérifient notamment les règles de l'étape 3 (découpage en phases, pendule sous 30 s, coups évidents trop lents,
 défaites au temps, répétition espacée 1 / 3 / 7 / 14 / 30 jours, choix de la session, recalcul incrémental des
 statistiques, bilan pour Claude), les filtres de la liste, l'ouverture et la sortie de théorie, les explications (pièce en prise,
 fourchette, clouage, enfilade, découverte, mat raté ou subi, finale gâchée), le mode libre, et aussi : mat en 2 trouvé, mat en 2 raté (gaffe), dame laissée en prise (gaffe), coups de théorie,
@@ -390,8 +402,8 @@ besoin et analyse une courte partie. Les lanceurs ont aussi un mode test (`Lance
 `./Lancer-Mac.command --test`) qui fait ce test au lieu d'ouvrir l'application.
 
 À chaque envoi sur GitHub, l'intégration continue (`.github/workflows/ci.yml`) refait tout cela sur Windows, macOS
-(Apple Silicon et Intel) et Linux : installation des dépendances, tests, installation de Stockfish, puis les lanceurs
-eux-mêmes avec téléchargement de Node.js portable.
+(Apple Silicon et Intel) et Linux : installation des dépendances, tests unitaires, installation de Stockfish, tests
+d'intégration, puis les lanceurs eux-mêmes avec téléchargement de Node.js portable.
 
 ## 8. Problèmes fréquents
 

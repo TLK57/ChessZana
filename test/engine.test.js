@@ -1,5 +1,5 @@
-// Tests avec le vrai moteur Stockfish (téléchargé automatiquement s'il manque) sur des positions connues.
-import './_setup.js';
+// Tests unitaires de l'analyse sur des positions connues, avec les réponses enregistrées de Stockfish (test/fixtures/uci).
+import { useRecordedEngine } from './_unit.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
@@ -12,6 +12,7 @@ import { moveToUci, START_FEN } from '../src/chessutil.js';
 import { resetLichessState, lichessStatus } from '../src/engine/lichess.js';
 
 const DEPTH = 16;
+useRecordedEngine('engine');
 openDb();
 overrideConfig({ lichess: { cloudEval: false, tablebase: false } });
 const ev = new Evaluator();

@@ -29,8 +29,9 @@ export function parseInfoLine(line) {
 }
 
 export class StockfishEngine {
-  constructor({ binary, threads = 1, hashMB = 256, lowPriority = false }) {
+  constructor({ binary, args = [], threads = 1, hashMB = 256, lowPriority = false }) {
     this.binary = binary;
+    this.args = args;
     this.lowPriority = lowPriority;
     this.threads = threads;
     this.hashMB = hashMB;
@@ -84,7 +85,8 @@ export class StockfishEngine {
 
   async start() {
     if (this.alive) return;
-    this.proc = spawn(this.binary, [], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+    this.proc = spawn(this.binary, this.args, { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+    this.stderr = '';
     this.alive = true;
     this.multiPV = null;
     if (this.lowPriority) {
@@ -92,13 +94,14 @@ export class StockfishEngine {
     }
     const rl = readline.createInterface({ input: this.proc.stdout });
     rl.on('line', (l) => this._onLine(l));
-    this.proc.stderr.on('data', () => {});
+    this.proc.stderr.on('data', (d) => { this.stderr = (this.stderr + d).slice(-500); });
     this.proc.on('error', () => { this.alive = false; });
     this.proc.on('exit', () => {
       this.alive = false;
       const s = this.search;
       this.search = null;
-      if (s) { clearTimeout(s.timer); s.fail(new Error('Stockfish s\'est arrêté de façon inattendue.')); }
+      const detail = this.stderr.trim() ? ` (${this.stderr.trim()})` : '';
+      if (s) { clearTimeout(s.timer); s.fail(new Error(`Stockfish s'est arrêté de façon inattendue.${detail}`)); }
     });
     this.send('uci');
     await this._waitFor((l) => l === 'uciok');

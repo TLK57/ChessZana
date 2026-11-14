@@ -19,10 +19,12 @@ jobs:
         with:
           node-version: '24.22.3'
       - run: npm ci
+      - name: Tests unitaires (sans Stockfish ni Internet)
+        run: npm test
       - name: Installation de Stockfish
         run: npm run install-engine
-      - name: Tests
-        run: npm test
+      - name: Tests d'intégration (vrai Stockfish, réseau, application complète)
+        run: npm run test:integration
 
   lanceurs:
     name: Lanceur (${{ matrix.os }}, Node portable)

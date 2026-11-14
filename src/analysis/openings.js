@@ -44,7 +44,7 @@ function build() {
 
 export function loadBook() {
   if (book) return book;
-  const cacheFile = path.join(config.dataDir, 'openings-cache.json');
+  const cacheFile = process.env.CHESS_OPENINGS_CACHE || path.join(config.dataDir, 'openings-cache.json');
   const sig = signature();
   try {
     const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
@@ -52,8 +52,10 @@ export function loadBook() {
   } catch { /* cache absent ou périmé */ }
   book = build();
   try {
-    fs.mkdirSync(config.dataDir, { recursive: true });
-    fs.writeFileSync(cacheFile, JSON.stringify({ sig, entries: [...book.entries()] }));
+    fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+    const tmp = `${cacheFile}.${process.pid}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify({ sig, entries: [...book.entries()] }));
+    fs.renameSync(tmp, cacheFile);
   } catch { /* le cache est facultatif */ }
   return book;
 }

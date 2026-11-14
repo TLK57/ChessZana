@@ -1,5 +1,5 @@
-// Étape 3 : statistiques incrémentales, répertoire, erreurs récurrentes, puzzles, bilan pour Claude.
-import './_setup.js';
+// Étape 3 : statistiques incrémentales, répertoire, erreurs récurrentes, puzzles, bilan pour Claude. — réponses enregistrées de Stockfish (test/fixtures/uci).
+import { useRecordedEngine } from './_unit.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { overrideConfig } from '../src/config.js';
@@ -13,6 +13,7 @@ import { dashboard, recurringErrors, repertoire, timeStats } from '../src/stats/
 import { answerPuzzle, pickSession, todaySession, trainingStats } from '../src/stats/training.js';
 import { bilanText } from '../src/stats/bilan.js';
 
+useRecordedEngine('step3');
 openDb();
 overrideConfig({ lichess: { cloudEval: false, tablebase: false }, engine: { quickDepth: 10 } });
 const ev = new Evaluator();

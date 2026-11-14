@@ -32,6 +32,7 @@ export class Evaluator {
     this.engineInfo = await ensureEngine(onInstallProgress);
     this.engine = new StockfishEngine({
       binary: this.engineInfo.binary,
+      args: this.engineInfo.args ?? [],
       threads: config.engine.threadsResolved,
       hashMB: this.hashMB ?? config.engine.hashMB,
       lowPriority: this.lowPriority,

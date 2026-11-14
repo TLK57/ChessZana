@@ -7,4 +7,6 @@ const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'echecs-test-'));
 process.env.CHESS_DATA_DIR = dir;
 process.env.CHESS_DB = path.join(dir, 'test.sqlite');
 process.env.CHESS_CONFIG_LOCAL = ''; // les tests n'utilisent jamais les réglages personnels
+// Le livre d'ouvertures compilé est partagé entre les fichiers de test (sinon recalculé à chaque fois).
+process.env.CHESS_OPENINGS_CACHE = path.join(os.tmpdir(), 'echecs-test-ouvertures.json');
 process.on('exit', () => { try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* fichiers encore ouverts */ } });

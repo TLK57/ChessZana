@@ -1,5 +1,5 @@
-// Étape 2 : liste filtrée, ouverture, données de l'écran d'analyse, mode libre.
-import './_setup.js';
+// Étape 2 : liste filtrée, ouverture, données de l'écran d'analyse, mode libre. — réponses enregistrées de Stockfish (test/fixtures/uci).
+import { useRecordedEngine } from './_unit.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { overrideConfig } from '../src/config.js';
@@ -12,6 +12,7 @@ import { listMyGames, openingFamilies } from '../src/library.js';
 import { upsertPlayer } from '../src/games.js';
 import { AnalysisQueue } from '../src/queue.js';
 
+useRecordedEngine('step2');
 openDb();
 overrideConfig({ lichess: { cloudEval: false, tablebase: false }, engine: { quickDepth: 12, liveDepth: 12 } });
 const ev = new Evaluator();

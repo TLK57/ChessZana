@@ -10,8 +10,10 @@
   "scripts": {
     "start": "node src/start.js",
     "test": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 \"test/*.test.js\"",
-    "install-engine": "node --disable-warning=ExperimentalWarning src/engine/install.js",
-    "smoke": "node scripts/smoke.js"
+    "test:integration": "node --disable-warning=ExperimentalWarning --test --test-concurrency=1 \"test/integration/*.test.js\"",
+    "test:record": "node --disable-warning=ExperimentalWarning scripts/record-fixtures.js",
+    "smoke": "node scripts/smoke.js",
+    "install-engine": "node --disable-warning=ExperimentalWarning src/engine/install.js"
   },
   "dependencies": {
     "chess.js": "^1.4.0",
