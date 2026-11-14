@@ -203,3 +203,57 @@ export function trappedAt(line, j) {
   if (pin) return { kind: 'pin', piece: pin.type, square: pin.square, pinned: { type: p.type, square: sq }, behind: { type: 'k', square: kingSquare(c, p.color) } };
   return { kind: 'trapped', piece: { type: p.type, square: sq } };
 }
+
+// ---- échange statique (« SEE ») et sacrifice de pièce ----------------------------------------------
+
+/**
+ * Matériel (en points) que le camp au trait gagne au mieux en prenant sur la case `sq`, reprises comprises :
+ * chaque camp prend avec sa pièce la moins chère et peut s'arrêter quand continuer lui ferait perdre.
+ */
+export function staticExchange(fen, sq) {
+  const c = new Chess(fen);
+  const gain = () => {
+    const caps = c.moves({ verbose: true }).filter((m) => m.to === sq && m.captured);
+    if (!caps.length) return 0;
+    caps.sort((x, y) => VALUE[x.piece] - VALUE[y.piece]);
+    const m = caps[0];
+    c.move({ from: m.from, to: m.to, promotion: m.promotion });
+    const g = VALUE[m.captured] + (m.promotion ? VALUE[m.promotion] - 1 : 0) - gain();
+    c.undo();
+    return Math.max(0, g);
+  };
+  return gain();
+}
+
+/** Même position, trait à l'autre camp (pour mesurer ce qu'il pourrait prendre avant mon coup). */
+function passTurn(fen) {
+  const parts = fen.split(' ');
+  parts[1] = parts[1] === 'w' ? 'b' : 'w';
+  parts[3] = '-';
+  return parts.join(' ');
+}
+
+/**
+ * Sacrifice de pièce d'un coup : matériel net donné à l'adversaire selon l'échange statique. Pour chacune de mes
+ * pièces (cavalier, fou, tour, dame), on compare ce que l'adversaire gagnerait en la prenant après mon coup et
+ * avant (une pièce déjà en prise avant le coup n'est pas un sacrifice de ce coup) ; on retire ce que mon coup vient
+ * de prendre. Renvoie { value, square, piece } (value > 0 : matériel donné).
+ */
+export function pieceSacrifice(fenBefore, uci) {
+  const c = new Chess(fenBefore);
+  const me = c.turn();
+  let m;
+  try { m = c.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] }); } catch { return { value: 0 }; }
+  if (!m) return { value: 0 };
+  const won = m.captured ? VALUE[m.captured] : 0;
+  const fen = c.fen();
+  const seeBefore = (sq) => { try { return staticExchange(passTurn(fenBefore), sq); } catch { return 0; } };
+  let best = { value: 0 };
+  for (const p of piecesOf(c, me)) {
+    if (!['n', 'b', 'r', 'q'].includes(p.type) || !c.attackers(p.square, other(me)).length) continue;
+    const before = p.square === m.to ? 0 : seeBefore(p.square);
+    const given = staticExchange(fen, p.square) - before;
+    if (given - won > best.value) best = { value: given - won, square: p.square, piece: p.type };
+  }
+  return best;
+}

@@ -6,6 +6,7 @@ import { Chess } from 'chess.js';
 import { ROOT, config } from '../config.js';
 import { materialBalance, playUci } from '../chessutil.js';
 import { WIN_K, winPct } from './formulas.js';
+import { pieceSacrifice } from './patterns.js';
 
 export const LABELS = {
   book: 'Théorie',
@@ -31,7 +32,7 @@ export const LICHESS_THRESHOLDS = { excellent: 2.5, good: 5, inaccuracy: 10, mis
 
 // Version des règles de classement : quand elle change, les parties déjà analysées sont reclassées
 // au lancement suivant (sans moteur, après une sauvegarde de la base).
-export const CLASSIFICATION_VERSION = 4;
+export const CLASSIFICATION_VERSION = 5;
 
 // Seuils de perte (en % de chances de gain) selon le réglage. Comme chess.com, ils ne dépendent pas du niveau.
 export function thresholdsFor() {
@@ -72,16 +73,6 @@ function holdsDeficit(deltas, minSac) {
   return afterReply <= -minSac && afterNext <= -minSac;
 }
 
-/**
- * Sacrifice d'au moins `minSac` points qui tient sur les coups suivants (selon la ligne principale du moteur),
- * et qui était évitable (la meilleure autre ligne ne perd pas ce matériel).
- */
-export function isSacrifice(fenBefore, playedPv, altPv, minSac = config.classification.brilliantMinSacrifice) {
-  if (!playedPv || playedPv.length < 2) return false;
-  if (!holdsDeficit(materialDeltas(fenBefore, playedPv), minSac)) return false;
-  if (altPv && altPv.length >= 2 && holdsDeficit(materialDeltas(fenBefore, altPv), minSac)) return false;
-  return true;
-}
 
 /**
  * Classe un coup. ctx :
@@ -95,6 +86,18 @@ export function isSacrifice(fenBefore, playedPv, altPv, minSac = config.classifi
 export const WINNING = 70; // position gagnante : au moins 70 % de chances de gain (points espérés)
 export const MISS_MIN_GAIN = 10; // le coup adverse précédent m'a fait gagner au moins 10 points
 export const MISS_MIN_LOSS = 10; // ou mon coup perd au moins 10 points (même si je reste gagnant)
+export const LOSING = 30; // position perdante : moins de 30 % (égale entre 30 et 70 %, gagnante au-delà)
+const outcome = (x) => (x < LOSING ? 0 : x < WINNING ? 1 : 2);
+
+/** Réglages « brillant » et « très bon » selon l'Elo du joueur (plus généreux sous 1400 Elo). */
+export function generosity(elo) {
+  const c = config.classification;
+  const low = Number.isFinite(elo) && elo > 0 && c.lowElo?.below && elo < c.lowElo.below;
+  return {
+    brilliant: { ...c.brilliant, ...(low ? c.lowElo.brilliant : {}) },
+    great: { ...c.great, ...(low ? c.lowElo.great : {}) },
+  };
+}
 
 /** Score vu par l'autre joueur. */
 export function negate(s) {
@@ -146,9 +149,9 @@ export function expectedPoints(score, who = {}) {
 
 /**
  * Classe les coups d'une partie à partir des évaluations, sans moteur.
- * moves[i] : { color, uci, san, fenBefore, book, bestUci, evalBest, evalPlayed, evalSecond, sacrifice }
- *   evalBest / evalPlayed / evalSecond : { cp, mate, wdl } du point de vue du joueur qui joue le coup ;
- *   sacrifice : true, false ou une fonction (calcul fait seulement si nécessaire).
+ * moves[i] : { color, uci, san, fenBefore, book, bestUci, evalBest, evalPlayed, evalSecond }
+ *   evalBest / evalPlayed / evalSecond : { cp, mate, wdl } du point de vue du joueur qui joue le coup.
+ *   Le sacrifice éventuel est mesuré sur la position (échange statique), sans moteur.
  * players : { w: { elo }, b: { elo }, timeClass }.
  * Renvoie pour chaque coup { classification, loss, xpBest, xpPlayed, xpSecond, gain }.
  */
@@ -171,14 +174,21 @@ export function classifyMoves(moves, players = {}) {
     const chess = new Chess(m.fenBefore);
     const legal = chess.moves().length;
     const playedIsBest = m.bestUci === m.uci;
+    const g = generosity(who.elo);
+    // Meilleure autre possibilité que le coup joué : le 2e coup du moteur si j'ai joué le 1er, sinon le 1er.
+    const xpAlt = playedIsBest ? xpSecond : xpBest;
 
-    // Brillant : sacrifice qui tient, coup (quasi) égal au meilleur, position pas déjà gagnée à > 90 %.
-    if (loss < c.brilliantMaxLoss && xpBest <= c.brilliantMaxWinBefore && !chess.inCheck() && legal > 1
-        && (typeof m.sacrifice === 'function' ? m.sacrifice() : !!m.sacrifice)) return out('brilliant');
+    // Brillant : bon sacrifice de pièce (cavalier, fou, tour ou dame laissé en prise ou donné, perte nette selon
+    // l'échange statique), coup meilleur ou presque, position pas mauvaise après le coup, et je n'étais pas déjà
+    // complètement gagnant sans ce coup.
+    if (legal > 1 && loss <= g.brilliant.maxLoss && xpPlayed >= g.brilliant.minAfter && xpAlt != null && xpAlt < g.brilliant.maxAlternative
+        && pieceSacrifice(m.fenBefore, m.uci).value >= g.brilliant.minSacrifice) return out('brilliant');
 
-    // Très bon : seul coup qui tient (écart > 10 points avec le 2e coup du MultiPV) et c'est celui qui a été joué.
+    // Très bon : coup décisif pour l'issue (perdant → égal, égal → gagnant) ou seul bon coup (écart avec la meilleure
+    // autre possibilité). Une simple reprise de pièce n'est pas comptée.
     const isRecapture = !!prev && /x/.test(prev.san ?? '') && /x/.test(m.san ?? '') && prev.uci?.slice(2, 4) === m.uci.slice(2, 4);
-    if (playedIsBest && xpSecond != null && legal > 1 && xpBest - xpSecond > c.greatMinGap && !(c.greatIgnoreRecaptures && isRecapture)) return out('great');
+    if (legal > 1 && loss <= g.great.maxLoss && xpAlt != null && !(g.great.ignoreRecaptures && isRecapture)
+        && (outcome(xpPlayed) > outcome(xpAlt) || xpPlayed - xpAlt >= g.great.minGap)) return out('great');
 
     // Occasion manquée : l'erreur adverse m'a fait gagner au moins 10 points, le meilleur coup me donnait une
     // position gagnante, et mon coup me fait repasser sous le seuil gagnant ou perd au moins 10 points.

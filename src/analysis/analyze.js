@@ -6,7 +6,7 @@ import { getGame, getGameMoves } from '../games.js';
 import { normalizeChessFen, terminalState, uciToSan, START_FEN } from '../chessutil.js';
 import { AbortError } from '../engine/stockfish.js';
 import { isBookPosition } from './openings.js';
-import { MISS_MIN_GAIN, classifyMoves, isSacrifice } from './classify.js';
+import { MISS_MIN_GAIN, classifyMoves } from './classify.js';
 import { estimateElo, gameAccuracy, moveAccuracy, winPct } from './formulas.js';
 
 export const PASSES = {
@@ -162,11 +162,9 @@ export async function analyzeMoveList(moves, opts) {
       const { before, played } = evals[i];
       const best = before.lines[0];
       const second = before.lines[1] ?? null;
-      const altLine = best?.move === m.uci ? second : best;
       return {
         color: m.color, uci: m.uci, san: m.san, fenBefore: m.fenBefore, book: book[i],
         bestUci: best?.move ?? null, evalBest: scoreOf(best), evalPlayed: scoreOf(played), evalSecond: second ? scoreOf(second) : null,
-        sacrifice: () => isSacrifice(m.fenBefore, played?.pv?.length ? played.pv : [m.uci], altLine?.pv ?? null),
       };
     });
     const judged = classifyMoves(list, players);

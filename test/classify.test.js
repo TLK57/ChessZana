@@ -1,7 +1,8 @@
 import './_setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyMoves, isSacrifice, materialDeltas, scoreFromWin, WINNING } from '../src/analysis/classify.js';
+import { classifyMoves, scoreFromWin, WINNING } from '../src/analysis/classify.js';
+import { pieceSacrifice, staticExchange } from '../src/analysis/patterns.js';
 import { winPct } from '../src/analysis/formulas.js';
 import { START_FEN } from '../src/chessutil.js';
 
@@ -34,13 +35,10 @@ test('mêmes seuils à tous les niveaux (pas d\'indulgence sous 1400 Elo)', () =
   }
 });
 
-test('très bon : seul coup qui tient (écart > 10 % avec le 2e coup)', () => {
-  assert.equal(cls({ wb: 70, best: true, ws: 50 }), 'great');
-  assert.equal(cls({ wb: 70, best: true, ws: 65 }), 'best');
-  // Une simple reprise (on reprend sur la case où l'adversaire vient de prendre) n'est pas « très bon ».
+test("très bon : une simple reprise n'est pas comptée", () => {
   const fen = 'rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2';
   const prev = { color: 'b', uci: 'f6d5', san: 'Nxd5', book: true, evalBest: sc(50), evalPlayed: sc(50) };
-  const recapture = { ...move({ wb: 70, best: true, ws: 50 }), uci: 'e4d5', san: 'exd5', bestUci: 'e4d5', fenBefore: fen };
+  const recapture = { ...move({ wb: 70, best: true, ws: 30 }), uci: 'e4d5', san: 'exd5', bestUci: 'e4d5', fenBefore: fen };
   assert.equal(classifyMoves([prev, recapture], {})[1].classification, 'best');
 });
 
@@ -84,24 +82,43 @@ test('scores reconstitués à partir des pourcentages enregistrés (anciennes an
 
 // Le « cadeau grec » classique : Fxh7+ Rxh7 Cg5+ Rg8 Dh5.
 const GREEK = 'rnbq1rk1/pppn1ppp/4p3/3pP3/1b1P4/2NB1N2/PPP2PPP/R1BQK2R w KQ - 0 7';
-const GREEK_PV = ['d3h7', 'g8h7', 'f3g5', 'h7g8', 'd1h5'];
 
-test('sacrifice : le matériel abandonné doit le rester sur les coups suivants', () => {
-  assert.deepEqual(materialDeltas(GREEK, GREEK_PV), [1, -2, -2, -2]);
-  assert.equal(isSacrifice(GREEK, GREEK_PV, ['a2a3', 'b4c3', 'b2c3']), true);
-  // Un échange (on reprend tout de suite) n'est pas un sacrifice.
-  assert.equal(isSacrifice(GREEK, ['a2a3', 'b4c3', 'b2c3', 'd7b6'], null), false);
-  // Si l'autre ligne perd aussi ce matériel, la perte était inévitable : pas de sacrifice.
-  assert.equal(isSacrifice(GREEK, GREEK_PV, GREEK_PV), false);
+test("sacrifice de pièce selon l'échange statique", () => {
+  assert.equal(pieceSacrifice(GREEK, 'd3h7').value, 2, 'Fxh7+ : fou (3) contre pion (1)');
+  assert.equal(pieceSacrifice('r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 2 3', 'b5c6').value, 0, 'échange égal');
+  assert.equal(pieceSacrifice('rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2', 'd1h5').value, 0, 'pièce attaquée mais défendue');
+  // Une pièce déjà en prise avant le coup n'est pas un sacrifice de ce coup…
+  assert.equal(pieceSacrifice('4k3/8/8/3r4/8/8/3N4/7K w - - 0 1', 'h1g1').value, 0);
+  assert.equal(staticExchange('4k3/8/8/3r4/8/8/3N4/7K b - - 0 1', 'd2'), 3);
+  // … mais le coup qui retire son défenseur la donne.
+  assert.equal(pieceSacrifice('4k3/8/8/3r4/8/8/3N4/4K3 w - - 0 1', 'e1f2').value, 3);
 });
 
-test('brillant : sacrifice qui tient, coup égal au meilleur, position pas déjà gagnante à > 90 %', () => {
-  const greek = (wb, wp, best = true) => ({
-    color: 'w', uci: 'd3h7', san: 'Bxh7+', fenBefore: GREEK, book: false, bestUci: best ? 'd3h7' : 'f3g5',
-    evalBest: sc(wb), evalPlayed: sc(wp), evalSecond: sc(55), sacrifice: () => isSacrifice(GREEK, GREEK_PV, ['a2a3', 'b4c3', 'b2c3']),
-  });
-  const one = (m) => classifyMoves([m], {})[0].classification;
-  assert.equal(one(greek(75, 75)), 'brilliant');
-  assert.equal(one(greek(95, 95)), 'great'); // déjà gagnant : pas brillant
-  assert.equal(one(greek(75, 73.5, false)), 'excellent'); // perte ≥ 1 %
+const greek = (o) => ({
+  color: 'w', uci: 'd3h7', san: 'Bxh7+', fenBefore: GREEK, book: false, bestUci: o.best === false ? 'f3g5' : 'd3h7',
+  evalBest: sc(o.wb), evalPlayed: sc(o.wp ?? o.wb), evalSecond: sc(o.ws ?? 55),
+});
+const one = (m, elo = 1800) => classifyMoves([m], { w: { elo } })[0].classification;
+
+test('brillant : bon sacrifice, meilleur coup ou presque, position pas mauvaise, pas déjà complètement gagnant', () => {
+  assert.equal(one(greek({ wb: 75 })), 'brilliant');
+  assert.equal(one(greek({ wb: 75, wp: 73.5, best: false })), 'brilliant', 'presque le meilleur (perte ≤ 2)');
+  assert.equal(one(greek({ wb: 75, wp: 72, best: false })), 'good', 'perte de 3 points : trop');
+  assert.equal(one(greek({ wb: 40, ws: 20 })), 'great', 'position mauvaise après le coup (40 %) : pas brillant');
+  assert.equal(one(greek({ wb: 98, ws: 93 })), 'best', 'déjà complètement gagnant sans ce coup');
+});
+
+test('brillant : plus généreux sous 1400 Elo', () => {
+  assert.equal(one(greek({ wb: 75, wp: 71, best: false }), 1800), 'good');
+  assert.equal(one(greek({ wb: 75, wp: 71, best: false }), 1200), 'brilliant', 'perte de 4 points tolérée');
+  assert.equal(one(greek({ wb: 42 }), 1200), 'brilliant', 'position à 42 % acceptée');
+});
+
+test('très bon : coup décisif (perdant → égal, égal → gagnant) ou seul bon coup', () => {
+  assert.equal(cls({ wb: 50, best: true, ws: 20 }), 'great', 'perdant → égal');
+  assert.equal(cls({ wb: 75, best: true, ws: 65 }), 'great', 'égal → gagnant');
+  assert.equal(cls({ wb: 55, best: true, ws: 38 }), 'great', "seul bon coup (17 points d'écart)");
+  assert.equal(cls({ wb: 55, best: true, ws: 45 }), 'best', 'écart de 10 points, même issue');
+  assert.equal(cls({ wb: 55, best: true, ws: 44 }, { w: { elo: 1200 } }), 'great', 'sous 1400 Elo : 10 points suffisent');
+  assert.equal(cls({ wb: 95, best: true, ws: 88 }), 'best', 'gagnant dans les deux cas');
 });

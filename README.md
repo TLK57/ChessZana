@@ -305,11 +305,9 @@ Après une modification, fermez et relancez l'application.
 | `classification.preset` | `"chesscom"` | `"chesscom"` (inspiré de chess.com) ou `"lichess"` (seuils 5 / 10 / 15 %) ; se change aussi dans l'application, qui retient le choix |
 | `classification.levelCurves` | `true` | Points espérés selon le niveau et la cadence (voir « Chances de gain selon le niveau ») ; `false` = formule Lichess |
 | `classification.thresholds` | `2 / 5 / 10 / 20` | Seuils de perte (voir ci-dessous), les mêmes pour tous les niveaux |
-| `classification.greatMinGap` | `10` | Écart minimal (%) avec le 2e coup pour « Très bon » |
-| `classification.greatIgnoreRecaptures` | `true` | Une simple reprise de pièce n'est jamais « Très bon » |
-| `classification.brilliantMinSacrifice` | `2` | Matériel minimum sacrifié (en points) pour « Brillant » |
-| `classification.brilliantMaxLoss` | `1` | Perte maximale (%) d'un coup brillant |
-| `classification.brilliantMaxWinBefore` | `90` | Pas de brillant si la position était déjà gagnante à plus de 90 % |
+| `classification.brilliant` | `2 / 2 / 45 / 90` | Brillant : sacrifice minimal (points), perte maximale, points espérés minimaux après le coup, meilleure autre possibilité maximale |
+| `classification.great` | `1 / 15` | Très bon : perte maximale, écart minimal pour « seul bon coup » (et `ignoreRecaptures`) |
+| `classification.lowElo` | sous 1400 : `5 / 40 / 95`, `2 / 10` | Valeurs plus généreuses pour les joueurs de moins de 1400 Elo |
 | `accuracy.uncertaintyBonus` | `0` | Lichess ajoute +1 à la précision de chaque coup imparfait ; mettez `1` pour l'imiter |
 | `elo.minMoves` | `8` | Nombre minimum de coups hors théorie pour estimer un Elo |
 | `elo.table` | voir §5.4 | Table précision → Elo (générique, avant calibrage) |
@@ -349,8 +347,8 @@ pour tous. La précision de la partie, le graphe et l'Elo estimé utilisent touj
 | Catégorie | Règle |
 |---|---|
 | **Théorie** | Tant que chaque position atteinte figure dans la base libre [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (y compris les positions intermédiaires des lignes) |
-| **Brillant** | Sacrifice d'au moins 2 points de matériel qui tient sur les coups suivants, perte < 1 %, position pas déjà gagnante à plus de 90 % avant le coup |
-| **Très bon** | Le joueur a joué le meilleur coup et c'était le seul qui tient : écart > 10 % avec le 2e coup du MultiPV |
+| **Brillant** | Bon sacrifice de pièce : coup meilleur ou presque, position pas mauvaise après, et vous n'étiez pas déjà complètement gagnant sans lui (détails ci-dessous) |
+| **Très bon** | Coup décisif pour l'issue : il fait passer de perdant à égal, ou d'égal à gagnant, ou c'est le seul bon coup (détails ci-dessous) |
 | **Meilleur** | Le coup du moteur (ou une perte ≤ 0,1 %) |
 | **Excellent** | perte < 2 % |
 | **Bon** | perte < 5 % |
@@ -364,10 +362,22 @@ calcul des chances de gain. Quand les règles de classement changent (nouvelle v
 sauvegardée puis toutes les parties déjà analysées sont reclassées au lancement suivant, sans recalcul par le moteur.
 
 Précisions :
-- **Sacrifice « qui tient »** : on suit la ligne principale du moteur après le coup. Le joueur doit être en déficit
-  d'au moins 2 points (pion 1, cavalier/fou 3, tour 5, dame 9) après la réponse adverse **et** encore après son coup
-  suivant (ce n'est donc pas un simple échange). La perte de matériel doit aussi être *évitable* : si la meilleure
-  autre ligne perd le même matériel (pièce déjà perdue), ce n'est pas un sacrifice. Pas de brillant en étant en échec.
+- **Brillant** : un cavalier, un fou, une tour ou une dame est laissé en prise ou donné, avec une **perte nette d'au
+  moins 2 points selon l'échange statique** (pion 1, cavalier/fou 3, tour 5, dame 9 ; chaque camp prend avec sa pièce la
+  moins chère et reprend tant que c'est rentable ; une pièce déjà en prise avant le coup ne compte pas). Il faut en plus :
+
+  | Condition | Réglage | 1400 Elo et plus | Moins de 1400 Elo |
+  |---|---|---|---|
+  | le coup est le meilleur ou presque : perte au plus | `brilliant.maxLoss` | 2 points | 5 points |
+  | la position n'est pas mauvaise après le coup : points espérés au moins | `brilliant.minAfter` | 45 % | 40 % |
+  | vous n'étiez pas déjà complètement gagnant sans ce coup : meilleure autre possibilité sous | `brilliant.maxAlternative` | 90 % | 95 % |
+
+  Un sacrifice pour parer un échec compte aussi. Les pions ne comptent pas.
+- **Très bon** : coup (presque) aussi bon que le meilleur — perte au plus 1 point (2 sous 1400 Elo) — et décisif par
+  rapport à la meilleure autre possibilité : il fait passer d'une position **perdante** (moins de 30 %) à **égale**,
+  d'**égale** (30 à 70 %) à **gagnante** (70 % et plus), ou c'est le **seul bon coup** (au moins 15 points d'écart ;
+  10 sous 1400 Elo). Une simple reprise de pièce (prendre sur la case où l'adversaire vient de prendre) n'est pas
+  comptée, sinon presque chaque échange produirait un « Très bon » (réglage `great.ignoreRecaptures`).
 - **Occasion manquée** (définition de chess.com : ne pas profiter d'une erreur adverse, et perdre ainsi la chance
   d'atteindre une position gagnante). Un coup est une occasion manquée si les trois conditions sont réunies :
   1. avant votre coup, le meilleur coup vous donnait une **position gagnante** : au moins **70 %** de chances de gain
@@ -379,8 +389,6 @@ Précisions :
   Si vous étiez déjà gagnant avant l'erreur adverse, un coup qui vous laisse gagnant en perdant moins de 10 points
   reste une simple imprécision ; s'il perd 10 points ou plus, c'est une occasion manquée. Une occasion manquée est
   comptée à part, même si le coup est très mauvais.
-- **Très bon** : une simple reprise de pièce (prendre sur la case où l'adversaire vient de prendre) n'est pas
-  comptée, sinon presque chaque échange produirait un « Très bon » (réglage `greatIgnoreRecaptures`).
 
 **Réglage « Seuils Lichess (5 / 10 / 15 %) »** (écran *Importer & file d'analyse*, carte « Classement des coups ») :
 imprécision dès 5 % de chances de gain perdues, erreur dès 10 %, gaffe dès 15 %, comme Lichess, quel que soit l'Elo.

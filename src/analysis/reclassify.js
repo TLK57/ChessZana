@@ -23,7 +23,6 @@ export function reclassifyStored(gameId, pass) {
     bestUci: r.best_uci, evalBest: parse(r.eval_best), evalPlayed: parse(r.eval_played),
     // Anciennes analyses : seul le pourcentage du 2e coup était enregistré (formule Lichess, inversible).
     evalSecond: parse(r.eval_second) ?? scoreFromWin(r.win_second),
-    sacrifice: r.classification === 'brilliant',
   }));
   const judged = classifyMoves(list, { w: { elo: game?.white_elo ?? null }, b: { elo: game?.black_elo ?? null }, timeClass: game?.time_class ?? null });
   const verifyDepth = pass === 'deep' ? config.engine.verifyDepth : 0;

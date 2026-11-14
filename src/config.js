@@ -54,11 +54,12 @@ export const DEFAULTS = {
     // Seuils de perte (points de chances de gain) : < 2 excellent, < 5 bon, < 10 imprécision, < 20 erreur, sinon gaffe.
     // Les mêmes pour tous les niveaux : le niveau du joueur compte seulement dans le calcul des chances de gain.
     thresholds: { excellent: 2, good: 5, inaccuracy: 10, mistake: 20 },
-    greatMinGap: 10,
-    greatIgnoreRecaptures: true,
-    brilliantMinSacrifice: 2,
-    brilliantMaxLoss: 1,
-    brilliantMaxWinBefore: 90,
+    // Brillant : bon sacrifice de pièce (matériel net donné selon l'échange statique, en points).
+    brilliant: { minSacrifice: 2, maxLoss: 2, minAfter: 45, maxAlternative: 90 },
+    // Très bon : coup décisif (change l'issue : perdant → égal, égal → gagnant) ou seul bon coup.
+    great: { maxLoss: 1, minGap: 15, ignoreRecaptures: true },
+    // Plus généreux pour les joueurs de moins de 1400 Elo.
+    lowElo: { below: 1400, brilliant: { maxLoss: 5, minAfter: 40, maxAlternative: 95 }, great: { maxLoss: 2, minGap: 10 } },
   },
   accuracy: {
     uncertaintyBonus: 0,

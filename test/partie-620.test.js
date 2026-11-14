@@ -43,3 +43,16 @@ test('courbes par niveau : les pertes de joueurs vers 1100 Elo en blitz sont plu
     reclassifyStored(id, 'deep');
   }
 });
+
+test('brillant : 21.Rg4 offre la tour (prise par 21...Bxg4), reste le meilleur coup et garde la partie équilibrée', async () => {
+  assert.equal(classOf(id, '21.'), 'brilliant');
+  const { CURVES_FILE, loadCurves } = await import('../src/analysis/classify.js');
+  loadCurves(CURVES_FILE);
+  try {
+    reclassifyStored(id, 'deep');
+    assert.equal(classOf(id, '21.'), 'brilliant', 'aussi avec les courbes par niveau');
+  } finally {
+    loadCurves('');
+    reclassifyStored(id, 'deep');
+  }
+});
