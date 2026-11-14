@@ -2,6 +2,8 @@
 // lignes de Stockfish, profondeur atteinte) et résumé de la profondeur sous le graphe.
 import { esc, fig, symbol, LABELS, fmtPct, fmtClock, fmtSpent, moveNo, lineText } from './util.js';
 
+const DOUBTFUL = new Set(['mistake', 'blunder', 'miss', 'brilliant', 'great']);
+
 export function linesHtml(lines, basePly) {
   if (!lines?.length) return '';
   return `<div class="lines"><div class="small muted">Meilleures lignes de Stockfish avant ce coup :</div>${lines.map((l, i) => `
@@ -23,9 +25,12 @@ export function depthNote(m) {
 export function depthSummary(g) {
   if (g.pass === 'quick') return `Analyse rapide (profondeur ${g.depth ?? '?'}).`;
   const span = g.depthMin != null && g.depthMax != null && g.depthMin !== g.depthMax ? `de ${g.depthMin} à ${g.depthMax}, médiane ${g.depth}` : `${g.depth ?? '?'}`;
-  const verify = g.verifyDepth
-    ? (g.verified ? ` ${g.verified} coup(s) douteux revérifié(s) à la profondeur ${g.verifyDepth}.` : ` Aucun coup douteux à revérifier à la profondeur ${g.verifyDepth}.`)
-    : ' Coups douteux pas encore revérifiés à profondeur fixe (analyse antérieure).';
+  // Coups douteux (erreur, gaffe, occasion manquée, très bon, brillant) hors tables de finales.
+  const doubtful = g.moves.filter((m) => DOUBTFUL.has(m.classification) && m.source !== 'tablebase');
+  const deepEnough = doubtful.filter((m) => m.verified || (m.depth ?? 0) >= g.verifyDepth).length;
+  const verify = !g.verifyDepth ? ' Coups douteux pas encore revérifiés à profondeur fixe (analyse antérieure).'
+    : !doubtful.length ? ' Aucun coup douteux dans cette partie.'
+      : ` ${deepEnough} coup(s) douteux sur ${doubtful.length} calculé(s) à la profondeur ${g.verifyDepth} ou plus${g.verified ? ` (${g.verified} revérifié(s) exprès)` : ''}.`;
   return `Analyse profonde : profondeur atteinte ${span}.${verify}`;
 }
 
