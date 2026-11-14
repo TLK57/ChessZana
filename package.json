@@ -15,7 +15,8 @@
     "test:record": "node --disable-warning=ExperimentalWarning scripts/record-fixtures.js",
     "smoke": "node scripts/smoke.js",
     "install-engine": "node --disable-warning=ExperimentalWarning src/engine/install.js",
-    "update-openings": "node --disable-warning=ExperimentalWarning scripts/update-openings.js"
+    "update-openings": "node --disable-warning=ExperimentalWarning scripts/update-openings.js",
+    "fit-curves": "node --disable-warning=ExperimentalWarning scripts/fit-curves.js"
   },
   "dependencies": {
     "chess.js": "^1.4.0",

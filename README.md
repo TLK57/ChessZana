@@ -303,6 +303,7 @@ Après une modification, fermez et relancez l'application.
 | `lichess.pauseAfterRateLimitSec` | `60` | Pause de la source Lichess après un « trop de requêtes » (429) |
 | `lichess.pauseAfterErrorSec` | `120` | Pause de la source Lichess après une panne |
 | `classification.preset` | `"chesscom"` | `"chesscom"` (inspiré de chess.com) ou `"lichess"` (seuils 5 / 10 / 15 %) ; se change aussi dans l'application, qui retient le choix |
+| `classification.levelCurves` | `true` | Points espérés selon le niveau et la cadence (voir « Chances de gain selon le niveau ») ; `false` = formule Lichess |
 | `classification.thresholds` | `2 / 5 / 10 / 20` | Seuils de perte (voir ci-dessous), les mêmes pour tous les niveaux |
 | `classification.greatMinGap` | `10` | Écart minimal (%) avec le 2e coup pour « Très bon » |
 | `classification.greatIgnoreRecaptures` | `true` | Une simple reprise de pièce n'est jamais « Très bon » |
@@ -338,7 +339,12 @@ mais les seuils ci-dessous sont les nôtres. Un réglage permet d'utiliser à la
 Pour chaque position, Stockfish calcule les **2 meilleurs coups** (MultiPV 2). Si le coup joué n'est pas parmi eux,
 il est évalué à la même profondeur avec `searchmoves`. La **perte** est :
 
-    perte = Gain%(meilleur coup) − Gain%(coup joué), toujours du point de vue du joueur qui vient de jouer.
+    perte = points espérés(meilleur coup) − points espérés(coup joué), du point de vue du joueur qui vient de jouer.
+
+Les **points espérés** (0 à 100 %) traduisent l'évaluation de Stockfish en score moyen attendu. Comme chez chess.com,
+ils dépendent du **niveau** du joueur et de la **cadence** : un +3 ne vaut pas la même chose à 1100 et à 2500 Elo
+(voir « Chances de gain selon le niveau » plus bas). En mode « Seuils Lichess », c'est la formule Lichess, la même
+pour tous. La précision de la partie, le graphe et l'Elo estimé utilisent toujours la formule Lichess.
 
 | Catégorie | Règle |
 |---|---|
@@ -383,6 +389,65 @@ Changer de réglage **reclasse toutes les parties déjà analysées** en quelque
 déjà enregistrée, seuls les seuils changent (aucune position n'est recalculée, et revenir au réglage précédent redonne
 exactement le même classement). Les statistiques et les puzzles suivent. Un coup qui devient
 douteux avec les nouveaux seuils sans avoir été vérifié à la profondeur 22 rend la partie « à revérifier ».
+
+### Chances de gain selon le niveau
+
+`npm run fit-curves` ajuste ces courbes sur la **base ouverte de Lichess** (<https://database.lichess.org>, CC0). Le
+fichier mensuel (2026-09, environ 29 Go compressés) est lu **en flux** : rien n'est enregistré sur le disque, la
+lecture s'arrête dès que l'échantillon est atteint. Sur 2 812 681 parties lues, on garde les
+**220 000 parties blitz et rapides qui ont des évaluations** `[%eval]` (blitz
+130 050, rapide 89 950), soit
+14 208 935 positions évaluées.
+
+Pour chaque cadence (blitz, rapide) et chaque tranche de 100 Elo de 600 à 2400, une courbe logistique donne le score
+final espéré du joueur au trait selon l'évaluation (en pions, bornée à ±15) :
+
+    points espérés = 1 / (1 + e^−(a + b × évaluation))
+
+Les mats sont traités à part : score moyen observé quand le joueur au trait a un mat (environ 91 % en blitz vers
+1000 Elo) ou en subit un. Entre deux tranches, les coefficients sont interpolés ; en dessous de 600 ou au-dessus de
+2400 Elo, on prend la tranche extrême ; le bullet utilise la courbe blitz, le classique et la partie par
+correspondance la courbe rapide ; sans Elo connu, 1500. Les coefficients, la source, le mois, la taille de
+l'échantillon et la date sont dans `resources/expected-points.json`.
+
+**Validation** sur une partie sur cinq, mise de côté avant l'ajustement (2 692 472 positions) :
+
+| | Nouvelle courbe | Courbe Lichess actuelle |
+|---|---|---|
+| Perte logarithmique (plus bas = mieux) | **0,6086** | 0,6303 |
+| Écart moyen entre score prédit et observé | **1,1 point** | 5,2 points |
+
+| Tranche | Perte log., nouvelle | Perte log., Lichess |
+|---|---|---|
+| Blitz 700–799 | 0,620 | 0,715 |
+| Blitz 1000–1099 | 0,620 | 0,669 |
+| Blitz 1300–1399 | 0,627 | 0,661 |
+| Blitz 1600–1699 | 0,615 | 0,633 |
+| Blitz 1900–1999 | 0,619 | 0,634 |
+| Blitz 2200–2299 | 0,610 | 0,614 |
+| Rapide 700–799 | 0,607 | 0,692 |
+| Rapide 1000–1099 | 0,611 | 0,668 |
+| Rapide 1300–1399 | 0,592 | 0,612 |
+| Rapide 1600–1699 | 0,592 | 0,600 |
+| Rapide 1900–1999 | 0,583 | 0,584 |
+| Rapide 2200–2299 | 0,598 | 0,600 |
+
+![Étalonnage des deux courbes et courbes blitz par niveau](docs/courbes-chances.svg)
+
+À gauche, la nouvelle courbe suit la diagonale : ce qu'elle prédit se réalise. La courbe Lichess surestime les
+chances de celui qui est devant. À droite, les courbes par niveau : chez les joueurs de 1000 à 1100 Elo en blitz, un
++3 ne rapporte en moyenne que 61 % des points (contre 75 % avec la formule Lichess), un +5 69 %.
+Les parties à ce niveau se retournent souvent ; le contrôle direct sur les données brutes (30 000 parties, joueurs
+de 1000 à 1199 Elo) donne 59,6 % pour un +3.
+
+**Conséquence à connaître** : avec ces courbes, une même chute d'évaluation coûte moins de points à un joueur de
+faible niveau qu'avec la formule Lichess. Il y a donc moins d'erreurs, de gaffes et d'occasions manquées dans ses
+parties, ce qui peut l'éloigner des bilans de chess.com, dont la formule est secrète. Le réglage
+`classification.levelCurves` (`config.json`) permet de revenir à la formule Lichess tout en gardant les seuils
+2 / 5 / 10 / 20 % ; `npm run compare-chesscom` compare les deux.
+
+Limite : les classements Lichess et chess.com ne sont pas sur la même échelle (à niveau égal, l'Elo Lichess est en
+général plus élevé aux niveaux modestes). Les courbes sont utilisées avec l'Elo de la partie tel quel.
 
 ### 5.3 Précision
 

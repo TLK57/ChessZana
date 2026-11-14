@@ -1,7 +1,9 @@
 // Classement des coups, inspiré de chess.com (ce n'est pas l'algorithme de chess.com, qui n'est pas public).
 // Réglage possible : seuils Lichess (imprécision dès 5 %, erreur dès 10 %, gaffe dès 15 % de chances de gain perdues).
+import fs from 'node:fs';
+import path from 'node:path';
 import { Chess } from 'chess.js';
-import { config } from '../config.js';
+import { ROOT, config } from '../config.js';
 import { materialBalance, playUci } from '../chessutil.js';
 import { WIN_K, winPct } from './formulas.js';
 
@@ -29,7 +31,7 @@ export const LICHESS_THRESHOLDS = { excellent: 2.5, good: 5, inaccuracy: 10, mis
 
 // Version des règles de classement : quand elle change, les parties déjà analysées sont reclassées
 // au lancement suivant (sans moteur, après une sauvegarde de la base).
-export const CLASSIFICATION_VERSION = 3;
+export const CLASSIFICATION_VERSION = 4;
 
 // Seuils de perte (en % de chances de gain) selon le réglage. Comme chess.com, ils ne dépendent pas du niveau.
 export function thresholdsFor() {
@@ -100,9 +102,46 @@ export function negate(s) {
   return { cp: s.cp != null ? -s.cp : null, mate: s.mate != null ? -s.mate : null, wdl: s.wdl === 'win' ? 'loss' : s.wdl === 'loss' ? 'win' : (s.wdl ?? null) };
 }
 
-/** Points espérés (0–100) du joueur concerné pour un score vu de son côté. */
-export function expectedPoints(score) {
-  return winPct(score);
+// ---- Points espérés selon le niveau (resources/expected-points.json, npm run fit-curves) ----
+let CURVES;
+export const CURVES_FILE = path.join(ROOT, 'resources', 'expected-points.json');
+// CHESS_CURVES : autre fichier de courbes, ou chaîne vide pour s'en passer (formule Lichess partout).
+export function loadCurves(file = process.env.CHESS_CURVES ?? CURVES_FILE) {
+  try { CURVES = file ? JSON.parse(fs.readFileSync(file, 'utf8')) : null; } catch { CURVES = null; }
+  return CURVES;
+}
+const curves = () => (CURVES === undefined ? loadCurves() : CURVES);
+// Cadences sans courbe propre : bullet → blitz ; classique et partie par correspondance → rapide.
+const CURVE_TC = { bullet: 'blitz', blitz: 'blitz', rapid: 'rapid', classical: 'rapid', daily: 'rapid' };
+export const DEFAULT_ELO = 1500;
+
+/** Courbe pour un Elo et une cadence : interpolation linéaire entre les centres des tranches de 100 Elo. */
+export function curveFor(elo, timeClass, data = curves()) {
+  const bins = data.curves[CURVE_TC[timeClass] ?? 'blitz'];
+  const centers = bins.map((b) => b.elo + 50);
+  const e = Math.min(centers.at(-1), Math.max(centers[0], Number.isFinite(elo) && elo > 0 ? elo : DEFAULT_ELO));
+  let i = 0;
+  while (i < bins.length - 2 && e > centers[i + 1]) i++;
+  const t = (e - centers[i]) / (centers[i + 1] - centers[i]);
+  const mix = (k) => bins[i][k] + t * (bins[i + 1][k] - bins[i][k]);
+  return { a: mix('a'), b: mix('b'), mateWin: mix('mateWin'), mateLoss: mix('mateLoss') };
+}
+
+/**
+ * Points espérés (0–100) du joueur concerné, pour un score vu de son côté.
+ * - Mode « inspiré de chess.com » : courbe ajustée sur les parties Lichess de son niveau et de sa cadence
+ *   (un +3 ne vaut pas la même chose à 1100 et à 2500 Elo) ; les mats prennent le score moyen observé.
+ * - Mode « Seuils Lichess », ou sans fichier de courbes : formule Lichess (chances de gain).
+ * - Table de finales : résultat exact (100, 50 ou 0).
+ */
+export function expectedPoints(score, who = {}) {
+  const data = config.classification.preset === 'lichess' || config.classification.levelCurves === false ? null : curves();
+  if (!data || !score || score.wdl) return winPct(score);
+  const c = curveFor(who.elo, who.timeClass, data);
+  if (score.mate != null) return score.mate > 0 ? 100 * c.mateWin : score.mate < 0 ? 100 * c.mateLoss : 0;
+  if (score.cp == null) return 50;
+  const cp = Math.max(-data.model.cpClamp, Math.min(data.model.cpClamp, score.cp));
+  return 100 / (1 + Math.exp(-(c.a + (c.b * cp) / 100)));
 }
 
 /**

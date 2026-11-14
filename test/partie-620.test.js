@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { openDb } from '../src/db.js';
 import { reclassifyStored } from '../src/analysis/reclassify.js';
-import { classOf, loadPartie620 } from './_partie620.js';
+import { classOf, loadPartie620, ply } from './_partie620.js';
 
 openDb();
 let id;
@@ -26,4 +26,20 @@ test('occasion manquée : 28.Ke2 ne profite pas de 27...g5 et repasse sous le se
 test('les gaffes restent des gaffes : 15...Nxf3+ et 19.Qd2', () => {
   assert.equal(classOf(id, '15...'), 'blunder');
   assert.equal(classOf(id, '19.'), 'blunder');
+});
+
+test('courbes par niveau : les pertes de joueurs vers 1100 Elo en blitz sont plus faibles qu\'avec la formule Lichess', async () => {
+  const { getDb } = await import('../src/db.js');
+  const { CURVES_FILE, loadCurves } = await import('../src/analysis/classify.js');
+  const loss = (label) => getDb().prepare("SELECT loss FROM move_analysis WHERE game_id = ? AND pass = 'deep' AND ply = ?").get(id, ply(label)).loss;
+  const before = loss('19.');
+  loadCurves(CURVES_FILE);
+  try {
+    reclassifyStored(id, 'deep');
+    assert.ok(loss('19.') < before, `${loss('19.')} < ${before}`);
+    assert.ok(loss('19.') > 5, '19.Qd2 reste une faute');
+  } finally {
+    loadCurves('');
+    reclassifyStored(id, 'deep');
+  }
 });

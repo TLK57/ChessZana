@@ -47,6 +47,9 @@ export const DEFAULTS = {
     // chesscom = seuils inspirés de chess.com (ci-dessous) ; lichess = seuils Lichess 5 / 10 / 15 %.
     // Se change aussi dans l'application (écran « Importer & file d'analyse »).
     preset: 'chesscom',
+    // Mode « inspiré de chess.com » : chances de gain selon le niveau et la cadence (resources/expected-points.json).
+    // false = formule Lichess, la même pour tous les niveaux.
+    levelCurves: true,
     bestMaxLoss: 0.1,
     // Seuils de perte (points de chances de gain) : < 2 excellent, < 5 bon, < 10 imprécision, < 20 erreur, sinon gaffe.
     // Les mêmes pour tous les niveaux : le niveau du joueur compte seulement dans le calcul des chances de gain.

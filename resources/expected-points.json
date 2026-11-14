@@ -1,0 +1,790 @@
+{
+ "_aide": "Courbes de points espérés par cadence et par tranche de 100 Elo (npm run fit-curves). Score espéré du joueur au trait = 1 / (1 + e^-(a + b × évaluation en pions)) ; évaluation bornée à ±15 pions ; mats : score moyen observé.",
+ "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-09.pgn.zst",
+ "licence": "CC0 (base ouverte de Lichess)",
+ "month": "2026-09",
+ "date": "2026-11-14",
+ "sample": {
+  "gamesRead": 2812681,
+  "gamesWithEval": 220000,
+  "gamesByTimeClass": {
+   "blitz": 130050,
+   "rapid": 89950
+  },
+  "positions": {
+   "fit": 11353225,
+   "val": 2855710
+  },
+  "holdout": "1 partie sur 5"
+ },
+ "model": {
+  "formula": "score = 1 / (1 + exp(-(a + b * cp / 100)))",
+  "cpClamp": 1500,
+  "eloBins": "600-2400 par 100"
+ },
+ "curves": {
+  "blitz": [
+   {
+    "elo": 600,
+    "a": -0.2167,
+    "b": 0.12037,
+    "positions": 22978,
+    "mateWin": 0.83035,
+    "mateLoss": 0.07097
+   },
+   {
+    "elo": 700,
+    "a": -0.16735,
+    "b": 0.12353,
+    "positions": 53540,
+    "mateWin": 0.87794,
+    "mateLoss": 0.09262
+   },
+   {
+    "elo": 800,
+    "a": -0.07817,
+    "b": 0.14058,
+    "positions": 105773,
+    "mateWin": 0.86277,
+    "mateLoss": 0.11457
+   },
+   {
+    "elo": 900,
+    "a": -0.09534,
+    "b": 0.15705,
+    "positions": 181638,
+    "mateWin": 0.88952,
+    "mateLoss": 0.08896
+   },
+   {
+    "elo": 1000,
+    "a": -0.087,
+    "b": 0.17331,
+    "positions": 252935,
+    "mateWin": 0.91011,
+    "mateLoss": 0.06396
+   },
+   {
+    "elo": 1100,
+    "a": -0.05184,
+    "b": 0.17769,
+    "positions": 304683,
+    "mateWin": 0.91957,
+    "mateLoss": 0.07213
+   },
+   {
+    "elo": 1200,
+    "a": -0.0606,
+    "b": 0.18274,
+    "positions": 392823,
+    "mateWin": 0.91018,
+    "mateLoss": 0.06727
+   },
+   {
+    "elo": 1300,
+    "a": -0.07063,
+    "b": 0.20201,
+    "positions": 434514,
+    "mateWin": 0.9283,
+    "mateLoss": 0.05208
+   },
+   {
+    "elo": 1400,
+    "a": -0.04315,
+    "b": 0.20579,
+    "positions": 508694,
+    "mateWin": 0.92733,
+    "mateLoss": 0.06342
+   },
+   {
+    "elo": 1500,
+    "a": -0.03155,
+    "b": 0.22217,
+    "positions": 585568,
+    "mateWin": 0.93039,
+    "mateLoss": 0.04999
+   },
+   {
+    "elo": 1600,
+    "a": -0.06623,
+    "b": 0.22344,
+    "positions": 565635,
+    "mateWin": 0.92541,
+    "mateLoss": 0.05546
+   },
+   {
+    "elo": 1700,
+    "a": -0.07725,
+    "b": 0.22788,
+    "positions": 574449,
+    "mateWin": 0.93263,
+    "mateLoss": 0.05296
+   },
+   {
+    "elo": 1800,
+    "a": -0.10827,
+    "b": 0.23885,
+    "positions": 558456,
+    "mateWin": 0.92541,
+    "mateLoss": 0.04535
+   },
+   {
+    "elo": 1900,
+    "a": -0.1186,
+    "b": 0.25037,
+    "positions": 482158,
+    "mateWin": 0.92357,
+    "mateLoss": 0.0473
+   },
+   {
+    "elo": 2000,
+    "a": -0.1393,
+    "b": 0.2642,
+    "positions": 417114,
+    "mateWin": 0.92538,
+    "mateLoss": 0.04679
+   },
+   {
+    "elo": 2100,
+    "a": -0.10669,
+    "b": 0.28019,
+    "positions": 343978,
+    "mateWin": 0.93092,
+    "mateLoss": 0.04452
+   },
+   {
+    "elo": 2200,
+    "a": -0.06117,
+    "b": 0.28392,
+    "positions": 273017,
+    "mateWin": 0.92827,
+    "mateLoss": 0.06172
+   },
+   {
+    "elo": 2300,
+    "a": -0.01065,
+    "b": 0.29724,
+    "positions": 241166,
+    "mateWin": 0.93056,
+    "mateLoss": 0.06797
+   }
+  ],
+  "rapid": [
+   {
+    "elo": 600,
+    "a": -0.19713,
+    "b": 0.15047,
+    "positions": 28531,
+    "mateWin": 0.87238,
+    "mateLoss": 0.09328
+   },
+   {
+    "elo": 700,
+    "a": -0.14505,
+    "b": 0.1551,
+    "positions": 59152,
+    "mateWin": 0.91012,
+    "mateLoss": 0.06176
+   },
+   {
+    "elo": 800,
+    "a": -0.1637,
+    "b": 0.17499,
+    "positions": 100922,
+    "mateWin": 0.89788,
+    "mateLoss": 0.06892
+   },
+   {
+    "elo": 900,
+    "a": -0.15822,
+    "b": 0.18612,
+    "positions": 158708,
+    "mateWin": 0.92203,
+    "mateLoss": 0.06147
+   },
+   {
+    "elo": 1000,
+    "a": -0.05942,
+    "b": 0.18446,
+    "positions": 229456,
+    "mateWin": 0.92632,
+    "mateLoss": 0.06341
+   },
+   {
+    "elo": 1100,
+    "a": -0.07388,
+    "b": 0.20612,
+    "positions": 253678,
+    "mateWin": 0.93467,
+    "mateLoss": 0.05311
+   },
+   {
+    "elo": 1200,
+    "a": -0.07558,
+    "b": 0.21407,
+    "positions": 314822,
+    "mateWin": 0.93998,
+    "mateLoss": 0.04744
+   },
+   {
+    "elo": 1300,
+    "a": -0.08693,
+    "b": 0.23266,
+    "positions": 352480,
+    "mateWin": 0.95134,
+    "mateLoss": 0.03494
+   },
+   {
+    "elo": 1400,
+    "a": -0.11597,
+    "b": 0.24154,
+    "positions": 387758,
+    "mateWin": 0.94061,
+    "mateLoss": 0.04042
+   },
+   {
+    "elo": 1500,
+    "a": -0.06662,
+    "b": 0.2554,
+    "positions": 467976,
+    "mateWin": 0.94796,
+    "mateLoss": 0.03912
+   },
+   {
+    "elo": 1600,
+    "a": -0.10617,
+    "b": 0.26695,
+    "positions": 444304,
+    "mateWin": 0.95254,
+    "mateLoss": 0.03842
+   },
+   {
+    "elo": 1700,
+    "a": -0.07909,
+    "b": 0.27672,
+    "positions": 420375,
+    "mateWin": 0.94783,
+    "mateLoss": 0.0378
+   },
+   {
+    "elo": 1800,
+    "a": -0.12396,
+    "b": 0.28369,
+    "positions": 376470,
+    "mateWin": 0.95283,
+    "mateLoss": 0.03541
+   },
+   {
+    "elo": 1900,
+    "a": -0.04683,
+    "b": 0.30564,
+    "positions": 305930,
+    "mateWin": 0.94642,
+    "mateLoss": 0.04374
+   },
+   {
+    "elo": 2000,
+    "a": -0.02878,
+    "b": 0.32236,
+    "positions": 225289,
+    "mateWin": 0.9564,
+    "mateLoss": 0.04423
+   },
+   {
+    "elo": 2100,
+    "a": -0.03499,
+    "b": 0.31876,
+    "positions": 152470,
+    "mateWin": 0.945,
+    "mateLoss": 0.04606
+   },
+   {
+    "elo": 2200,
+    "a": 0.00483,
+    "b": 0.33142,
+    "positions": 88838,
+    "mateWin": 0.94718,
+    "mateLoss": 0.04582
+   },
+   {
+    "elo": 2300,
+    "a": 0.11075,
+    "b": 0.32396,
+    "positions": 48588,
+    "mateWin": 0.92876,
+    "mateLoss": 0.04776
+   }
+  ]
+ },
+ "validation": {
+  "positions": 2692472,
+  "logLoss": {
+   "nouvelle": 0.6086209411164277,
+   "lichess": 0.6302590121170908
+  },
+  "ecartEtalonnage": {
+   "nouvelle": 0.010890550752923495,
+   "lichess": 0.05196996540499131
+  },
+  "etalonnage": {
+   "nouvelle": [
+    {
+     "predit": 0.03147028435103171,
+     "observe": 0.05385026998102836,
+     "positions": 20557
+    },
+    {
+     "predit": 0.07722025279625568,
+     "observe": 0.068882779907883,
+     "positions": 41469
+    },
+    {
+     "predit": 0.1269070540745978,
+     "observe": 0.10571710202069985,
+     "positions": 77102
+    },
+    {
+     "predit": 0.1757764697968788,
+     "observe": 0.16365716837375457,
+     "positions": 107493
+    },
+    {
+     "predit": 0.22458213634301688,
+     "observe": 0.2235477557888576,
+     "positions": 109348
+    },
+    {
+     "predit": 0.27409614091804096,
+     "observe": 0.2811210643602586,
+     "positions": 90646
+    },
+    {
+     "predit": 0.32514272009121187,
+     "observe": 0.3252810271765333,
+     "positions": 78818
+    },
+    {
+     "predit": 0.3767252859129445,
+     "observe": 0.3623172605698148,
+     "positions": 96312
+    },
+    {
+     "predit": 0.42922477635058287,
+     "observe": 0.4042161804201464,
+     "positions": 190267
+    },
+    {
+     "predit": 0.47757179067916256,
+     "observe": 0.47914947806435415,
+     "positions": 780556
+    },
+    {
+     "predit": 0.5194384457253556,
+     "observe": 0.5477639347379744,
+     "positions": 336551
+    },
+    {
+     "predit": 0.5728330862598985,
+     "observe": 0.5866340521981105,
+     "positions": 133683
+    },
+    {
+     "predit": 0.6242824470526612,
+     "observe": 0.6234411183581551,
+     "positions": 94138
+    },
+    {
+     "predit": 0.675634147414556,
+     "observe": 0.6595685810700839,
+     "positions": 92161
+    },
+    {
+     "predit": 0.7256031577867739,
+     "observe": 0.7097053162108631,
+     "positions": 107539
+    },
+    {
+     "predit": 0.7747055076090494,
+     "observe": 0.7678489371479142,
+     "positions": 117514
+    },
+    {
+     "predit": 0.8237028334330234,
+     "observe": 0.8293367997145333,
+     "positions": 98085
+    },
+    {
+     "predit": 0.8729073973993685,
+     "observe": 0.8791972778594076,
+     "positions": 64655
+    },
+    {
+     "predit": 0.9227690638507802,
+     "observe": 0.913944211916065,
+     "positions": 35599
+    },
+    {
+     "predit": 0.967508948118765,
+     "observe": 0.9317032884528755,
+     "positions": 19979
+    }
+   ],
+   "lichess": [
+    {
+     "predit": 0.025787693829437075,
+     "observe": 0.08530281783846304,
+     "positions": 97699
+    },
+    {
+     "predit": 0.07624874901920364,
+     "observe": 0.14531317201258573,
+     "positions": 132531
+    },
+    {
+     "predit": 0.12275790029487542,
+     "observe": 0.21743582308647233,
+     "positions": 110359
+    },
+    {
+     "predit": 0.17271784833441023,
+     "observe": 0.26921920040105274,
+     "positions": 79790
+    },
+    {
+     "predit": 0.22590433192658707,
+     "observe": 0.3032173456898059,
+     "positions": 57190
+    },
+    {
+     "predit": 0.2744552292412056,
+     "observe": 0.3275343689404998,
+     "positions": 45899
+    },
+    {
+     "predit": 0.32542212461220427,
+     "observe": 0.35163698506925706,
+     "positions": 66708
+    },
+    {
+     "predit": 0.37495576498618216,
+     "observe": 0.37913696344607917,
+     "positions": 65930
+    },
+    {
+     "predit": 0.42570551349151103,
+     "observe": 0.40180164175900634,
+     "positions": 135099
+    },
+    {
+     "predit": 0.4774508096246866,
+     "observe": 0.44926562552817495,
+     "positions": 354996
+    },
+    {
+     "predit": 0.516445731784278,
+     "observe": 0.5084773994901951,
+     "positions": 594345
+    },
+    {
+     "predit": 0.5738460932101533,
+     "observe": 0.5628075420905139,
+     "positions": 181276
+    },
+    {
+     "predit": 0.6250085357483067,
+     "observe": 0.5807192359004026,
+     "positions": 84701
+    },
+    {
+     "predit": 0.6744033508339107,
+     "observe": 0.605322850729784,
+     "positions": 84203
+    },
+    {
+     "predit": 0.7253724432369012,
+     "observe": 0.6271121214290828,
+     "positions": 55868
+    },
+    {
+     "predit": 0.7739577429284821,
+     "observe": 0.6544706999940628,
+     "positions": 67372
+    },
+    {
+     "predit": 0.8271349998039265,
+     "observe": 0.6874660554843475,
+     "positions": 92062
+    },
+    {
+     "predit": 0.8772219466692149,
+     "observe": 0.7430042058882436,
+     "positions": 124825
+    },
+    {
+     "predit": 0.9236270184856078,
+     "observe": 0.8174835139344534,
+     "positions": 150885
+    },
+    {
+     "predit": 0.9741823970857205,
+     "observe": 0.8909007170336121,
+     "positions": 110734
+    }
+   ]
+  },
+  "parTranche": [
+   {
+    "tc": "blitz",
+    "elo": 600,
+    "positions": 6033,
+    "logLossNouvelle": 0.5984768469369237,
+    "logLossLichess": 0.6803920345011278
+   },
+   {
+    "tc": "blitz",
+    "elo": 700,
+    "positions": 14106,
+    "logLossNouvelle": 0.6200020054955937,
+    "logLossLichess": 0.7153472351327158
+   },
+   {
+    "tc": "blitz",
+    "elo": 800,
+    "positions": 26872,
+    "logLossNouvelle": 0.633130672603669,
+    "logLossLichess": 0.7188732288035385
+   },
+   {
+    "tc": "blitz",
+    "elo": 900,
+    "positions": 46730,
+    "logLossNouvelle": 0.6193611717100884,
+    "logLossLichess": 0.6818954081809591
+   },
+   {
+    "tc": "blitz",
+    "elo": 1000,
+    "positions": 63273,
+    "logLossNouvelle": 0.6198525805175773,
+    "logLossLichess": 0.6686813126183864
+   },
+   {
+    "tc": "blitz",
+    "elo": 1100,
+    "positions": 77672,
+    "logLossNouvelle": 0.6201510651926629,
+    "logLossLichess": 0.6623524892508877
+   },
+   {
+    "tc": "blitz",
+    "elo": 1200,
+    "positions": 96769,
+    "logLossNouvelle": 0.6171727859361993,
+    "logLossLichess": 0.6476610792268931
+   },
+   {
+    "tc": "blitz",
+    "elo": 1300,
+    "positions": 115054,
+    "logLossNouvelle": 0.6269607666982643,
+    "logLossLichess": 0.6607060042523506
+   },
+   {
+    "tc": "blitz",
+    "elo": 1400,
+    "positions": 127908,
+    "logLossNouvelle": 0.622460291823252,
+    "logLossLichess": 0.6472693021547272
+   },
+   {
+    "tc": "blitz",
+    "elo": 1500,
+    "positions": 143152,
+    "logLossNouvelle": 0.6179924753285514,
+    "logLossLichess": 0.639695421499795
+   },
+   {
+    "tc": "blitz",
+    "elo": 1600,
+    "positions": 141727,
+    "logLossNouvelle": 0.6154949271649965,
+    "logLossLichess": 0.633191753752388
+   },
+   {
+    "tc": "blitz",
+    "elo": 1700,
+    "positions": 145393,
+    "logLossNouvelle": 0.6183505116490948,
+    "logLossLichess": 0.634771093303137
+   },
+   {
+    "tc": "blitz",
+    "elo": 1800,
+    "positions": 137604,
+    "logLossNouvelle": 0.6216072350409702,
+    "logLossLichess": 0.6379972459378779
+   },
+   {
+    "tc": "blitz",
+    "elo": 1900,
+    "positions": 120552,
+    "logLossNouvelle": 0.6194583026312745,
+    "logLossLichess": 0.6341644845183528
+   },
+   {
+    "tc": "blitz",
+    "elo": 2000,
+    "positions": 104611,
+    "logLossNouvelle": 0.6124462771791861,
+    "logLossLichess": 0.6207191885819432
+   },
+   {
+    "tc": "blitz",
+    "elo": 2100,
+    "positions": 84544,
+    "logLossNouvelle": 0.6116474229416072,
+    "logLossLichess": 0.6187597952277757
+   },
+   {
+    "tc": "blitz",
+    "elo": 2200,
+    "positions": 70370,
+    "logLossNouvelle": 0.6103278354431783,
+    "logLossLichess": 0.614177072299093
+   },
+   {
+    "tc": "blitz",
+    "elo": 2300,
+    "positions": 62090,
+    "logLossNouvelle": 0.6262532136397949,
+    "logLossLichess": 0.6323234868577335
+   },
+   {
+    "tc": "rapid",
+    "elo": 600,
+    "positions": 8103,
+    "logLossNouvelle": 0.5945737367902671,
+    "logLossLichess": 0.6774090036921597
+   },
+   {
+    "tc": "rapid",
+    "elo": 700,
+    "positions": 16576,
+    "logLossNouvelle": 0.6074464191308376,
+    "logLossLichess": 0.6917095016838121
+   },
+   {
+    "tc": "rapid",
+    "elo": 800,
+    "positions": 25711,
+    "logLossNouvelle": 0.5966494181632124,
+    "logLossLichess": 0.6690263336243828
+   },
+   {
+    "tc": "rapid",
+    "elo": 900,
+    "positions": 38564,
+    "logLossNouvelle": 0.6075553218425771,
+    "logLossLichess": 0.6699572063296318
+   },
+   {
+    "tc": "rapid",
+    "elo": 1000,
+    "positions": 57162,
+    "logLossNouvelle": 0.6107622235006295,
+    "logLossLichess": 0.667914727939627
+   },
+   {
+    "tc": "rapid",
+    "elo": 1100,
+    "positions": 63436,
+    "logLossNouvelle": 0.5941814042968803,
+    "logLossLichess": 0.6263031916606477
+   },
+   {
+    "tc": "rapid",
+    "elo": 1200,
+    "positions": 80394,
+    "logLossNouvelle": 0.5920027495543047,
+    "logLossLichess": 0.6165427046994826
+   },
+   {
+    "tc": "rapid",
+    "elo": 1300,
+    "positions": 88755,
+    "logLossNouvelle": 0.5920892467777046,
+    "logLossLichess": 0.6121190040011587
+   },
+   {
+    "tc": "rapid",
+    "elo": 1400,
+    "positions": 97400,
+    "logLossNouvelle": 0.5916625997827027,
+    "logLossLichess": 0.6049550741381803
+   },
+   {
+    "tc": "rapid",
+    "elo": 1500,
+    "positions": 116946,
+    "logLossNouvelle": 0.5942400401687139,
+    "logLossLichess": 0.6078701987719425
+   },
+   {
+    "tc": "rapid",
+    "elo": 1600,
+    "positions": 108100,
+    "logLossNouvelle": 0.5920807755122992,
+    "logLossLichess": 0.6004705069356608
+   },
+   {
+    "tc": "rapid",
+    "elo": 1700,
+    "positions": 105314,
+    "logLossNouvelle": 0.588202823105104,
+    "logLossLichess": 0.5949867695446892
+   },
+   {
+    "tc": "rapid",
+    "elo": 1800,
+    "positions": 100743,
+    "logLossNouvelle": 0.5932939774661646,
+    "logLossLichess": 0.5984922240976961
+   },
+   {
+    "tc": "rapid",
+    "elo": 1900,
+    "positions": 77398,
+    "logLossNouvelle": 0.5825696300843867,
+    "logLossLichess": 0.5836659615750391
+   },
+   {
+    "tc": "rapid",
+    "elo": 2000,
+    "positions": 55975,
+    "logLossNouvelle": 0.5945904989023708,
+    "logLossLichess": 0.5965811830143254
+   },
+   {
+    "tc": "rapid",
+    "elo": 2100,
+    "positions": 34736,
+    "logLossNouvelle": 0.5944665467978771,
+    "logLossLichess": 0.5950056692924754
+   },
+   {
+    "tc": "rapid",
+    "elo": 2200,
+    "positions": 20775,
+    "logLossNouvelle": 0.5983227209326591,
+    "logLossLichess": 0.5998008967066425
+   },
+   {
+    "tc": "rapid",
+    "elo": 2300,
+    "positions": 11924,
+    "logLossNouvelle": 0.6198260860484784,
+    "logLossLichess": 0.62031679172912
+   }
+  ]
+ }
+}
