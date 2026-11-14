@@ -1,6 +1,6 @@
 // Écran « Progression » : courbes dans le temps, précision par phase, fautes par partie, gestion du temps,
 // et bouton « Bilan pour Claude ».
-import { api, esc, fig, fmtDate, fmtPct, fmtSpent, moveNo, pctText, copyWithFallback, TIME_CLASS } from './util.js';
+import { api, esc, fig, fmtDate, fmtPct, fmtSpent, moveNo, pctText, copyWithFallback, TIME_CLASS, ciText, isSmall, nText, SMALL_SAMPLE } from './util.js';
 import { filterBar, filtersQuery } from './statfilters.js';
 import { lineChart, barList, movingAverage } from './charts.js';
 
@@ -24,9 +24,10 @@ export async function renderProgress(root) {
       <div class="cols2">
         <div class="card"><h2>Précision par phase de jeu</h2><div id="phases"></div>
           <p class="note">Ouverture : jusqu'à ce qu'il reste 10 pièces ou moins (rois et pions non comptés), qu'un camp ait moins de 4 pièces sur sa première rangée, ou après le 15e coup. Finale : 6 pièces ou moins. Moyenne de la précision de vos coups, hors coups de théorie.</p></div>
-        <div class="card"><h2>Fautes par partie</h2><div id="perGame"></div></div>
+        <div class="card"><h2>Fautes par partie</h2><div id="perGame"></div><p class="note" id="perGameNote"></p></div>
       </div>
-      <div class="card"><h2>Évolution des fautes (moyenne par partie, mois par mois)</h2><div class="cols3" id="trends"></div></div>
+      <div class="card"><h2>Évolution des fautes (moyenne par partie, mois par mois)</h2><div class="cols3" id="trends"></div>
+        <p class="note">Points creux : mois avec moins de 10 parties analysées (échantillon trop petit pour conclure).</p></div>
       <h2 style="margin:6px 0 0">Gestion du temps</h2>
       <div class="cols2">
         <div class="card"><div class="mini-title">Coups ratés (erreur, gaffe, occasion manquée) selon la pendule</div><div id="lowClock"></div><p class="note" id="lowNote"></p></div>
@@ -48,14 +49,14 @@ export async function renderProgress(root) {
     const [d, t] = await Promise.all([api(`/api/stats/dashboard?${filtersQuery(filters)}`), api(`/api/stats/time?${filtersQuery(filters)}`)]);
     $('refreshNote').textContent = d.refresh?.refreshing ? `Mise à jour des statistiques… (${d.refresh.done}/${d.refresh.total})` : `${d.count} parties analysées dans la sélection`;
     const last = [...d.series].reverse().find((g) => g.myElo);
-    const score = d.count ? (d.results.win + d.results.draw / 2) / d.count : null;
+    const small = isSmall(d.count);
     $('kpis').innerHTML = [
-      ['Parties analysées', d.count, `${d.results.win} V · ${d.results.draw} N · ${d.results.loss} D`],
-      ['Score', pctText(score), 'victoire = 1, nulle = ½'],
-      ['Précision moyenne', d.avgAccuracy != null ? `${fmtPct(d.avgAccuracy)} %` : '–', 'méthode Lichess'],
-      ['Elo estimé moyen', d.avgEstElo ? Math.round(d.avgEstElo) : '–', d.calibration?.enabled ? `calibré sur vos parties (${d.calibration.points} joueurs-parties)` : 'estimation d\'après la précision (non calibrée)'],
-      ['Elo réel (dernière partie)', last?.myElo ?? '–', last ? `${TIME_CLASS[last.timeClass] ?? last.timeClass}` : ''],
-    ].map(([l, v, s]) => `<div class="card kpi"><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div><div class="l">${esc(s)}</div></div>`).join('');
+      ['Parties analysées', d.count, `${d.results.win} V · ${d.results.draw} N · ${d.results.loss} D`, small],
+      ['Score', pctText(d.score?.p), `victoire = 1, nulle = ½ · ${ciText(d.score)} · ${nText(d.count)}`, small],
+      ['Précision moyenne', d.avgAccuracy != null ? `${fmtPct(d.avgAccuracy)} %` : '–', `méthode Lichess · ${nText(d.accuracyGames)}`, isSmall(d.accuracyGames)],
+      ['Elo estimé moyen', d.avgEstElo ? Math.round(d.avgEstElo) : '–', `${d.calibration?.enabled ? `calibré sur vos parties (${d.calibration.points} joueurs-parties)` : 'estimation d\'après la précision (non calibrée)'} · ${nText(d.series.filter((g) => g.estElo != null).length)}`, isSmall(d.series.filter((g) => g.estElo != null).length)],
+      ['Elo réel (dernière partie)', last?.myElo ?? '–', last ? `${TIME_CLASS[last.timeClass] ?? last.timeClass}` : '', false],
+    ].map(([l, v, s, thin]) => `<div class="card kpi${thin ? ' thin' : ''}"${thin ? ` title="${SMALL_SAMPLE}"` : ''}><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div><div class="l">${esc(s)}</div></div>`).join('');
 
     const pts = d.series.map((g) => ({ x: Date.parse(g.playedAt), y: g.accuracy, data: g }));
     const open = (g) => { location.hash = `#/partie/${g.gameId}`; };
@@ -81,13 +82,15 @@ export async function renderProgress(root) {
     ], { tip: (g, same) => `${fmtDate(g.playedAt)} · contre ${esc(g.opponent ?? '?')}<br>${same.map(({ s, q }) => `${esc(s.label)} : <b>${Math.round(q.y)}</b>`).join('<br>')}`, onClick: open });
 
     barList($('phases'), ['opening', 'middlegame', 'endgame'].map((k) => ({
-      label: d.phases[k].label, sub: `${d.phases[k].moves} coups`, value: d.phases[k].accuracy ?? 0,
+      label: d.phases[k].label, sub: `${d.phases[k].moves} coups · n = ${d.phases[k].games} parties`, value: d.phases[k].accuracy ?? 0,
+      thin: isSmall(d.phases[k].games),
       text: d.phases[k].accuracy != null ? `${fmtPct(d.phases[k].accuracy)} %` : '–',
     })), { max: 100 });
     barList($('perGame'), [
       ['Gaffes', d.perGame.blunder, 'var(--blunder)'], ['Erreurs', d.perGame.mistake, 'var(--mistake)'],
       ['Occasions manquées', d.perGame.miss, 'var(--miss)'], ['Imprécisions', d.perGame.inaccuracy, 'var(--inaccuracy)'],
-    ].map(([label, v, color]) => ({ label, value: v ?? 0, text: v != null ? v.toFixed(2).replace('.', ',') : '–', color })));
+    ].map(([label, v, color]) => ({ label, value: v ?? 0, text: v != null ? v.toFixed(2).replace('.', ',') : '–', color, thin: small })));
+    $('perGameNote').textContent = `Moyenne sur ${nText(d.count)}.`;
 
     // Petits graphiques séparés (un par type de faute) plutôt qu'un graphique à 4 couleurs.
     const trends = $('trends');
@@ -96,20 +99,24 @@ export async function renderProgress(root) {
       const box = document.createElement('div');
       box.innerHTML = `<div class="mini-title">${label} par partie</div><div></div>`;
       trends.appendChild(box);
-      lineChart(box.lastElementChild, [{ label, color, points: d.byMonth.map((m) => ({ x: Date.parse(`${m.month}-15`), y: m[key], data: m })), dots: true, opacity: 1, r: 4 }],
-        { yMin: 0, yFormat: (v) => v.toFixed(1).replace('.', ','), tip: (m) => `${esc(m.month)} · ${m.games} parties<br>${label} : <b>${m[key].toFixed(2).replace('.', ',')}</b> par partie` });
+      lineChart(box.lastElementChild, [{ label, color, points: d.byMonth.map((m) => ({ x: Date.parse(`${m.month}-15`), y: m[key], data: m, thin: isSmall(m.games) })), dots: true, opacity: 1, r: 4 }],
+        { yMin: 0, yFormat: (v) => v.toFixed(1).replace('.', ','), tip: (m) => `${esc(m.month)} · n = ${m.games} parties${isSmall(m.games) ? ` (${SMALL_SAMPLE})` : ''}<br>${label} : <b>${m[key].toFixed(2).replace('.', ',')}</b> par partie` });
     }
 
     // Gestion du temps.
     barList($('lowClock'), [
-      { label: 'Moins de 30 s à la pendule', sub: `${t.lowClock.moves} coups`, value: t.lowClock.errorRate ?? 0, text: pctText(t.lowClock.errorRate, 1) },
-      { label: 'Plus de 30 s', sub: `${t.otherClock.moves} coups`, value: t.otherClock.errorRate ?? 0, text: pctText(t.otherClock.errorRate, 1) },
+      { label: 'Moins de 30 s à la pendule', sub: `${t.lowClock.moves} coups · n = ${t.lowClock.games} parties`, value: t.lowClock.errorRate ?? 0, text: pctText(t.lowClock.errorRate, 1), title: ciText(t.lowClock.errorCI, 1), thin: isSmall(t.lowClock.games) },
+      { label: 'Plus de 30 s', sub: `${t.otherClock.moves} coups · n = ${t.otherClock.games} parties`, value: t.otherClock.errorRate ?? 0, text: pctText(t.otherClock.errorRate, 1), title: ciText(t.otherClock.errorCI, 1), thin: isSmall(t.otherClock.games) },
     ]);
     const lr = t.lowClock.errorRate, or = t.otherClock.errorRate;
-    $('lowNote').textContent = t.lowClock.moves < 20 ? 'Peu de coups joués avec moins de 30 s : comparaison encore peu fiable.'
-      : lr != null && or != null ? (lr > or * 1.3 ? `Vous ratez ${(lr / or).toFixed(1).replace('.', ',')} fois plus de coups quand il vous reste moins de 30 s.` : 'Pas de dégradation nette quand la pendule descend sous 30 s.') : '';
+    const cis = `Sous 30 s : ${ciText(t.lowClock.errorCI, 1)} ; au-delà : ${ciText(t.otherClock.errorCI, 1)}.`;
+    $('lowNote').textContent = lr == null || or == null ? ''
+      : isSmall(t.lowClock.games) ? `Moins de 10 parties avec moins de 30 s à la pendule : ${SMALL_SAMPLE}, pas de conclusion. ${cis}`
+        : t.lowVsOther === 'higher' ? `Vous ratez ${(lr / Math.max(or, 1e-9)).toFixed(1).replace('.', ',')} fois plus de coups quand il vous reste moins de 30 s. Différence nette : les intervalles de confiance ne se chevauchent pas. ${cis}`
+          : t.lowVsOther === 'lower' ? `Vous ratez même moins de coups sous 30 s (différence nette). ${cis}`
+            : `Pas de différence démontrée : les intervalles de confiance se chevauchent. ${cis}`;
     barList($('timePhase'), ['opening', 'middlegame', 'endgame'].map((k) => ({ label: { opening: 'Ouverture', middlegame: 'Milieu de jeu', endgame: 'Finale' }[k], value: t.perPhase[k] ?? 0, text: t.perPhase[k] != null ? fmtSpent(t.perPhase[k]) : '–' })), { color: 'var(--series-1)' });
-    $('slowCount').textContent = `(${t.slowSimple.count} sur ${t.simpleMoves} coups évidents)`;
+    $('slowCount').textContent = `(${t.slowSimple.count} sur ${t.simpleMoves} coups évidents${t.slowSimple.rate ? ` · ${pctText(t.slowSimple.rate.p, 1)}, ${ciText(t.slowSimple.rate, 1)}` : ''} · n = ${t.games} parties)`;
     $('slowList').innerHTML = t.slowSimple.examples.map((x) => `<li><a href="#/partie/${x.gameId}/${x.ply}">${moveNo(x.ply)} ${esc(fig(x.san))}</a> en <b>${fmtSpent(x.spentMs)}</b> — contre ${esc(x.opponent ?? '?')}, ${fmtDate(x.playedAt)}</li>`).join('') || '<li class="muted">Aucun pour le moment.</li>';
     $('lostTime').innerHTML = t.lostOnTimeWinning.map((x) => `<li><a href="#/partie/${x.gameId}">Contre ${esc(x.opponent ?? '?')}, ${fmtDate(x.playedAt)}</a> — ${Math.round(x.finalWin)} % de chances de gain à la fin</li>`).join('') || '<li class="muted">Aucune : bravo !</li>';
   }

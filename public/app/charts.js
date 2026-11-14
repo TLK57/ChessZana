@@ -65,7 +65,10 @@ export function lineChart(container, series, opts = {}) {
     const marks = series.map((s, si) => {
       const pts = s.points.filter((p) => p.y != null);
       const path = s.line !== false && pts.length > 1 ? `<path d="M${pts.map((p) => `${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join(' L')}" fill="none" stroke="${s.color}" stroke-width="${s.width ?? 2}" stroke-linejoin="round" stroke-linecap="round"/>` : '';
-      const dots = s.dots ? pts.map((p) => `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${s.r ?? 3}" fill="${s.color}" opacity="${s.opacity ?? 0.45}"/>`).join('') : '';
+      // Un point marqué « thin » (trop peu de parties) est dessiné creux et pâle.
+      const dots = s.dots ? pts.map((p) => (p.thin
+        ? `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${s.r ?? 3}" fill="var(--card)" stroke="${s.color}" stroke-width="1.5" opacity="0.5"/>`
+        : `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${s.r ?? 3}" fill="${s.color}" opacity="${s.opacity ?? 0.45}"/>`)).join('') : '';
       return `<g data-s="${si}">${dots}${path}</g>`;
     }).join('');
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img">${grid.join('')}${ticks.join('')}${marks}
@@ -106,8 +109,8 @@ export function lineChart(container, series, opts = {}) {
 export function barList(container, items, { max = null, color = 'var(--series-1)', onClick = null } = {}) {
   const m = max ?? Math.max(1e-9, ...items.map((i) => i.value ?? 0));
   container.innerHTML = `<div class="bars">${items.map((it, i) => `
-    <div class="bar-row${onClick ? ' click' : ''}" data-i="${i}" title="${esc(it.title ?? '')}">
-      <div class="bar-label">${esc(it.label)}${it.sub ? ` <span class="muted small">${esc(it.sub)}</span>` : ''}</div>
+    <div class="bar-row${onClick ? ' click' : ''}${it.thin ? ' thin' : ''}" data-i="${i}" title="${esc(it.title ?? '')}">
+      <div class="bar-label">${esc(it.label)}${it.sub ? ` <span class="muted small">${esc(it.sub)}</span>` : ''}${it.thin ? ' <span class="thin-tag">échantillon trop petit</span>' : ''}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${Math.max(0, Math.min(100, (100 * (it.value ?? 0)) / m))}%;background:${it.color ?? color}"></div></div>
       <div class="bar-value">${esc(it.text ?? String(it.value ?? '–'))}</div>
     </div>`).join('')}</div>`;

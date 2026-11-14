@@ -5,6 +5,7 @@ import { isBookPosition } from '../analysis/openings.js';
 import { ensureStatsSchema } from './compute.js';
 import { PHASE_LABELS } from './rules.js';
 import { calibratedElo, calibrationInfo } from './calibration.js';
+import { MIN_GAMES, compare, wilson } from './confidence.js';
 
 const TIME_CLASSES = ['bullet', 'blitz', 'rapid', 'classical', 'daily'];
 
@@ -52,10 +53,16 @@ export function dashboard(f = {}) {
     if (g.accuracy != null) { m.acc += g.accuracy; m.accN++; }
     months.set(key, m);
   }
+  const results = { win: games.filter((g) => g.outcome === 'win').length, draw: games.filter((g) => g.outcome === 'draw').length, loss: games.filter((g) => g.outcome === 'loss').length };
+  const phaseGames = (k) => games.filter((g) => (g[k] ?? 0) > 0).length;
   return {
     count: n,
-    results: { win: games.filter((g) => g.outcome === 'win').length, draw: games.filter((g) => g.outcome === 'draw').length, loss: games.filter((g) => g.outcome === 'loss').length },
+    minGames: MIN_GAMES,
+    results,
+    // Score (victoire = 1, nulle = ½) avec son intervalle de confiance à 95 %.
+    score: wilson(results.win + results.draw / 2, n),
     avgAccuracy: ratio(withAcc.reduce((a, g) => a + g.accuracy, 0), withAcc.length),
+    accuracyGames: withAcc.length,
     avgEstElo: ratio(withElo.reduce((a, g) => a + g.est_elo, 0), withElo.length),
     calibration: calibrationInfo(),
     series: games.map((g) => ({
@@ -64,9 +71,9 @@ export function dashboard(f = {}) {
       opponent: g.my_color === 'white' ? g.black_name : g.white_name, opening: g.opening_name,
     })),
     phases: {
-      opening: { accuracy: ratio(sum('op_acc'), sum('op_n')), moves: sum('op_n'), label: PHASE_LABELS.opening },
-      middlegame: { accuracy: ratio(sum('mg_acc'), sum('mg_n')), moves: sum('mg_n'), label: PHASE_LABELS.middlegame },
-      endgame: { accuracy: ratio(sum('eg_acc'), sum('eg_n')), moves: sum('eg_n'), label: PHASE_LABELS.endgame },
+      opening: { accuracy: ratio(sum('op_acc'), sum('op_n')), moves: sum('op_n'), games: phaseGames('op_n'), label: PHASE_LABELS.opening },
+      middlegame: { accuracy: ratio(sum('mg_acc'), sum('mg_n')), moves: sum('mg_n'), games: phaseGames('mg_n'), label: PHASE_LABELS.middlegame },
+      endgame: { accuracy: ratio(sum('eg_acc'), sum('eg_n')), moves: sum('eg_n'), games: phaseGames('eg_n'), label: PHASE_LABELS.endgame },
     },
     perGame: {
       blunder: ratio(sum('n_blunder'), n), mistake: ratio(sum('n_mistake'), n),
@@ -95,13 +102,15 @@ export function timeStats(f = {}) {
   const opp = (r) => (r.my_color === 'white' ? r.black_name : r.white_name);
   return {
     games: games.length,
-    lowClock: { moves: sum('low_n'), errors: sum('low_bad'), inaccuracies: sum('low_inacc'), errorRate: ratio(sum('low_bad'), sum('low_n')), inaccuracyRate: ratio(sum('low_inacc'), sum('low_n')) },
-    otherClock: { moves: sum('oth_n'), errors: sum('oth_bad'), inaccuracies: sum('oth_inacc'), errorRate: ratio(sum('oth_bad'), sum('oth_n')), inaccuracyRate: ratio(sum('oth_inacc'), sum('oth_n')) },
+    lowClock: { moves: sum('low_n'), games: games.filter((g) => g.low_n > 0).length, errors: sum('low_bad'), inaccuracies: sum('low_inacc'), errorRate: ratio(sum('low_bad'), sum('low_n')), errorCI: wilson(sum('low_bad'), sum('low_n')), inaccuracyRate: ratio(sum('low_inacc'), sum('low_n')) },
+    otherClock: { moves: sum('oth_n'), games: games.filter((g) => g.oth_n > 0).length, errors: sum('oth_bad'), inaccuracies: sum('oth_inacc'), errorRate: ratio(sum('oth_bad'), sum('oth_n')), errorCI: wilson(sum('oth_bad'), sum('oth_n')), inaccuracyRate: ratio(sum('oth_inacc'), sum('oth_n')) },
+    // Moins de 30 s contre le reste : « higher » seulement si les intervalles de confiance ne se chevauchent pas.
+    lowVsOther: compare(wilson(sum('low_bad'), sum('low_n')), wilson(sum('oth_bad'), sum('oth_n'))),
     perPhase: {
       opening: ratio(sum('op_t'), sum('op_tn')), middlegame: ratio(sum('mg_t'), sum('mg_tn')), endgame: ratio(sum('eg_t'), sum('eg_tn')),
     },
     simpleMoves: sum('simple_n'),
-    slowSimple: { count: sum('slow_simple'), examples: slow.map((r) => ({ gameId: r.game_id, ply: r.ply, san: r.san, spentMs: r.spent, phase: r.phase, playedAt: r.played_at, opponent: opp(r) })) },
+    slowSimple: { count: sum('slow_simple'), rate: wilson(sum('slow_simple'), sum('simple_n')), examples: slow.map((r) => ({ gameId: r.game_id, ply: r.ply, san: r.san, spentMs: r.spent, phase: r.phase, playedAt: r.played_at, opponent: opp(r) })) },
     lostOnTimeWinning: lostOnTime.map((r) => ({ gameId: r.game_id, playedAt: r.played_at, finalWin: r.final_win, opponent: opp(r), termination: r.termination })),
   };
 }
@@ -116,14 +125,18 @@ export function recurringErrors(f = {}, { examples = 3 } = {}) {
         SUM(CASE WHEN m.classification = 'blunder' THEN 1 ELSE 0 END) AS blunders
       FROM move_features m JOIN game_stats s ON s.game_id = m.game_id ${where} GROUP BY m.error_type ORDER BY n DESC`).all(...args);
   const total = rows.reduce((a, r) => a + r.n, 0);
+  const games = d.prepare(`SELECT COUNT(*) AS n FROM game_stats s ${sql}`).get(...args).n;
   const ex = d.prepare(`SELECT m.game_id, m.ply, m.san, m.best_san, m.classification, m.phase, m.fen_before, s.played_at, s.my_color,
         g.white_name, g.black_name
       FROM move_features m JOIN game_stats s ON s.game_id = m.game_id JOIN games g ON g.id = m.game_id
       ${where} AND m.error_type = ? ORDER BY CASE m.classification WHEN 'blunder' THEN 0 ELSE 1 END, s.played_at DESC LIMIT ?`);
   return {
     total,
+    games,
+    minGames: MIN_GAMES,
     types: rows.map((r) => ({
       type: r.type, label: ERROR_TYPES[r.type] ?? r.type, count: r.n, blunders: r.blunders, share: total ? r.n / total : 0,
+      shareCI: wilson(r.n, total),
       examples: ex.all(...args, r.type, examples).map((e) => ({
         gameId: e.game_id, ply: e.ply, san: e.san, bestSan: e.best_san, classification: e.classification, phase: e.phase,
         fen: e.fen_before, playedAt: e.played_at, opponent: e.my_color === 'white' ? e.black_name : e.white_name,
@@ -175,9 +188,13 @@ export function repertoire(f = {}, { color = 'white', maxPlies = 14, minGames = 
       exits.set(key, e);
     }
   }
+  const overall = wilson(root.points, root.games);
   const out = (n) => ({
     san: n.san, ply: n.ply ?? 0, path: n.path, games: n.games,
     score: n.games ? n.points / n.games : null,
+    scoreCI: wilson(n.points, n.games),
+    // Nettement meilleur ou moins bon que votre score moyen avec cette couleur (intervalles disjoints).
+    vsOverall: n.games ? compare(wilson(n.points, n.games), overall) : 'similar',
     accuracy: n.accN ? n.accSum / n.accN : null,
     book: n.fen ? isBookPosition(n.fen) : true,
     ids: n.ids,
@@ -185,13 +202,14 @@ export function repertoire(f = {}, { color = 'white', maxPlies = 14, minGames = 
   });
   const lines = [...exits.values()].map((e) => ({
     path: e.path, exitPly: e.exitPly, games: e.games, score: e.points / e.games,
+    scoreCI: wilson(e.points, e.games), vsOverall: compare(wilson(e.points, e.games), overall),
     winDelta: e.deltaN ? e.deltaSum / e.deltaN : null, ids: e.ids,
   }));
   const bad = (l) => (l.winDelta != null && l.winDelta <= -10) || l.score <= 0.35;
   const several = lines.filter((l) => l.games >= 2 && bad(l));
   const problemLines = (several.length ? several : lines.filter(bad))
     .sort((a, b) => (a.winDelta ?? 0) - (b.winDelta ?? 0) || a.score - b.score).slice(0, 12);
-  return { color, games: games.length, tree: out(root), problemLines };
+  return { color, games: games.length, minGames: MIN_GAMES, overall, tree: out(root), problemLines };
 }
 
 /** Résumé court de parties (pour les listes cliquables). */

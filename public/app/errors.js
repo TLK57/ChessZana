@@ -1,5 +1,5 @@
 // Écran « Mes erreurs » : types d'erreurs les plus fréquents (règles d'explication de l'étape 2), avec exemples.
-import { api, esc, fig, fmtDate, moveNo, pctText, LABELS } from './util.js';
+import { api, esc, fig, fmtDate, moveNo, pctText, LABELS, ciText, isSmall, SMALL_SAMPLE } from './util.js';
 import { filterBar, filtersQuery } from './statfilters.js';
 import { barList } from './charts.js';
 
@@ -21,7 +21,7 @@ export async function renderErrors(root) {
 
   function showExamples(t) {
     $('examples').innerHTML = `<h2>${esc(t.label)}</h2>
-      <p class="muted small">${t.count} fois (${pctText(t.share)} de vos erreurs), dont ${t.blunders} gaffe${t.blunders > 1 ? 's' : ''}.</p>
+      <p class="muted small">${t.count} fois sur ${data.total} (${pctText(t.share)} de vos erreurs, ${ciText(t.shareCI)}), dont ${t.blunders} gaffe${t.blunders > 1 ? 's' : ''}.</p>
       <ul class="list-links">${t.examples.map((x) => `<li><a href="#/partie/${x.gameId}/${x.ply}"><b>${moveNo(x.ply)} ${esc(fig(x.san))}</b></a>
         <span class="t-${x.classification}">${esc(LABELS[x.classification])}</span> en ${PHASE[x.phase] ?? ''} — meilleur coup ${esc(fig(x.bestSan ?? '?'))},
         contre ${esc(x.opponent ?? '?')} le ${fmtDate(x.playedAt)}</li>`).join('')}</ul>
@@ -30,9 +30,9 @@ export async function renderErrors(root) {
 
   async function load() {
     data = await api(`/api/stats/errors?${filtersQuery(filters)}`);
-    $('count').textContent = `${data.total} erreurs, gaffes et occasions manquées dans la sélection`;
+    $('count').textContent = `${data.total} erreurs, gaffes et occasions manquées · n = ${data.games} parties${isSmall(data.games) ? ` · ${SMALL_SAMPLE}` : ''}`;
     if (!data.types.length) { $('bars').innerHTML = '<p class="muted small">Pas encore de parties analysées.</p>'; return; }
-    barList($('bars'), data.types.map((t) => ({ label: t.label, value: t.count, text: `${t.count} · ${pctText(t.share)}`, type: t })), { onClick: (it) => showExamples(it.type) });
+    barList($('bars'), data.types.map((t) => ({ label: t.label, value: t.count, text: `${t.count} · ${pctText(t.share)}`, title: ciText(t.shareCI), thin: isSmall(data.games), type: t })), { onClick: (it) => showExamples(it.type) });
     showExamples(data.types[0]);
   }
   await load();

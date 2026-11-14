@@ -204,3 +204,8 @@ textarea.pgn { width: 100%; height: 90px; font-family: ui-monospace, Consolas, m
 table.simple { width: 100%; border-collapse: collapse; font-size: 13px; }
 table.simple th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; padding: 5px 6px; border-bottom: 1px solid var(--line); }
 table.simple td { padding: 5px 6px; border-bottom: 1px solid var(--line); }
+
+/* Statistiques sur trop peu de parties : grisées, avec la mention « échantillon trop petit ». */
+.thin { opacity: .45; }
+.thin-tag { font-size: 11px; color: var(--muted); font-style: italic; white-space: nowrap; }
+.ci { font-size: 11px; color: var(--muted); white-space: nowrap; }

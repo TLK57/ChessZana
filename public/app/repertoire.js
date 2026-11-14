@@ -1,9 +1,10 @@
 // Écran « Répertoire » : arbre de mes ouvertures (Blancs / Noirs), lignes à travailler, parties d'un nœud.
-import { api, esc, fig, fmtDate, fmtPct, pctText, store } from './util.js';
+import { api, esc, fig, fmtDate, fmtPct, pctText, store, ciText, isSmall, SMALL_SAMPLE } from './util.js';
 import { filterBar, filtersQuery } from './statfilters.js';
 
 const RES = { win: 'V', loss: 'D', draw: 'N' };
-const scoreClass = (s, n) => (n < 3 || s == null ? '' : s < 0.4 ? 'score-bad' : s > 0.6 ? 'score-good' : '');
+// Couleur seulement si l'écart avec votre score moyen est net (intervalles de confiance disjoints).
+const scoreClass = (vs) => (vs === 'lower' ? 'score-bad' : vs === 'higher' ? 'score-good' : '');
 
 function moveLabel(ply, san) {
   return `${ply % 2 === 1 ? `${Math.ceil(ply / 2)}.` : `${Math.ceil(ply / 2)}…`} ${fig(san)}`;
@@ -47,11 +48,11 @@ export async function renderRepertoire(root) {
     const mine = (st.side === 'white') === (n.ply % 2 === 1);
     const exit = parentBook && !n.book;
     return `<div>
-      <div class="node${st.selected === key ? ' sel' : ''}" data-key="${esc(key)}">
+      <div class="node${st.selected === key ? ' sel' : ''}${isSmall(n.games) ? ' thin' : ''}" data-key="${esc(key)}" title="${esc(`n = ${n.games} parties${isSmall(n.games) ? ` · ${SMALL_SAMPLE}` : ''} · score ${ciText(n.scoreCI)}`)}">
         <span><span class="toggle">${kids.length ? (isOpen ? '▾' : '▸') : ''}</span><b style="${mine ? '' : 'font-weight:400'}">${esc(moveLabel(n.ply, n.san))}</b>
           ${n.book ? '<span class="tag book">théorie</span>' : ''}${exit ? `<span class="tag exit">${mine ? 'vous sortez' : 'l\'adversaire sort'}</span>` : ''}</span>
         <span class="num">${n.games}</span>
-        <span class="num ${scoreClass(n.score, n.games)}">${pctText(n.score)}</span>
+        <span class="num ${scoreClass(n.vsOverall)}">${pctText(n.score)}</span>
         <span class="num">${n.accuracy != null ? `${fmtPct(n.accuracy)} %` : '–'}</span>
       </div>
       ${kids.length && isOpen ? `<div class="kids">${kids.map((c) => nodeHtml(c, n.book, depth + 1)).join('')}</div>` : ''}
@@ -81,7 +82,7 @@ export async function renderRepertoire(root) {
     renderTree();
     $('problems').innerHTML = data.problemLines.length ? `<table class="simple"><thead><tr><th>Ligne (jusqu'à votre sortie de théorie)</th><th class="num">Parties</th><th class="num">Score</th><th class="num">Δ gain</th></tr></thead><tbody>
       ${data.problemLines.map((l, i) => `<tr class="click" data-line="${i}" style="cursor:pointer"><td>${esc(l.path.map((s, k) => (k % 2 === 0 ? `${k / 2 + 1}. ${fig(s)}` : fig(s))).join(' '))}</td>
-        <td class="num">${l.games}</td><td class="num ${scoreClass(l.score, 3)}">${pctText(l.score)}</td>
+        <td class="num">${l.games}${isSmall(l.games) ? ` <span class="thin-tag">${SMALL_SAMPLE}</span>` : ''}</td><td class="num ${scoreClass(l.vsOverall)}" title="${esc(ciText(l.scoreCI))}">${pctText(l.score)}</td>
         <td class="num ${l.winDelta != null && l.winDelta <= -10 ? 'score-bad' : ''}">${l.winDelta != null ? `${l.winDelta > 0 ? '+' : ''}${Math.round(l.winDelta)} %` : '–'}</td></tr>`).join('')}
       </tbody></table>` : '<p class="muted small">Aucune ligne problématique trouvée pour le moment.</p>';
   }

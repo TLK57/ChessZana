@@ -1,5 +1,6 @@
 // Mode entraînement : mes gaffes et occasions manquées deviennent des puzzles, révisés en répétition espacée.
 import { Chess } from 'chess.js';
+import { wilson } from './confidence.js';
 import { getDb, getMeta, setMeta, stmt } from '../db.js';
 import { ERROR_TYPES, explainMove, pvDetails } from '../analysis/explain.js';
 import { winPct } from '../analysis/formulas.js';
@@ -160,7 +161,7 @@ export function trainingStats(today = localDate()) {
     due: rows.reduce((a, r) => a + r.due, 0),
     byType: rows.map((r) => ({
       type: r.type, label: ERROR_TYPES[r.type] ?? r.type, puzzles: r.puzzles, attempts: r.attempts, successes: r.successes,
-      rate: r.attempts ? r.successes / r.attempts : null, due: r.due, mastered: r.mastered,
+      rate: r.attempts ? r.successes / r.attempts : null, rateCI: wilson(r.successes ?? 0, r.attempts ?? 0), due: r.due, mastered: r.mastered,
     })),
   };
 }

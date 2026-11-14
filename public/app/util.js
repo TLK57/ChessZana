@@ -123,3 +123,12 @@ export async function copyWithFallback(text, okMessage) {
 }
 
 export const pctText = (x, d = 0) => (x == null || !Number.isFinite(x) ? '–' : `${(100 * x).toFixed(d).replace('.', ',')} %`);
+
+// ---- Fiabilité des statistiques (voir src/stats/confidence.js) ----
+export const MIN_GAMES = 10;
+export const SMALL_SAMPLE = 'échantillon trop petit';
+export const isSmall = (n) => (n ?? 0) < MIN_GAMES;
+/** « IC 95 % : 45–59 % » à partir de { low, high } (proportions). */
+export const ciText = (ci, d = 0) => (ci ? `IC 95 % : ${(100 * ci.low).toFixed(d).replace('.', ',')}–${(100 * ci.high).toFixed(d).replace('.', ',')} %` : '');
+/** « n = 12 parties », suivi de « échantillon trop petit » en dessous de 10. */
+export const nText = (n, unit = 'parties') => `n = ${n ?? 0} ${unit}${isSmall(n) && unit === 'parties' ? ` · ${SMALL_SAMPLE}` : ''}`;

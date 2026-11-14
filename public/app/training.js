@@ -2,7 +2,7 @@
 // répétition espacée, statistiques de réussite par type d'erreur.
 import { Chessground } from '/vendor/chessground.js';
 import { Chess } from '/vendor/chess.js';
-import { api, esc, fig, fmtDate, lineText, pctText, LABELS, toast } from './util.js';
+import { api, esc, fig, fmtDate, lineText, pctText, LABELS, toast, ciText, isSmall, SMALL_SAMPLE } from './util.js';
 
 function destsOf(chess) {
   const d = new Map();
@@ -115,7 +115,7 @@ export async function renderTraining(root) {
     $('stats').innerHTML = s.byType.length ? `<p class="small">${s.total} puzzles au total · ${s.due} à faire aujourd'hui.</p>
       <table class="simple"><thead><tr><th>Type d'erreur</th><th class="num">Puzzles</th><th class="num">Essais</th><th class="num">Réussite</th><th class="num">Maîtrisés</th></tr></thead><tbody>
       ${s.byType.map((t) => `<tr><td>${esc(t.label)}</td><td class="num">${t.puzzles}</td><td class="num">${t.attempts ?? 0}</td>
-        <td class="num ${t.rate != null && t.rate < 0.5 ? 'score-bad' : t.rate != null && t.rate >= 0.8 ? 'score-good' : ''}">${t.rate != null ? pctText(t.rate) : '–'}</td><td class="num">${t.mastered}</td></tr>`).join('')}
+        <td class="num${isSmall(t.attempts) ? ' thin' : ''}" title="${esc(`${ciText(t.rateCI)}${isSmall(t.attempts) ? ` · moins de 10 essais : ${SMALL_SAMPLE}` : ''}`)}">${t.rate != null ? pctText(t.rate) : '–'}</td><td class="num">${t.mastered}</td></tr>`).join('')}
       </tbody></table>` : '<p class="muted small">Aucun puzzle pour le moment.</p>';
   }
 

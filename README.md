@@ -368,6 +368,24 @@ Pour chaque position, dans cet ordre :
 Si Lichess ne répond pas, est lent ou limite le débit (erreur 429), la source est mise en pause quelques minutes et
 l'analyse continue avec Stockfish seul, sans erreur.
 
+### 5.6 Fiabilité des statistiques
+
+Un score de 60 % sur 5 parties ne veut presque rien dire ; sur 200 parties, si. Les écrans de statistiques
+(Progression, Répertoire, Mes erreurs, Entraînement) et le « Bilan pour Claude » appliquent donc trois règles :
+
+1. **n affiché à côté de chaque statistique** : nombre de parties (ou de coups, ou d'essais) sur lequel elle porte.
+2. **Moins de 10 parties : grisé**, avec la mention « échantillon trop petit ». Dans les courbes mois par mois, un mois
+   de moins de 10 parties est dessiné par un point creux.
+3. **Intervalle de confiance à 95 %** (méthode de Wilson) pour les scores et les taux (score, taux de coups ratés
+   selon la pendule, part de chaque type d'erreur, réussite aux puzzles…). Survolez une valeur pour le voir.
+   **Une différence n'est présentée comme réelle que si les deux intervalles ne se chevauchent pas** : par exemple,
+   « vous ratez 2 fois plus de coups sous 30 s » n'est affiché que si c'est démontré ; sinon l'écran indique « pas de
+   différence démontrée ». Dans le répertoire, un score n'est coloré (vert ou rouge) que s'il est nettement au-dessus
+   ou en dessous de votre score moyen avec cette couleur.
+
+Méthode de Wilson, pour k réussites sur n (une nulle compte ½), avec z = 1,96 :
+centre = (p + z²/2n) / (1 + z²/n) et demi-largeur = z·√(p(1−p)/n + z²/4n²) / (1 + z²/n), où p = k/n.
+
 ---
 
 ## 6. Où sont mes données ?
