@@ -142,19 +142,38 @@ Les filtres sont mémorisés.
 
 ### Écran d'analyse
 
-- **Échiquier** orienté de votre côté (bouton ⇅ ou touche `F` pour le retourner) et **barre d'évaluation** verticale.
-- **Graphe** des chances de gain des Blancs sous l'échiquier : cliquez dessus pour aller au coup. Les gaffes (rouge),
-  erreurs (orange) et occasions manquées sont marquées par des points.
-- **Liste des coups** avec symboles colorés : `!!` brillant, `!` très bon, `★` meilleur, `✓` excellent / bon,
-  livre = théorie, `?!` imprécision, `?` erreur, `✗` occasion manquée, `??` gaffe, et le **temps utilisé** pour chaque
-  coup (calculé à partir des pendules `%clk`).
-- **Résumé par joueur** : précision, Elo estimé et compteurs cliquables (« Gaffe 2 » saute à la première gaffe, un
-  nouveau clic à la suivante, puis on recommence).
+Sur un écran de portable (1366 × 768), tout tient sans faire défiler la page : échiquier, barre d'évaluation,
+feuille de notation, explication du coup et graphe. Seule la feuille de notation défile.
+
+- **Le coup sélectionné** : son classement en grand, comme un **tampon de correction** dans la marge (un « Brillant »
+  se voit tout de suite), puis l'explication en une phrase, le meilleur coup et la **suite de Stockfish** à rejouer
+  sur l'échiquier (« Rejouer la suite », ou un clic sur un coup de la suite). Les détails techniques (perte de
+  chances de gain, précision du coup, évaluation, profondeur de calcul, lignes de Stockfish) sont repliés dans
+  **Détails**. Sur un coup raté, une **flèche verte** montre le meilleur coup sur l'échiquier.
+- **Bilan guidé** : le bouton fait défiler uniquement les **moments clés** de la partie (gaffes, occasions
+  manquées, erreurs et coups brillants), un par un, avec leur explication, comme une revue avec un entraîneur.
+  `←` / `→` passent d'un moment à l'autre, `Échap` arrête le bilan. Les moments clés sont aussi listés en bas du
+  panneau : un clic pour y aller.
+- **Échiquier** orienté de votre côté (bouton ⇅ ou touche `F` pour le retourner) et **barre d'évaluation** large,
+  avec la valeur écrite du côté de celui qui mène.
+- **Feuille de notation** : chaque coup avec son symbole (`!!` brillant, `!` très bon, `★` meilleur, `✓` excellent /
+  bon, livre = théorie, `?!` imprécision, `?` erreur, `✗` occasion manquée, `??` gaffe) et, en discret, le **temps
+  passé** sur le coup (calculé à partir des pendules `%clk`).
+- **Graphe d'évaluation** : au-dessus de la ligne du milieu, les Blancs mènent ; en dessous, les Noirs. Les moments
+  clés sont marqués d'un point de couleur, le trait bleu suit le coup affiché, le survol donne le coup et
+  l'évaluation, un clic va au coup.
+- **Résumé de la partie** : précision et nombre de **fautes graves** (erreurs, occasions manquées et gaffes) de
+  chaque joueur. « Détail » déplie les catégories : un clic sur l'une d'elles saute au coup suivant de ce type ;
+  les catégories à zéro tiennent sur une ligne.
 - **Ouverture** (base libre lichess-org/chess-openings) et lien vers le **coup où l'on sort de la théorie**.
 - **Clavier** : `←` / `→` coup précédent / suivant, `Début` / `Fin` (ou `↑` / `↓`) début / fin de partie.
-- Pour chaque coup raté (imprécision, erreur, gaffe, occasion manquée) : la **flèche verte** du meilleur coup sur
-  l'échiquier, le **meilleur coup**, une **explication en français** et la **suite de Stockfish**, jouable sur
-  l'échiquier (cliquez un coup de la suite, ou « Voir la suite sur l'échiquier » pour la dérouler).
+
+### Thème clair ou sombre
+
+Le bouton ◐ en haut à droite passe de **automatique** (comme le système) à **clair**, puis **sombre**. Le choix est
+mémorisé dans le navigateur. L'interface respecte aussi le réglage « réduire les animations » du système : seules
+les animations qui montrent un changement (coup joué, panneau ouvert, tampon) existent, et elles disparaissent
+alors.
 
 ### Explications en français (par des règles)
 

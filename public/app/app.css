@@ -106,7 +106,7 @@ main:focus { outline: none; }
 .topbar nav a:hover { color: var(--ink); }
 .topbar nav a.active { color: var(--ink); border-bottom-color: var(--pen); }
 .spacer { flex: 1; }
-.pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--rule); color: var(--graphite); white-space: nowrap; text-decoration: none; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+.pill { flex-shrink: 0; font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--rule); color: var(--graphite); white-space: nowrap; text-decoration: none; max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
 a.pill:hover { background: var(--hover); }
 .pill.ok::before, .pill.err::before, .pill.busy::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: var(--best); }
 .pill.err::before { background: var(--blunder); }
@@ -322,9 +322,9 @@ details.more > summary::-webkit-details-marker { display: none; }
   .detail { overflow: visible; }
   .graph-wrap { height: 90px; flex: none; }
 }
-@media (max-width: 760px) {
-  .game-layout { grid-template-columns: 1fr; }
-  .sheet-col { max-height: 320px; }
+@media (max-width: 900px) {
+  .game-layout { --bsize: min(calc(100vw - 32px - 40px), 640px); grid-template-columns: minmax(0, 1fr); }
+  .sheet-col { max-height: 340px; }
 }
 
 /* ---------- Échiquier « ardoise » ---------- */
@@ -431,10 +431,10 @@ table.simple tr.click:hover { background: var(--hover); }
 }
 
 /* ---------- Topbar étroite (tablette) ---------- */
+@media (max-width: 1150px) { #queuePill { display: none; } }
 @media (max-width: 1000px) {
   .topbar { gap: 8px; padding: 0 10px; }
   .brand .brand-name { display: none; }
-  #queuePill { display: none; }
   .topbar nav a { padding: 0 7px; }
 }
 @media (max-width: 700px) {
