@@ -16,7 +16,8 @@
     "smoke": "node scripts/smoke.js",
     "install-engine": "node --disable-warning=ExperimentalWarning src/engine/install.js",
     "update-openings": "node --disable-warning=ExperimentalWarning scripts/update-openings.js",
-    "fit-curves": "node --disable-warning=ExperimentalWarning scripts/fit-curves.js"
+    "fit-curves": "node --disable-warning=ExperimentalWarning scripts/fit-curves.js",
+    "compare-chesscom": "node --disable-warning=ExperimentalWarning scripts/compare-chesscom.js"
   },
   "dependencies": {
     "chess.js": "^1.4.0",

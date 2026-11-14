@@ -465,6 +465,49 @@ général plus élevé aux niveaux modestes). Les courbes sont utilisées avec l
   gain sur une fenêtre glissante (taille = nombre de coups / 10, entre 2 et 8), borné entre 0,5 et 12 — et
   (b) la **moyenne harmonique** des précisions par coup (qui punit fortement les gaffes).
 
+**Notre précision et celle de chess.com ne sont pas comparables.** chess.com calcule la sienne avec sa formule CAPS2,
+qui n'est pas publiée ; la nôtre suit la méthode Lichess, documentée ci-dessus. Les deux chiffres ne sont pas sur la
+même échelle : un 85 % ici n'est ni meilleur ni moins bon qu'un 80 % sur chess.com (sur la partie 620, par exemple :
+90,1 % et 82,8 % ici, 79,0 % et 75,7 % chez chess.com). Pour suivre vos progrès, comparez nos précisions entre elles.
+
+### Comparer avec chess.com
+
+`npm run compare-chesscom` compare, catégorie par catégorie, notre classement des coups aux bilans « Game Review »
+de chess.com recopiés dans `test/fixtures/chesscom-reviews.json`. Rien n'est modifié : les évaluations enregistrées
+sont reclassées en mémoire, une fois avec les courbes par niveau (réglage par défaut), une fois avec la formule
+Lichess. L'indicateur principal est le nombre de **fautes sérieuses** (erreurs + occasions manquées + gaffes) de
+chaque joueur ; l'objectif est d'être à ±1 de chess.com sur la plupart des parties.
+
+**Ajouter une partie** :
+
+1. Analysez-la dans l'application (de préférence avec « Revérifier les coups douteux »).
+2. Sur chess.com, ouvrez son « Game Review » et notez pour chaque joueur les nombres affichés (Brillant, Excellent,
+   Meilleur, Erreur, Occasion manquée, Gaffe…), la précision et le « Game Rating ».
+3. Ajoutez un bloc dans la liste `games` du fichier, sur le modèle de la partie 620 :
+
+        {
+          "url": "https://www.chess.com/game/live/123456789",
+          "note": "Moi – adversaire, rapide",
+          "timeClass": "rapid",
+          "white": { "brilliant": 0, "excellent": 4, "best": 18, "mistake": 2, "miss": 1, "blunder": 0, "accuracy": 81.2, "gameRating": 1400 },
+          "black": { "brilliant": 0, "excellent": 3, "best": 15, "mistake": 3, "miss": 2, "blunder": 1, "accuracy": 70.4, "gameRating": 1150 }
+        }
+
+   Les noms possibles sont `brilliant`, `great` (très bon), `best`, `excellent`, `good` (bon), `book` (théorie),
+   `inaccuracy`, `mistake`, `miss`, `blunder` ; une catégorie absente n'est pas comparée. La partie est retrouvée dans
+   votre base par le numéro à la fin de `url`. Le champ `fixture` (facultatif) désigne un fichier de
+   `test/fixtures/games/` à utiliser quand la partie n'est pas dans la base.
+
+Premier résultat, partie 620 (profondeur 22 sur les coups douteux) — fautes sérieuses :
+
+| | chess.com | Courbes par niveau | Formule Lichess |
+|---|---|---|---|
+| Blancs (1082) | 6 | 2 | 3 |
+| Noirs (1106) | 6 | 2 | 5 |
+
+Sur cette partie, la formule Lichess est plus proche de chess.com que les courbes par niveau. Une seule partie ne
+suffit pas à trancher : ajoutez-en d'autres avant de changer `classification.levelCurves`.
+
 ### 5.4 Elo de performance et Elo estimé
 
 **Elo de performance (tuile principale du tableau de bord).** Pour chaque cadence (bullet, blitz, rapide…), sur toutes

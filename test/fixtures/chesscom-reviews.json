@@ -1,0 +1,13 @@
+{
+  "_aide": "Bilans « Game Review » de chess.com, recopiés à la main, pour comparer notre classement (npm run compare-chesscom). Pour ajouter une partie : voir README, « Comparer avec chess.com ».",
+  "games": [
+    {
+      "url": "https://www.chess.com/game/live/186787115286",
+      "fixture": "games/partie-620.json",
+      "note": "Partie 620 de Dilo56 : Dilo56 (Blancs) – youssef_Ratib (Noirs), blitz, 0-1.",
+      "timeClass": "blitz",
+      "white": { "brilliant": 1, "excellent": 3, "best": 21, "mistake": 3, "miss": 2, "blunder": 1, "accuracy": 79.0, "gameRating": 1500 },
+      "black": { "brilliant": 0, "excellent": 2, "best": 16, "mistake": 3, "miss": 2, "blunder": 1, "accuracy": 75.7, "gameRating": 1250 }
+    }
+  ]
+}

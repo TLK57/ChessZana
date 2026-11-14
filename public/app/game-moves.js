@@ -31,7 +31,7 @@ export function renderSummary(ctx) {
     const c = color === 'white' ? 'w' : 'b';
     return `<div class="card">
       <div class="who"><span class="colordot ${color}"></span>${esc(p.name)}${g.myColor === color ? ' <span class="muted small">(vous)</span>' : ''}</div>
-      <div class="big">${fmtPct(p.accuracy)}<span class="small muted"> % précision</span></div>
+      <div class="big">${fmtPct(p.accuracy)}<span class="small muted" title="Méthode Lichess. Non comparable à la précision de chess.com (formule CAPS2, secrète) : les deux chiffres ne sont pas sur la même échelle."> % précision ⓘ</span></div>
       <div class="small" title="${g.calibration?.enabled ? `Estimation calibrée sur vos parties (sans calibrage : ${p.estEloGeneric ?? '–'})` : 'Estimation générique'}">Elo estimé : <b>${p.estElo ?? '–'}</b> <span class="muted">(indicatif, ± 500 sur une partie${g.calibration?.enabled ? ', calibré' : ''})</span></div>
       <div class="counters">${ORDER.map((k) => {
         const v = p.counts?.[k] ?? 0;
