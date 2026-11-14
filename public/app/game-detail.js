@@ -28,7 +28,7 @@ export function depthSummary(g) {
   // Coups douteux (erreur, gaffe, occasion manquée, très bon, brillant) hors tables de finales.
   const doubtful = g.moves.filter((m) => DOUBTFUL.has(m.classification) && m.source !== 'tablebase');
   const deepEnough = doubtful.filter((m) => m.verified || (m.depth ?? 0) >= g.verifyDepth).length;
-  const verify = !g.verifyDepth ? ' Coups douteux pas encore revérifiés à profondeur fixe (analyse antérieure).'
+  const verify = g.verifyOutdated ? ' Revérification à profondeur fixe incomplète (analyse faite avec des critères plus anciens).'
     : !doubtful.length ? ' Aucun coup douteux dans cette partie.'
       : ` ${deepEnough} coup(s) douteux sur ${doubtful.length} calculé(s) à la profondeur ${g.verifyDepth} ou plus${g.verified ? ` (${g.verified} revérifié(s) exprès)` : ''}.`;
   return `Analyse profonde : profondeur atteinte ${span}.${verify}`;
@@ -94,7 +94,7 @@ export function renderDetail(ctx, nd) {
   } else {
     box.innerHTML = moveDetailHtml(ctx, g.moves[S.ply - 1], S.ply - 1);
   }
-  if (g.pass === 'deep' && !g.verifyDepth && g.verifyTarget > 0 && g.status !== 'running') {
+  if (g.pass === 'deep' && g.verifyOutdated && g.status !== 'running') {
     box.insertAdjacentHTML('beforeend', g.requested
       ? '<p class="small">Vérification demandée : elle démarrera dès que le moteur sera libre.</p>'
       : `<div class="actions"><button id="reverify" title="Les positions déjà calculées sont réutilisées : seuls les coups douteux sont recalculés">Revérifier les coups douteux à la profondeur ${g.verifyTarget}</button></div>`);

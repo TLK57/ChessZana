@@ -91,9 +91,15 @@ par coup, et la profondeur atteinte dépend de la position (souvent 14 à 20). L
 profondeur réellement atteinte** partout : dans la liste (« Profonde · 16 », détail en survolant), sous le graphe de la
 partie (minimum, maximum, médiane) et pour chaque coup (« Profondeur atteinte par Stockfish pour ce coup : 17 »).
 
-**Vérification à la profondeur 22.** Les coups qui comptent le plus — erreurs, gaffes, occasions manquées, très bons
-coups et coups brillants — sont ensuite recalculés à la vraie profondeur 22 (sans limite de positions), puis la partie
-est reclassée. Ces coups portent la mention « ✓ Vérifié par Stockfish à la profondeur 22 ». Une recherche qui avait
+**Vérification à la profondeur 22.** Les coups douteux sont ensuite recalculés à la vraie profondeur 22 (sans limite
+de positions), puis la partie est reclassée. Un coup est douteux s'il est :
+- classé erreur, gaffe, occasion manquée, très bon ou brillant ;
+- une perte d'au moins **5 %** : une recherche trop courte peut sous-estimer une faute (sur la partie 620, 34.Kg2 perd
+  15 % en passe rapide mais 8 % à la profondeur 13) ;
+- jugé différemment par la passe rapide et la passe profonde : pertes qui diffèrent de plus de 5 points, ou catégories
+  différentes dont l'une est au moins une imprécision (un écart « meilleur » / « excellent » ne cache pas de faute et
+  n'est pas revérifié, pour garder des temps raisonnables) ;
+- joué juste après une erreur adverse qui vous a fait gagner au moins 10 points (candidat « occasion manquée »). Ces coups portent la mention « ✓ Vérifié par Stockfish à la profondeur 22 ». Une recherche qui avait
 déjà atteint la profondeur 22, une table de finales ou une analyse cloud de Lichess assez profonde n'ont pas besoin
 d'être revérifiées. Pour une partie analysée avant cette vérification, le bouton **Revérifier les coups douteux**
 (écran de la partie) ne recalcule que ces coups ; « Analyser tout mon historique » le fait pour toutes vos parties.

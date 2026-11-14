@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
 import { openDb, getDb } from '../src/db.js';
-import { analyzeMoveList } from '../src/analysis/analyze.js';
+import { VERIFY_VERSION, analyzeMoveList, needsVerification } from '../src/analysis/analyze.js';
 import { importPgnText } from '../src/importers/pgnfile.js';
 import { upsertPlayer } from '../src/games.js';
 import { AnalysisQueue } from '../src/queue.js';
@@ -137,16 +137,36 @@ test('historique : les analyses profondes faites avant la vérification sont ref
   const d = getDb();
   const mine = d.prepare("SELECT game_id FROM analysis_queue WHERE pass = 'deep' AND game_id IN (SELECT id FROM games WHERE white_name = 'Moi')").get().game_id;
   d.prepare("UPDATE analysis_queue SET status = 'done' WHERE game_id = ? AND pass = 'deep'").run(mine);
-  d.prepare("INSERT INTO game_analysis(game_id, pass, depth, verify_depth) VALUES (?, 'deep', 20, NULL)").run(mine);
+  d.prepare("INSERT INTO game_analysis(game_id, pass, depth, verify_depth, verify_version) VALUES (?, 'deep', 20, 22, 1)").run(mine);
   q.setHistory('start');
   assert.equal(d.prepare("SELECT status FROM analysis_queue WHERE game_id = ? AND pass = 'deep'").get(mine).status, 'pending');
   // Une analyse déjà vérifiée n'est pas refaite.
   d.prepare("UPDATE analysis_queue SET status = 'done' WHERE game_id = ? AND pass = 'deep'").run(mine);
-  d.prepare("UPDATE game_analysis SET verify_depth = 22 WHERE game_id = ? AND pass = 'deep'").run(mine);
+  d.prepare('UPDATE game_analysis SET verify_version = ? WHERE game_id = ? AND pass = \'deep\'').run(VERIFY_VERSION, mine);
   q.setHistory('start');
   assert.equal(d.prepare("SELECT status FROM analysis_queue WHERE game_id = ? AND pass = 'deep'").get(mine).status, 'done');
   // Bouton « Revérifier » d'une partie : refait la passe profonde.
   q.prioritize(mine, { reverify: true });
   assert.equal(d.prepare("SELECT status FROM analysis_queue WHERE game_id = ? AND pass = 'deep'").get(mine).status, 'pending');
   q.setHistory('stop');
+});
+
+test('vérification : aussi les coups sous-estimés (perte ≥ 5 %), les désaccords entre passes et les coups après une erreur adverse', () => {
+  assert.equal(needsVerification({ classification: 'inaccuracy', loss: 8.4, gain: 0 }), true, 'perte ≥ 5 %');
+  assert.equal(needsVerification({ classification: 'good', loss: 4.5, gain: 0 }), false);
+  // 34.Kg2 de la partie 620 : 15,1 % en passe rapide, 4,5 % en passe profonde (écart > 5 points).
+  assert.equal(needsVerification({ classification: 'good', loss: 4.5, gain: 0 }, { classification: 'mistake', loss: 15.1 }), true);
+  assert.equal(needsVerification({ classification: 'excellent', loss: 1, gain: 0 }, { classification: 'inaccuracy', loss: 5.5 }), true, 'catégories différentes');
+  assert.equal(needsVerification({ classification: 'excellent', loss: 0.4, gain: 0 }, { classification: 'best', loss: 0 }), false, 'meilleur / excellent : pas de faute cachée');
+  assert.equal(needsVerification({ classification: 'good', loss: 3, gain: 12 }), true, 'juste après une erreur adverse');
+  assert.equal(needsVerification({ classification: 'book', loss: 6, gain: 0 }), false);
+});
+
+test('vérification : une imprécision à 7 % est recalculée à la profondeur 22', async () => {
+  const ev = scriptedEvaluator({ playedCpBudget: -40 }); // 40 cp contre −40 cp : environ 7 % de perte
+  const { moves, finalFen } = oneMove('g2g4');
+  const r = await analyzeMoveList(moves, deepOpts(ev, finalFen));
+  assert.equal(r.moves[0].verified, true);
+  assert.equal(r.verifyVersion, VERIFY_VERSION);
+  assert.ok(ev.calls.some((c) => c.depth === 22 && c.nodes === null));
 });

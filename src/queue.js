@@ -22,7 +22,7 @@ const MINE = `q.game_id IN (
 export const HISTORY_STATES = ['off', 'on', 'paused'];
 // Durée par défaut d'une analyse (en secondes) tant qu'aucune n'a été mesurée sur cet ordinateur.
 const DEFAULT_SECONDS = { quick: 20, deep: 300 };
-import { analyzeGame } from './analysis/analyze.js';
+import { VERIFY_VERSION, analyzeGame } from './analysis/analyze.js';
 import { AbortError } from './engine/stockfish.js';
 
 export class AnalysisQueue {
@@ -63,11 +63,11 @@ export class AnalysisQueue {
     const next = { start: 'on', resume: 'on', pause: 'paused', stop: 'off' }[action];
     if (!next) throw Object.assign(new Error('Action inconnue'), { status: 400 });
     if (action === 'start') {
-      // Les analyses profondes faites avant la vérification à profondeur fixe sont refaites : les positions
+      // Les analyses profondes faites avant les critères de vérification actuels sont refaites : les positions
       // sont en cache, seule la vérification des coups douteux est calculée.
       getDb().prepare(`UPDATE analysis_queue SET status = 'pending', error = NULL
         WHERE pass = 'deep' AND status = 'done' AND ${MINE.replaceAll('q.game_id', 'analysis_queue.game_id')}
-          AND game_id IN (SELECT game_id FROM game_analysis WHERE pass = 'deep' AND verify_depth IS NULL)`).run();
+          AND game_id IN (SELECT game_id FROM game_analysis WHERE pass = 'deep' AND (verify_version IS NULL OR verify_version < ?))`).run(VERIFY_VERSION);
     }
     setMeta('history_run', next);
     this.abortIfUnwanted();

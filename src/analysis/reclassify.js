@@ -5,7 +5,7 @@ import { config } from '../config.js';
 import { getDb, transaction } from '../db.js';
 import { getGame } from '../games.js';
 import { classifyMoves, scoreFromWin } from './classify.js';
-import { VERIFIED_CLASSES } from './analyze.js';
+import { needsVerification } from './analyze.js';
 
 const parse = (j) => (j ? JSON.parse(j) : null);
 
@@ -27,6 +27,9 @@ export function reclassifyStored(gameId, pass) {
   }));
   const judged = classifyMoves(list, { w: { elo: game?.white_elo ?? null }, b: { elo: game?.black_elo ?? null }, timeClass: game?.time_class ?? null });
   const verifyDepth = pass === 'deep' ? config.engine.verifyDepth : 0;
+  const quick = pass === 'deep'
+    ? new Map(d.prepare("SELECT ply, classification, loss FROM move_analysis WHERE game_id = ? AND pass = 'quick'").all(gameId).map((q) => [q.ply, q]))
+    : null;
   const update = d.prepare('UPDATE move_analysis SET classification = ?, loss = ?, eval_second = ? WHERE game_id = ? AND pass = ? AND ply = ?');
   const counts = { w: {}, b: {} };
   let changed = 0;
@@ -37,11 +40,11 @@ export function reclassifyStored(gameId, pass) {
       if (cls !== r.classification) changed++;
       update.run(cls, judged[i].loss, list[i].evalSecond ? JSON.stringify(list[i].evalSecond) : null, gameId, pass, r.ply);
       // Un coup devenu douteux sans vérification à la profondeur fixe : la partie redevient « à revérifier ».
-      if (VERIFIED_CLASSES.has(cls) && !r.verified && r.source !== 'tablebase' && (r.depth ?? 0) < verifyDepth) toVerify = true;
+      if (verifyDepth && needsVerification(judged[i], quick.get(r.ply)) && !r.verified && r.source !== 'tablebase' && (r.depth ?? 0) < verifyDepth) toVerify = true;
       counts[r.color][cls] = (counts[r.color][cls] ?? 0) + 1;
     });
-    d.prepare(`UPDATE game_analysis SET counts = ?, analyzed_at = datetime('now')${verifyDepth ? ', verify_depth = ?' : ''}
-      WHERE game_id = ? AND pass = ?`).run(JSON.stringify(counts), ...(verifyDepth ? [toVerify ? null : verifyDepth] : []), gameId, pass);
+    d.prepare(`UPDATE game_analysis SET counts = ?, analyzed_at = datetime('now')${toVerify ? ', verify_version = NULL' : ''}
+      WHERE game_id = ? AND pass = ?`).run(JSON.stringify(counts), gameId, pass);
   });
   return { changed };
 }

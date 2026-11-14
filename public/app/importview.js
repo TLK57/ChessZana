@@ -82,7 +82,7 @@ export async function renderImport(root) {
     $('dd').textContent = (E.deepNodes > 0
       ? `${fmtInt(E.deepNodes)} positions calculées par coup : la profondeur atteinte varie selon la position${R.deep ? ` — ${String(R.deep.avg).replace('.', ',')} en moyenne${range(R.deep)} sur vos ${R.deep.n} analyses profondes` : ''}.`
       : `Profondeur fixe ${E.deepDepth}.`)
-      + (E.verifyDepth > 0 ? ` Les erreurs, gaffes, occasions manquées, très bons coups et coups brillants sont ensuite revérifiés à la profondeur ${E.verifyDepth}${R.deep?.verified ? ` (${R.deep.verified} coups revérifiés jusqu'ici)` : ''}.` : '');
+      + (E.verifyDepth > 0 ? ` Les coups douteux (erreurs, gaffes, occasions manquées, très bons, brillants, pertes d'au moins 5 %, désaccords entre les deux passes, coups joués après une erreur adverse) sont ensuite revérifiés à la profondeur ${E.verifyDepth}${R.deep?.verified ? ` (${R.deep.verified} coups revérifiés jusqu'ici)` : ''}.` : '');
     const q = s.queue, Q = q.passes.quick, D = q.passes.deep;
     if (document.activeElement !== $('mode')) $('mode').value = q.mode;
     $('modeHelp').textContent = q.mode === 'manual'

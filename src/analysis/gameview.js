@@ -1,4 +1,5 @@
 // Données de l'écran d'analyse d'une partie, et analyse « en direct » d'un coup joué en mode libre.
+import { VERIFY_VERSION } from './analyze.js';
 import { Chess } from 'chess.js';
 import { config } from '../config.js';
 import { getDb } from '../db.js';
@@ -140,6 +141,8 @@ export function buildGameView(gameId, { currentGameId = null } = {}) {
     depthMin: analysis?.depth_min ?? null, depthMax: analysis?.depth_max ?? null,
     verified: analysis?.verified ?? null, verifyDepth: analysis?.verify_depth ?? null,
     nodes: pass === 'deep' ? config.engine.deepNodes : null, verifyTarget: config.engine.verifyDepth,
+    // Passe profonde vérifiée avec d'anciens critères (ou pas du tout) : bouton « Revérifier les coups douteux ».
+    verifyOutdated: pass === 'deep' && config.engine.verifyDepth > 0 && (analysis?.verify_version ?? 0) < VERIFY_VERSION,
     status: g.id === currentGameId ? 'running' : (pass ?? 'pending'),
     queue: queueRows,
     requested: getDb().prepare("SELECT COUNT(*) AS n FROM analysis_queue WHERE game_id = ? AND priority > 0 AND status IN ('pending', 'running')").get(gameId).n > 0,

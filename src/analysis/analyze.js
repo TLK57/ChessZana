@@ -6,7 +6,7 @@ import { getGame, getGameMoves } from '../games.js';
 import { normalizeChessFen, terminalState, uciToSan, START_FEN } from '../chessutil.js';
 import { AbortError } from '../engine/stockfish.js';
 import { isBookPosition } from './openings.js';
-import { classifyMoves, isSacrifice } from './classify.js';
+import { MISS_MIN_GAIN, classifyMoves, isSacrifice } from './classify.js';
 import { estimateElo, gameAccuracy, moveAccuracy, winPct } from './formulas.js';
 
 export const PASSES = {
@@ -25,6 +25,33 @@ export const PASSES = {
 
 // Classements revérifiés à profondeur fixe (ceux qui comptent le plus pour le joueur).
 export const VERIFIED_CLASSES = new Set(['mistake', 'blunder', 'miss', 'brilliant', 'great']);
+// Version des critères de vérification : une analyse profonde faite avec des critères plus anciens est à revérifier
+// (bouton « Revérifier les coups douteux », « Analyser tout mon historique »).
+export const VERIFY_VERSION = 2;
+export const VERIFY_MIN_LOSS = 5; // perte (points de chances de gain) à partir de laquelle un coup est revérifié
+export const VERIFY_PASS_GAP = 5; // écart de perte entre passe rapide et passe profonde qui impose une vérification
+const BAD_CLASSES = new Set(['inaccuracy', 'mistake', 'miss', 'blunder']);
+
+/**
+ * Faut-il recalculer ce coup à la vraie profondeur de vérification ?
+ * r : coup classé { classification, loss, gain } ; quick : le même coup dans la passe rapide { classification, loss }.
+ * - erreur, gaffe, occasion manquée, très bon, brillant ;
+ * - perte d'au moins 5 points (un coup sous-estimé par une recherche trop courte resterait « imprécision ») ;
+ * - passes rapide et profonde en désaccord : pertes qui diffèrent de plus de 5 points, ou catégories différentes
+ *   dont l'une est au moins une imprécision (un écart « meilleur » / « excellent » ne cache pas de faute) ;
+ * - coup joué juste après une erreur adverse qui m'a fait gagner au moins 10 points (candidat « occasion manquée »).
+ */
+export function needsVerification(r, quick = null) {
+  if (r.classification === 'book') return false;
+  if (VERIFIED_CLASSES.has(r.classification)) return true;
+  if ((r.loss ?? 0) >= VERIFY_MIN_LOSS) return true;
+  if ((r.gain ?? 0) >= MISS_MIN_GAIN) return true;
+  if (quick && quick.loss != null && r.loss != null) {
+    if (Math.abs(quick.loss - r.loss) > VERIFY_PASS_GAP) return true;
+    if (quick.classification !== r.classification && (BAD_CLASSES.has(quick.classification) || BAD_CLASSES.has(r.classification))) return true;
+  }
+  return false;
+}
 
 const scoreOf = (l) => (l ? { cp: l.cp ?? null, mate: l.mate ?? null, wdl: l.wdl ?? null } : null);
 
@@ -167,9 +194,9 @@ export async function analyzeMoveList(moves, opts) {
   };
   let results = classifyAll();
 
-  // 4b) Vérification : les coups classés erreur, gaffe, occasion manquée, très bon ou brillant sont recalculés
-  //     à la vraie profondeur verifyDepth (sans limite de nœuds), puis toute la partie est reclassée
-  //     (le classement d'un coup peut dépendre du précédent, d'où quelques tours au plus).
+  // 4b) Vérification : les coups douteux (needsVerification) sont recalculés à la vraie profondeur verifyDepth
+  //     (sans limite de nœuds), puis toute la partie est reclassée (le classement d'un coup peut dépendre du
+  //     précédent, d'où quelques tours au plus).
   let verifiedCount = 0;
   if (opts.verifyDepth > 0) {
     const vs = { depth: opts.verifyDepth, nodes: null, signal };
@@ -177,7 +204,7 @@ export async function analyzeMoveList(moves, opts) {
       const todo = [];
       results.forEach((r, i) => {
         const e = evals[i];
-        if (VERIFIED_CLASSES.has(r.classification) && !e.verified && e.before.source !== 'tablebase' && moveDepth(e) < opts.verifyDepth) todo.push(i);
+        if (needsVerification(r, opts.quick?.get(r.ply)) && !e.verified && e.before.source !== 'tablebase' && moveDepth(e) < opts.verifyDepth) todo.push(i);
       });
       if (!todo.length) break;
       for (const [k, i] of todo.entries()) {
@@ -209,6 +236,7 @@ export async function analyzeMoveList(moves, opts) {
     depthMax: depths.length ? depths.at(-1) : null,
     verifiedCount,
     verifyDepth: opts.verifyDepth > 0 ? opts.verifyDepth : null,
+    verifyVersion: opts.verifyDepth > 0 ? VERIFY_VERSION : null,
     lightPositions: evals.filter((x) => x.light).length,
     criticalPositions: criticalCount,
     moves: results,
@@ -229,6 +257,10 @@ export async function analyzeGame(gameId, pass, { evaluator, signal, onProgress 
   if (!rows.length) throw new Error('Partie sans coups');
   const p = PASSES[pass]();
   const startedAt = Date.now();
+  // Passe profonde : la passe rapide sert à repérer les coups sur lesquels les deux passes ne sont pas d'accord.
+  const quick = pass === 'deep'
+    ? new Map(getDb().prepare("SELECT ply, classification, loss FROM move_analysis WHERE game_id = ? AND pass = 'quick'").all(gameId).map((r) => [r.ply, r]))
+    : null;
   const lastFen = (() => {
     const c = new Chess(rows[rows.length - 1].fen_before);
     const u = rows[rows.length - 1].uci;
@@ -240,7 +272,7 @@ export async function analyzeGame(gameId, pass, { evaluator, signal, onProgress 
     {
       evaluator, signal, onProgress,
       depth: p.depth, nodes: p.nodes, criticalNodes: p.criticalNodes, allowCloud: p.allowCloud, skipDecided: p.skipDecided,
-      verifyDepth: p.verifyDepth ?? 0,
+      verifyDepth: p.verifyDepth ?? 0, quick,
       whiteElo: game.white_elo, blackElo: game.black_elo, timeClass: game.time_class,
       standardStart: !game.start_fen || game.start_fen === START_FEN,
       finalFen: lastFen,
@@ -264,13 +296,14 @@ export function saveAnalysis(gameId, pass, depth, res) {
         m.evalSecond ? JSON.stringify(m.evalSecond) : null);
     }
     d.prepare(`INSERT INTO game_analysis(game_id, pass, depth, accuracy_white, accuracy_black, elo_white, elo_black, counts,
-          depth_min, depth_max, verified, verify_depth, duration_ms, analyzed_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+          depth_min, depth_max, verified, verify_depth, duration_ms, verify_version, analyzed_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         ON CONFLICT(game_id, pass) DO UPDATE SET depth = excluded.depth, accuracy_white = excluded.accuracy_white,
           accuracy_black = excluded.accuracy_black, elo_white = excluded.elo_white, elo_black = excluded.elo_black,
           counts = excluded.counts, depth_min = excluded.depth_min, depth_max = excluded.depth_max, verified = excluded.verified,
-          verify_depth = excluded.verify_depth, duration_ms = excluded.duration_ms, analyzed_at = excluded.analyzed_at`)
+          verify_depth = excluded.verify_depth, duration_ms = excluded.duration_ms, verify_version = excluded.verify_version,
+          analyzed_at = excluded.analyzed_at`)
       .run(gameId, pass, depth, res.accuracyWhite, res.accuracyBlack, res.eloWhite, res.eloBlack, JSON.stringify(res.counts),
-        res.depthMin ?? null, res.depthMax ?? null, res.verifiedCount ?? 0, res.verifyDepth ?? null, res.durationMs ?? null);
+        res.depthMin ?? null, res.depthMax ?? null, res.verifiedCount ?? 0, res.verifyDepth ?? null, res.durationMs ?? null, res.verifyVersion ?? null);
   });
 }

@@ -219,6 +219,8 @@ function migrate(d) {
   add('game_analysis', 'duration_ms', 'INTEGER');
   // Score du 2e coup du MultiPV (pour reclasser sans moteur avec n'importe quelle courbe de chances de gain).
   add('move_analysis', 'eval_second', 'TEXT');
+  // Version des critères de vérification à profondeur fixe utilisés pour la passe profonde.
+  add('game_analysis', 'verify_version', 'INTEGER');
   d.exec('CREATE INDEX IF NOT EXISTS idx_games_book ON games(book_name)');
 }
 
