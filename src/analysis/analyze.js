@@ -6,7 +6,7 @@ import { getGame, getGameMoves } from '../games.js';
 import { normalizeChessFen, terminalState, uciToSan, START_FEN } from '../chessutil.js';
 import { AbortError } from '../engine/stockfish.js';
 import { isBookPosition } from './openings.js';
-import { classifyMove } from './classify.js';
+import { classifyMoves, isSacrifice } from './classify.js';
 import { estimateElo, gameAccuracy, moveAccuracy, winPct } from './formulas.js';
 
 export const PASSES = {
@@ -127,49 +127,43 @@ export async function analyzeMoveList(moves, opts) {
   };
 
   // 4) Chances de gain, perte, classement.
+  // Le classement lui-même (src/analysis/classify.js) ne lit que les évaluations : c'est la même fonction qui
+  // reclasse les parties déjà analysées, sans moteur.
+  const players = { w: { elo: opts.whiteElo ?? null }, b: { elo: opts.blackElo ?? null }, timeClass: opts.timeClass ?? null };
   const classifyAll = () => {
-    const results = [];
-    for (let i = 0; i < n; i++) {
-      const m = moves[i];
+    const list = moves.map((m, i) => {
       const { before, played } = evals[i];
       const best = before.lines[0];
       const second = before.lines[1] ?? null;
-      const winBest = winPct(scoreOf(best));
-      const winPlayed = winPct(scoreOf(played));
-      const winSecond = second ? winPct(scoreOf(second)) : null;
-      const playedIsBest = best?.move === m.uci;
-      const altLine = playedIsBest ? second : best;
-      const c = new Chess(m.fenBefore);
-      const prevMove = i > 0 ? moves[i - 1] : null;
-      const isRecapture = !!prevMove && /x/.test(prevMove.san) && /x/.test(m.san) && prevMove.uci.slice(2, 4) === m.uci.slice(2, 4);
-      const prev = i > 0 && results[i - 1] ? { classification: results[i - 1].classification, winBest: results[i - 1].winBest } : null;
-      const { classification, loss } = classifyMove({
-        book: book[i],
-        legalMoves: c.moves().length,
-        inCheck: c.inCheck(),
-        playedIsBest,
-        winBest, winPlayed, winSecond,
-        elo: m.color === 'w' ? opts.whiteElo : opts.blackElo,
-        fenBefore: m.fenBefore,
-        playedPv: played?.pv?.length ? played.pv : [m.uci],
-        altPv: altLine?.pv ?? null,
-        isRecapture,
-        prev,
-      });
-      results.push({
+      const altLine = best?.move === m.uci ? second : best;
+      return {
+        color: m.color, uci: m.uci, san: m.san, fenBefore: m.fenBefore, book: book[i],
+        bestUci: best?.move ?? null, evalBest: scoreOf(best), evalPlayed: scoreOf(played), evalSecond: second ? scoreOf(second) : null,
+        sacrifice: () => isSacrifice(m.fenBefore, played?.pv?.length ? played.pv : [m.uci], altLine?.pv ?? null),
+      };
+    });
+    const judged = classifyMoves(list, players);
+    return moves.map((m, i) => {
+      const { before } = evals[i];
+      const best = before.lines[0];
+      const x = list[i];
+      // Chances de gain (formule Lichess) : graphe, précision et Elo estimé restent calculés comme Lichess.
+      const winBest = winPct(x.evalBest);
+      const winPlayed = winPct(x.evalPlayed);
+      return {
         ply: m.ply, color: m.color, san: m.san, uci: m.uci,
-        bestUci: best?.move ?? null,
+        bestUci: x.bestUci,
         bestSan: best?.move ? (best.san ?? uciToSan(m.fenBefore, best.move)) : null,
-        evalBest: scoreOf(best), evalPlayed: scoreOf(played),
-        winBest, winPlayed, winSecond, loss,
-        accuracy: moveAccuracy(loss),
-        classification,
+        evalBest: x.evalBest, evalPlayed: x.evalPlayed, evalSecond: x.evalSecond,
+        winBest, winPlayed, winSecond: x.evalSecond ? winPct(x.evalSecond) : null,
+        loss: judged[i].loss, gain: judged[i].gain,
+        accuracy: moveAccuracy(Math.max(0, winBest - winPlayed)),
+        classification: judged[i].classification,
         source: before.source,
         depth: moveDepth(evals[i]),
         verified: !!evals[i].verified,
-      });
-    }
-    return results;
+      };
+    });
   };
   let results = classifyAll();
 
@@ -247,7 +241,7 @@ export async function analyzeGame(gameId, pass, { evaluator, signal, onProgress 
       evaluator, signal, onProgress,
       depth: p.depth, nodes: p.nodes, criticalNodes: p.criticalNodes, allowCloud: p.allowCloud, skipDecided: p.skipDecided,
       verifyDepth: p.verifyDepth ?? 0,
-      whiteElo: game.white_elo, blackElo: game.black_elo,
+      whiteElo: game.white_elo, blackElo: game.black_elo, timeClass: game.time_class,
       standardStart: !game.start_fen || game.start_fen === START_FEN,
       finalFen: lastFen,
     },
@@ -262,11 +256,12 @@ export function saveAnalysis(gameId, pass, depth, res) {
   transaction(() => {
     d.prepare('DELETE FROM move_analysis WHERE game_id = ? AND pass = ?').run(gameId, pass);
     const ins = d.prepare(`INSERT INTO move_analysis(game_id, pass, ply, best_uci, best_san, eval_best, eval_played, win_best,
-        win_played, win_second, win_white_after, loss, accuracy, classification, source, depth, verified)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        win_played, win_second, win_white_after, loss, accuracy, classification, source, depth, verified, eval_second)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
     for (const m of res.moves) {
       ins.run(gameId, pass, m.ply, m.bestUci, m.bestSan, JSON.stringify(m.evalBest), JSON.stringify(m.evalPlayed),
-        m.winBest, m.winPlayed, m.winSecond, m.winWhiteAfter, m.loss, m.accuracy, m.classification, m.source, m.depth, m.verified ? 1 : 0);
+        m.winBest, m.winPlayed, m.winSecond, m.winWhiteAfter, m.loss, m.accuracy, m.classification, m.source, m.depth, m.verified ? 1 : 0,
+        m.evalSecond ? JSON.stringify(m.evalSecond) : null);
     }
     d.prepare(`INSERT INTO game_analysis(game_id, pass, depth, accuracy_white, accuracy_black, elo_white, elo_black, counts,
           depth_min, depth_max, verified, verify_depth, duration_ms, analyzed_at)

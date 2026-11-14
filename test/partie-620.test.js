@@ -16,6 +16,11 @@ test('seuils comme chess.com : 20.Qe3 (perte ≈ 11 %) devient une erreur', () =
 
 test('seuils comme chess.com : 27...g5, 32...h4 et 34...Rh8 deviennent des erreurs', () => {
   for (const m of ['27...', '32...', '34...']) assert.equal(classOf(id, m), 'mistake', m);
+  assert.equal(classOf(id, '22...'), 'mistake');
+});
+
+test('occasion manquée : 28.Ke2 ne profite pas de 27...g5 et repasse sous le seuil gagnant', () => {
+  assert.equal(classOf(id, '28.'), 'miss');
 });
 
 test('les gaffes restent des gaffes : 15...Nxf3+ et 19.Qd2', () => {

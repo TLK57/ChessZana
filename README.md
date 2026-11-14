@@ -303,7 +303,6 @@ Après une modification, fermez et relancez l'application.
 | `classification.brilliantMinSacrifice` | `2` | Matériel minimum sacrifié (en points) pour « Brillant » |
 | `classification.brilliantMaxLoss` | `1` | Perte maximale (%) d'un coup brillant |
 | `classification.brilliantMaxWinBefore` | `90` | Pas de brillant si la position était déjà gagnante à plus de 90 % |
-| `classification.missKeepIfWorseThanBeforeError` | `5` | Voir « Occasion manquée » |
 | `accuracy.uncertaintyBonus` | `0` | Lichess ajoute +1 à la précision de chaque coup imparfait ; mettez `1` pour l'imiter |
 | `elo.minMoves` | `8` | Nombre minimum de coups hors théorie pour estimer un Elo |
 | `elo.table` | voir §5.4 | Table précision → Elo (générique, avant calibrage) |
@@ -346,7 +345,7 @@ il est évalué à la même profondeur avec `searchmoves`. La **perte** est :
 | **Imprécision** | perte < 10 % |
 | **Erreur** | perte < 20 % |
 | **Gaffe** | perte ≥ 20 % |
-| **Occasion manquée** | L'adversaire vient de faire une erreur ou une gaffe, et le coup joué ne la punit pas (perte ≥ 10 %) |
+| **Occasion manquée** | Le coup adverse précédent vous a fait gagner au moins 10 points, le meilleur coup vous donnait une position gagnante (≥ 70 %), et votre coup vous fait repasser sous 70 % ou perd au moins 10 points (détails ci-dessous) |
 
 Comme chess.com, ces seuils sont **les mêmes pour tous les niveaux** : le niveau des joueurs n'intervient que dans le
 calcul des chances de gain. Quand les règles de classement changent (nouvelle version de l'application), la base est
@@ -357,8 +356,17 @@ Précisions :
   d'au moins 2 points (pion 1, cavalier/fou 3, tour 5, dame 9) après la réponse adverse **et** encore après son coup
   suivant (ce n'est donc pas un simple échange). La perte de matériel doit aussi être *évitable* : si la meilleure
   autre ligne perd le même matériel (pièce déjà perdue), ce n'est pas un sacrifice. Pas de brillant en étant en échec.
-- **Occasion manquée** : si le coup joué rend la position pire qu'avant l'erreur adverse (de plus de 5 %),
-  il reste classé erreur/gaffe, car il ne s'agit plus seulement d'une occasion ratée.
+- **Occasion manquée** (définition de chess.com : ne pas profiter d'une erreur adverse, et perdre ainsi la chance
+  d'atteindre une position gagnante). Un coup est une occasion manquée si les trois conditions sont réunies :
+  1. avant votre coup, le meilleur coup vous donnait une **position gagnante** : au moins **70 %** de chances de gain
+     (seuil choisi car, au-delà, la partie se gagne la plupart du temps ; il est le même pour tous les niveaux) ;
+  2. le coup adverse précédent vous a fait gagner **au moins 10 points** de chances de gain (comparé à son meilleur
+     coup), quelle que soit son étiquette (imprécision, erreur ou gaffe) ;
+  3. votre coup vous fait **repasser sous 70 %**, ou **perd au moins 10 points**.
+
+  Si vous étiez déjà gagnant avant l'erreur adverse, un coup qui vous laisse gagnant en perdant moins de 10 points
+  reste une simple imprécision ; s'il perd 10 points ou plus, c'est une occasion manquée. Une occasion manquée est
+  comptée à part, même si le coup est très mauvais.
 - **Très bon** : une simple reprise de pièce (prendre sur la case où l'adversaire vient de prendre) n'est pas
   comptée, sinon presque chaque échange produirait un « Très bon » (réglage `greatIgnoreRecaptures`).
 

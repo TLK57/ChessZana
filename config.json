@@ -39,8 +39,7 @@
     "greatIgnoreRecaptures": true,
     "brilliantMinSacrifice": 2,
     "brilliantMaxLoss": 1,
-    "brilliantMaxWinBefore": 90,
-    "missKeepIfWorseThanBeforeError": 5
+    "brilliantMaxWinBefore": 90
   },
 
   "accuracy": {

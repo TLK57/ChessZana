@@ -47,10 +47,10 @@ export function createFreeMode(ctx) {
     const f = S.free;
     if (index > 0) {
       const p = f.items[index - 1];
-      return p.result ? { classification: p.result.classification, winBest: p.result.winBest, uci: p.uci, san: p.san } : null;
+      return p.result ? { classification: p.result.classification, uci: p.uci, san: p.san, scoreBest: p.result.scoreBest, scorePlayed: p.result.scorePlayed } : null;
     }
     const gm = ctx.g.moves[f.basePly - 1];
-    return gm && gm.classification ? { classification: gm.classification, winBest: gm.winBest, uci: gm.uci, san: gm.san } : null;
+    return gm ? { classification: gm.classification, uci: gm.uci, san: gm.san, scoreBest: gm.scoreBest, scorePlayed: gm.scorePlayed } : null;
   }
 
   // Deux temps : un avis immédiat (profondeur 12), puis le résultat affiné (profondeur du mode libre).
@@ -61,6 +61,7 @@ export function createFreeMode(ctx) {
     const body = {
       fen: item.fenBefore, uci: item.uci, prev: prevForFree(index), bookBefore,
       elo: item.color === 'w' ? g.white.elo : g.black.elo,
+      timeClass: g.timeClass,
       myColor: g.myColor,
     };
     for (const depth of [12, undefined]) {

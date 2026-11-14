@@ -56,7 +56,6 @@ export const DEFAULTS = {
     brilliantMinSacrifice: 2,
     brilliantMaxLoss: 1,
     brilliantMaxWinBefore: 90,
-    missKeepIfWorseThanBeforeError: 5,
   },
   accuracy: {
     uncertaintyBonus: 0,

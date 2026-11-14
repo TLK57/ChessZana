@@ -6,7 +6,7 @@ import { config } from './config.js';
 import { backupDatabase } from './backup.js';
 
 // Version du schéma : quand une base plus ancienne est ouverte, elle est sauvegardée avant d'être migrée.
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meta (
@@ -217,6 +217,8 @@ function migrate(d) {
   add('game_analysis', 'verified', 'INTEGER');
   add('game_analysis', 'verify_depth', 'INTEGER');
   add('game_analysis', 'duration_ms', 'INTEGER');
+  // Score du 2e coup du MultiPV (pour reclasser sans moteur avec n'importe quelle courbe de chances de gain).
+  add('move_analysis', 'eval_second', 'TEXT');
   d.exec('CREATE INDEX IF NOT EXISTS idx_games_book ON games(book_name)');
 }
 
