@@ -1,4 +1,4 @@
-// Fichiers de l'interface : public/ et bibliothèques (échiquier chessground, règles chess.js).
+// Fichiers de l'interface : public/ (pages, scripts, polices) et bibliothèques (échiquier chessground, règles chess.js).
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT } from '../config.js';
@@ -11,12 +11,15 @@ const VENDOR = {
   '/vendor/chessground.cburnett.css': ['node_modules', 'chessground', 'assets', 'chessground.cburnett.css'],
   '/vendor/chess.js': ['node_modules', 'chess.js', 'dist', 'esm', 'chess.js'],
 };
-const MIME = { '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.html': 'text/html; charset=utf-8', '.png': 'image/png', '.ico': 'image/x-icon' };
+const MIME = { '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.html': 'text/html; charset=utf-8', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 
 function staticFile(p) {
   if (VENDOR[p]) return path.join(ROOT, ...VENDOR[p]);
   const m = /^\/app\/([a-z0-9_-]+\.(?:js|css|svg|png))$/i.exec(p);
   if (m) return path.join(ROOT, 'public', 'app', m[1]);
+  // Polices embarquées (licence OFL) : l'application fonctionne hors ligne.
+  const f = /^\/fonts\/([a-z0-9_-]+\.woff2)$/i.exec(p);
+  if (f) return path.join(ROOT, 'public', 'fonts', f[1]);
   return null;
 }
 

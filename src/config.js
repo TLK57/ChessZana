@@ -45,7 +45,7 @@ export const DEFAULTS = {
   },
   classification: {
     // chesscom = seuils inspirés de chess.com (ci-dessous) ; lichess = seuils Lichess 5 / 10 / 15 %.
-    // Se change aussi dans l'application (écran « Importer & file d'analyse »).
+    // Se change aussi dans l'application (écran « Importer »).
     preset: 'chesscom',
     // Mode « inspiré de chess.com » : chances de gain selon le niveau et la cadence (resources/expected-points.json).
     // false = formule Lichess, la même pour tous les niveaux.

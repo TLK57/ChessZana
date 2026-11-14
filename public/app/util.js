@@ -30,6 +30,15 @@ export function symbol(cls, title = true) {
 const FIG = { K: '♔', Q: '♕', R: '♖', B: '♗', N: '♘' };
 export const fig = (san) => String(san ?? '').replace(/[KQRBN]/g, (c) => FIG[c]);
 
+/** Cadence lisible : « 300 » → « 5 min », « 180+2 » → « 3 min + 2 s ». */
+export function fmtTimeControl(tc) {
+  const m = /^(\d+)(?:\+(\d+))?$/.exec(String(tc ?? ''));
+  if (!m) return tc ?? '';
+  const base = Number(m[1]);
+  const b = base >= 60 && base % 60 === 0 ? `${base / 60} min` : base >= 60 ? `${Math.floor(base / 60)} min ${base % 60} s` : `${base} s`;
+  return m[2] && m[2] !== '0' ? `${b} + ${m[2]} s` : b;
+}
+
 export const TIME_CLASS = { bullet: 'Bullet', blitz: 'Blitz', rapid: 'Rapide', classical: 'Classique', daily: 'Journalière' };
 
 export function fmtPct(x, d = 1) {
@@ -131,4 +140,4 @@ export const isSmall = (n) => (n ?? 0) < MIN_GAMES;
 /** « IC 95 % : 45–59 % » à partir de { low, high } (proportions). */
 export const ciText = (ci, d = 0) => (ci ? `IC 95 % : ${(100 * ci.low).toFixed(d).replace('.', ',')}–${(100 * ci.high).toFixed(d).replace('.', ',')} %` : '');
 /** « n = 12 parties », suivi de « échantillon trop petit » en dessous de 10. */
-export const nText = (n, unit = 'parties') => `n = ${n ?? 0} ${unit}${isSmall(n) && unit === 'parties' ? ` · ${SMALL_SAMPLE}` : ''}`;
+export const nText = (n, unit = 'parties') => `n = ${n ?? 0} ${unit}${isSmall(n) && unit === 'parties' ? `, ${SMALL_SAMPLE}` : ''}`;

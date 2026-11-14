@@ -20,7 +20,7 @@ téléchargement (Node.js, Stockfish) sont contactés.
 2. **Double-cliquez** sur `Lancer-Windows.bat` (Windows) ou `Lancer-Mac.command` (Mac ; la première fois :
    clic droit → *Ouvrir*). Au premier lancement, il faut Internet quelques minutes : le lanceur prépare tout seul
    Node.js et Stockfish, sans rien installer sur l'ordinateur.
-3. Votre navigateur s'ouvre sur l'application. Dans **Importer & file d'analyse**, tapez votre pseudo chess.com ou
+3. Votre navigateur s'ouvre sur l'application. Dans **Importer**, tapez votre pseudo chess.com ou
    Lichess, puis ouvrez une partie et cliquez sur **Analyser**.
 
 Le reste de ce document détaille l'installation, l'utilisation, les réglages et les méthodes de calcul.
@@ -61,10 +61,10 @@ L'application n'est accessible que depuis votre ordinateur (adresse 127.0.0.1), 
 
 ## 3. Utilisation
 
-1. Dans **Importer & file d'analyse**, tapez votre pseudo chess.com et cliquez **Importer** : toutes vos parties terminées depuis la création du compte
+1. Dans **Importer**, tapez votre pseudo chess.com et cliquez **Importer** : toutes vos parties terminées depuis la création du compte
    sont téléchargées (jamais une partie en cours). Même chose pour Lichess. Vous pouvez aussi coller un PGN ou
    déposer un fichier `.pgn`.
-2. **Choisissez quelles parties analyser** (menu « Quelles parties analyser ? » dans *Importer & file d'analyse*) :
+2. **Choisissez quelles parties analyser** (menu « Quelles parties analyser ? » dans *Importer*) :
    - **Seulement les parties que je choisis** (réglage par défaut) : rien n'est analysé tant que vous ne cliquez pas
      sur **Analyser** (dans la liste ou sur l'écran d'une partie) ;
    - **Passe rapide sur toutes mes parties, profonde sur celles que je choisis** : quelques secondes par partie pour
@@ -216,7 +216,7 @@ presse-papiers, le texte s'affiche dans une fenêtre pour le copier à la main.
 ### Progression et entraînement
 
 Ces écrans utilisent **vos parties analysées** (passe rapide ou profonde). Pour avoir des statistiques sur toutes
-vos parties, choisissez « Passe rapide sur toutes mes parties » dans *Importer & file d'analyse* (environ 30 s à
+vos parties, choisissez « Passe rapide sur toutes mes parties » dans *Importer* (environ 30 s à
 1 min par partie sur un portable) : la passe profonde reste réservée aux parties que vous choisissez.
 
 **Les statistiques se mettent à jour toutes seules** : chaque partie est calculée une fois, puis recalculée seulement
@@ -390,7 +390,7 @@ Précisions :
   reste une simple imprécision ; s'il perd 10 points ou plus, c'est une occasion manquée. Une occasion manquée est
   comptée à part, même si le coup est très mauvais.
 
-**Réglage « Seuils Lichess (5 / 10 / 15 %) »** (écran *Importer & file d'analyse*, carte « Classement des coups ») :
+**Réglage « Seuils Lichess (5 / 10 / 15 %) »** (écran *Importer*, carte « Classement des coups ») :
 imprécision dès 5 % de chances de gain perdues, erreur dès 10 %, gaffe dès 15 %, comme Lichess, quel que soit l'Elo.
 Les autres catégories (meilleur, excellent, très bon, brillant, occasion manquée) restent calculées comme ci-dessus.
 Changer de réglage **reclasse toutes les parties déjà analysées** en quelques secondes : la perte de chaque coup est
@@ -603,7 +603,7 @@ Comptez environ 20 Mo pour 1 000 parties. Pour tout recommencer : supprimez `dat
   sont gardées.
 - **Contrôle d'intégrité** à chaque démarrage. Si la base est endommagée, l'analyse s'arrête et un bandeau propose de
   restaurer la dernière sauvegarde saine.
-- Dans *Importer & file d'analyse* : **Exporter ma base** (télécharge une copie complète, à garder sur une clé USB par
+- Dans *Importer* : **Exporter ma base** (télécharge une copie complète, à garder sur une clé USB par
   exemple), **Sauvegarder maintenant**, et **Restaurer** une sauvegarde de la liste. Avant toute restauration, la base
   actuelle est elle-même sauvegardée : on peut toujours revenir en arrière.
 - Pour réinstaller l'application ailleurs : copiez votre export dans `data/` sous le nom `echecs.sqlite`.
@@ -679,7 +679,7 @@ pseudos, identifiant…). Si quelque chose ne va pas, l'import **ne s'arrête pa
 - une partie au format inattendu est ignorée, les autres sont importées ;
 - un mois chess.com illisible est ignoré pour cette fois et sera redemandé à la prochaine synchronisation ;
 - une ligne illisible de l'export Lichess est ignorée ;
-- à la fin, l'écran *Importer & file d'analyse* l'indique en clair, par exemple : « Terminé : 120 nouvelles parties.
+- à la fin, l'écran *Importer* l'indique en clair, par exemple : « Terminé : 120 nouvelles parties.
   Attention : 2 éléments ignorés (format inattendu) : partie sans PGN (champ « pgn » absent) (2) ».
 
 Seule une liste des mois illisible arrête l'import chess.com, avec un message qui le dit (il n'y a alors rien à lire).
@@ -708,7 +708,10 @@ vous distribuez doit rester sous la même licence, avec son code source.
 | [chessground](https://github.com/lichess-org/chessground) | échiquier de l'interface (celui de Lichess) | GPL-3.0-or-later | dépendance npm, avec ses pièces « cburnett » |
 | [chess.js](https://github.com/jhlywa/chess.js) | règles des échecs, lecture des PGN | BSD-2-Clause | dépendance npm |
 | [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) | livre d'ouvertures (noms, codes ECO) | CC0-1.0 | copié dans `resources/openings/` (`npm run update-openings`) |
+| [Bricolage Grotesque](https://github.com/ateliertriay/bricolage) | police des titres et des grands chiffres | SIL OFL 1.1 | fichiers woff2 copiés dans `public/fonts/` (licence : `public/fonts/OFL-bricolage-grotesque.txt`) |
+| [IBM Plex Sans](https://github.com/IBM/plex) | police du texte | SIL OFL 1.1 | fichiers woff2 copiés dans `public/fonts/` (licence : `public/fonts/OFL-ibm-plex-sans.txt`) |
 
 Les formules de chances de gain et de précision suivent celles publiées par
 [Lichess](https://github.com/lichess-org/lila) ; elles sont réécrites ici, aucun code de Lichess n'est copié.
 Node.js, téléchargé par les lanceurs s'il manque, est distribué par nodejs.org sous licence MIT.
+L'interface n'utilise aucun service en ligne pour s'afficher : polices et symboles sont dans le projet, elle fonctionne hors ligne.

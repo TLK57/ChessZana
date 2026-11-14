@@ -12,7 +12,7 @@ function destsOf(chess) {
 
 export async function renderTraining(root) {
   root.innerHTML = `
-    <div class="page-head"><h1>Entraînement</h1><span class="muted small">Vos propres gaffes et occasions manquées, à retrouver.</span></div>
+    <div class="page-head"><h1>Entraînement</h1><span class="lead">Retrouvez le bon coup dans vos propres gaffes et occasions manquées.</span></div>
     <div class="train-layout">
       <div>
         <div class="player-line" id="prompt" style="padding-left:2px"></div>
@@ -21,9 +21,7 @@ export async function renderTraining(root) {
       </div>
       <div class="stack">
         <div class="card" id="panel"></div>
-        <div class="card"><h2>Réussite par type d'erreur</h2><div id="stats"></div>
-          <p class="note">Répétition espacée : un puzzle raté revient demain ; réussi, il revient dans 3 jours, puis 7, 14 et 30 jours.
-          La session du jour mélange les puzzles à réviser et de nouveaux puzzles, en priorité sur les types d'erreurs que vous faites le plus.</p></div>
+        <div class="card"><h2>Réussite par type d'erreur <i class="info" tabindex="0" title="Répétition espacée : un puzzle raté revient demain ; réussi, il revient dans 3 jours, puis 7, 14 et 30 jours. La session du jour mélange les puzzles à réviser et de nouveaux puzzles, en priorité sur les types d'erreurs que vous faites le plus.">i</i></h2><div id="stats"></div></div>
       </div>
     </div>`;
   const $ = (id) => root.querySelector(`#${id}`);
@@ -57,14 +55,14 @@ export async function renderTraining(root) {
     answered = null;
     if (!p) {
       $('prompt').textContent = '';
-      $('panel').innerHTML = `<h2>Pas de puzzle pour aujourd'hui</h2><p>Analysez des parties (bouton « Analyser » dans la liste) : vos gaffes et occasions manquées deviendront des puzzles.</p>`;
+      $('panel').innerHTML = `<h2>Pas de puzzle pour aujourd'hui</h2><div class="empty">Analysez des parties (bouton « Analyser » dans <a href="#/">Parties</a>) : vos gaffes et occasions manquées deviendront des puzzles.</div>`;
       $('dots').innerHTML = '';
       return;
     }
     renderDots();
     setBoard(p);
     const side = p.color === 'white' ? 'les Blancs' : 'les Noirs';
-    $('prompt').innerHTML = `<span>Puzzle ${index + 1} / ${session.puzzles.length} · vous jouez ${side}</span><span class="muted small">partie du ${fmtDate(p.playedAt ?? '')}</span>`;
+    $('prompt').innerHTML = `<span>Puzzle ${index + 1} sur ${session.puzzles.length}, vous jouez ${side}</span><span class="muted small">partie du ${fmtDate(p.playedAt ?? '')}</span>`;
     $('panel').innerHTML = `<h2>Trouvez le bon coup</h2>
       <p>Dans cette partie, vous aviez joué <b>${esc(fig(p.playedSan))}</b> (${esc(LABELS[p.classification] ?? p.classification)}). Il y avait mieux : jouez-le sur l'échiquier.</p>
       <p class="small muted">${p.attempts ? `Déjà vu ${p.attempts} fois, réussi ${p.successes} fois.` : 'Nouveau puzzle.'}${p.result != null ? ' Déjà fait aujourd\'hui : votre réponse ne change plus la date de révision.' : ''}</p>
@@ -112,11 +110,11 @@ export async function renderTraining(root) {
 
   async function loadStats() {
     const s = await api('/api/training/stats');
-    $('stats').innerHTML = s.byType.length ? `<p class="small">${s.total} puzzles au total · ${s.due} à faire aujourd'hui.</p>
+    $('stats').innerHTML = s.byType.length ? `<p class="small">${s.total} puzzles au total, dont ${s.due} à faire aujourd'hui.</p>
       <table class="simple"><thead><tr><th>Type d'erreur</th><th class="num">Puzzles</th><th class="num">Essais</th><th class="num">Réussite</th><th class="num">Maîtrisés</th></tr></thead><tbody>
       ${s.byType.map((t) => `<tr><td>${esc(t.label)}</td><td class="num">${t.puzzles}</td><td class="num">${t.attempts ?? 0}</td>
-        <td class="num${isSmall(t.attempts) ? ' thin' : ''}" title="${esc(`${ciText(t.rateCI)}${isSmall(t.attempts) ? ` · moins de 10 essais : ${SMALL_SAMPLE}` : ''}`)}">${t.rate != null ? pctText(t.rate) : '–'}</td><td class="num">${t.mastered}</td></tr>`).join('')}
-      </tbody></table>` : '<p class="muted small">Aucun puzzle pour le moment.</p>';
+        <td class="num${isSmall(t.attempts) ? ' thin' : ''}" title="${esc(`${ciText(t.rateCI)}${isSmall(t.attempts) ? `, moins de 10 essais : ${SMALL_SAMPLE}` : ''}`)}">${t.rate != null ? pctText(t.rate) : '–'}</td><td class="num">${t.mastered}</td></tr>`).join('')}
+      </tbody></table>` : '<div class="empty">Aucun puzzle pour le moment.</div>';
   }
 
   root.addEventListener('click', async (e) => {

@@ -1,4 +1,4 @@
-// Écran « Importer & file d'analyse » (reprend la page de contrôle de l'étape 1).
+// Écran « Importer » : import des parties, file d'analyse, classement des coups, sauvegardes.
 import { api, esc } from './util.js';
 
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
@@ -13,6 +13,7 @@ const range = (r) => (r.min != null && r.max != null && r.min !== r.max ? ` (de 
 
 export async function renderImport(root) {
   root.innerHTML = `
+  <div class="page-head"><h1>Importer et analyser</h1><span class="lead">Vos parties, la file d'analyse et les sauvegardes.</span></div>
   <div class="grid2 import">
     <section class="card">
       <h2>Importer des parties</h2>

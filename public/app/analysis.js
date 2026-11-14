@@ -3,60 +3,66 @@
 //   game-moves.js  : liste des coups, résumé par joueur, ouverture ;
 //   game-detail.js : panneau d'explication du coup (classement, explication, lignes, profondeur) ;
 //   game-free.js   : mode libre (coups joués sur l'échiquier, variantes de Stockfish) ;
-//   game-prompt.js : question prête à copier pour « Demander à Claude ».
-import { api, esc, fmtDate, toast, TIME_CLASS } from './util.js';
+//   game-prompt.js : question prête à copier pour « Demander à Claude » ;
+//   review.js      : bilan guidé (les moments clés, un par un).
+import { api, esc, fig, fmtDate, toast, TIME_CLASS, LABELS, SYMBOLS, moveNo, fmtTimeControl } from './util.js';
 import { createGraph } from './graph.js';
 import { createBoard, renderEvalBar, renderPlayers } from './game-board.js';
 import { renderMoves, renderOpening, renderSummary } from './game-moves.js';
 import { depthSummary, renderDetail } from './game-detail.js';
 import { createFreeMode, renderFree } from './game-free.js';
 import { askClaude, claudeText } from './game-prompt.js';
+import { startReview, stepReview, currentMoment, reviewProgress, KEY_CLASSES } from './review.js';
 
-const MARKED = new Set(['blunder', 'mistake', 'miss']);
 const RESULT_TXT = { '1-0': 'Victoire des Blancs', '0-1': 'Victoire des Noirs', '1/2-1/2': 'Nulle' };
+const MY_RESULT = { win: 'Victoire', loss: 'Défaite', draw: 'Nulle' };
 
 export async function renderGame(root, id, startPly = 0) {
   let g;
   try {
     g = await api(`/api/games/${id}/view`);
   } catch (e) {
-    root.innerHTML = `<div class="card">Impossible d'ouvrir cette partie : ${esc(e.message)}. <a href="#/">Retour à la liste</a></div>`;
+    root.innerHTML = `<div class="card">Impossible d'ouvrir cette partie : ${esc(e.message)}. <a href="#/">Retour aux parties</a></div>`;
     return null;
   }
 
-  const S = { ply: Math.max(0, Math.min(g.moves.length, startPly)), free: null, orientation: g.myColor ?? 'white', playing: null };
+  const S = { ply: Math.max(0, Math.min(g.moves.length, startPly)), free: null, orientation: g.myColor ?? 'white', playing: null, review: null, detailsOpen: false, sumOpen: false };
   const n = () => g.moves.length;
 
   root.innerHTML = `
     <div class="game-head">
-      <a href="#/">← Mes parties</a>
+      <a class="back" href="#/">← Parties</a>
       <h1 id="title"></h1>
-      <span class="muted" id="sub"></span>
+      <span class="sub" id="sub"></span>
+      <span class="spacer"></span>
+      <button id="reviewBtn" class="primary" title="Revoir uniquement les moments clés de la partie, un par un">▶ Bilan guidé</button>
     </div>
     <div class="game-layout">
       <div class="board-col">
         <div class="player-line" id="topPlayer"></div>
         <div class="board-row">
-          <div class="evalbar" id="evalbar"><div class="white"></div><div class="txt top"></div><div class="txt bottom"></div></div>
+          <div class="evalbar" id="evalbar" role="img"><div class="white"></div><div class="mid"></div><div class="txt top"></div><div class="txt bottom"></div></div>
           <div class="board-wrap"><div class="board" id="board"></div></div>
         </div>
         <div class="player-line" id="bottomPlayer"></div>
+        <div class="graph-wrap"><div id="graphBox"></div><div class="graph-empty" id="graphEmpty" hidden>Le graphe s'affichera après l'analyse.</div></div>
+      </div>
+      <div class="sheet-col">
+        <div class="sheet" id="moves" aria-label="Feuille de notation"></div>
         <div class="controls">
-          <button id="bStart" title="Début (touche Début)">⏮</button>
-          <button id="bPrev" title="Coup précédent (flèche gauche)">◀</button>
-          <button id="bNext" title="Coup suivant (flèche droite)">▶</button>
-          <button id="bEnd" title="Fin (touche Fin)">⏭</button>
-          <button id="bFlip" title="Retourner l'échiquier">⇅</button>
+          <button id="bStart" title="Début (touche Début)" aria-label="Début">⏮</button>
+          <button id="bPrev" title="Coup précédent (flèche gauche)" aria-label="Coup précédent">◀</button>
+          <button id="bNext" title="Coup suivant (flèche droite)" aria-label="Coup suivant">▶</button>
+          <button id="bEnd" title="Fin (touche Fin)" aria-label="Fin">⏭</button>
+          <button id="bFlip" title="Retourner l'échiquier (touche F)" aria-label="Retourner l'échiquier">⇅</button>
         </div>
-        <div id="graphBox"></div>
-        <p class="small muted" style="margin-left:30px" id="graphNote"></p>
       </div>
       <div class="side-col">
-        <div class="summary" id="summary"></div>
+        <div id="reviewBox"></div>
         <div id="freeBox"></div>
-        <div class="card detail" id="detail"></div>
-        <div class="moves" id="moves"></div>
-        <div class="card small" id="openingBox"></div>
+        <div class="detail" id="detail" aria-live="polite"></div>
+        <div class="summary" id="summary"></div>
+        <div class="opening-line" id="openingBox"></div>
       </div>
     </div>`;
   const $ = (sel) => root.querySelector(sel);
@@ -97,6 +103,11 @@ export async function renderGame(root, id, startPly = 0) {
   function go(ply) {
     stopPlaying();
     S.free = null;
+    // Navigation libre pendant le bilan : on se recale sur le dernier moment clé déjà passé.
+    if (S.review && currentMoment(S.review).ply !== ply) {
+      const i = S.review.moments.findLastIndex((x) => x.ply <= ply);
+      S.review = { ...S.review, index: Math.max(0, i) };
+    }
     S.ply = Math.max(0, Math.min(n(), ply));
     // L'adresse garde le coup affiché (rafraîchir la page ou un favori rouvre au même endroit).
     history.replaceState(null, '', `#/partie/${id}/${S.ply}`);
@@ -128,7 +139,7 @@ export async function renderGame(root, id, startPly = 0) {
     const series = [g.startWin, ...g.moves.map((m) => m.winWhiteAfter)];
     return {
       series, moves: g.moves,
-      marks: g.moves.filter((m) => MARKED.has(m.classification)).map((m) => ({ ply: m.ply, cls: m.classification })),
+      marks: g.moves.filter((m) => KEY_CLASSES.includes(m.classification)).map((m) => ({ ply: m.ply, cls: m.classification })),
       current: S.free ? S.free.basePly : S.ply,
       freeBase: S.free ? S.free.basePly : null,
     };
@@ -144,17 +155,77 @@ export async function renderGame(root, id, startPly = 0) {
     renderMoves(ctx);
     renderFree(ctx);
     renderDetail(ctx, nd);
+    renderKeyList();
+    renderReview();
     if (g.pass) graph.update(graphData());
     $('#graphBox').hidden = !g.pass;
-    $('#graphNote').textContent = g.pass ? `${depthSummary(g)} Cliquez sur le graphe pour aller à un coup. Points : gaffes (rouge), erreurs (orange), occasions manquées.` : 'Graphe disponible après l\'analyse.';
+    $('#graphEmpty').hidden = Boolean(g.pass);
+    $('#graphBox').title = g.pass ? `${depthSummary(g)} Cliquez sur le graphe pour aller à un coup.` : '';
+    $('#reviewBtn').hidden = !g.pass;
   }
 
   function renderHeader() {
-    $('#title').textContent = `${g.white.name} (${g.white.elo ?? '?'}) – ${g.black.name} (${g.black.elo ?? '?'})`;
-    $('#sub').innerHTML = `${esc(RESULT_TXT[g.result] ?? g.result)} · ${fmtDate(g.playedAt)} · ${esc(TIME_CLASS[g.timeClass] ?? g.timeClass ?? '')} ${esc(g.timeControl ?? '')}${g.url ? ` · <a href="${esc(g.url)}" target="_blank" rel="noopener">voir en ligne</a>` : ''}`;
+    const p = (x) => `${esc(x.name)} <span class="elo">${x.elo ?? ''}</span>`;
+    $('#title').innerHTML = `${p(g.white)}<span class="vs">contre</span>${p(g.black)}`;
+    const mine = g.myColor ? myOutcome() : null;
+    const result = mine ? `<span class="outcome ${mine}">${MY_RESULT[mine]}</span>` : esc(RESULT_TXT[g.result] ?? g.result);
+    const cadence = [(TIME_CLASS[g.timeClass] ?? g.timeClass ?? '').toLowerCase(), fmtTimeControl(g.timeControl)].filter(Boolean).join(' ');
+    $('#sub').innerHTML = `${result}, ${esc(cadence)}, le ${fmtDate(g.playedAt)}${g.url ? `, <a href="${esc(g.url)}" target="_blank" rel="noopener">voir en ligne</a>` : ''}`;
+    document.title = `${g.white.name} contre ${g.black.name} : Analyse d'échecs`;
+  }
+  function myOutcome() {
+    if (g.result === '1/2-1/2') return 'draw';
+    if (g.result !== '1-0' && g.result !== '0-1') return null;
+    return (g.result === '1-0') === (g.myColor === 'white') ? 'win' : 'loss';
+  }
+
+  // ------------------------------------------------------------------ bilan guidé
+  const OWNER = { vous: 'Vous', adv: 'Adversaire', w: 'Blancs', b: 'Noirs' };
+  const whose = (m) => (g.myColor ? ((m.color === 'w') === (g.myColor === 'white') ? 'vous' : 'adv') : m.color);
+  function startGuided() {
+    stopPlaying();
+    S.free = null;
+    S.review = startReview(g.moves);
+    if (!S.review) { toast('Aucun moment clé dans cette partie : ni gaffe, ni erreur, ni occasion manquée, ni coup brillant.'); return; }
+    go(currentMoment(S.review).ply);
+  }
+  function stepGuided(d) {
+    if (!S.review) return;
+    if (d > 0 && S.review.index === S.review.moments.length - 1) { endGuided(true); return; }
+    S.review = stepReview(S.review, d);
+    go(currentMoment(S.review).ply);
+  }
+  function endGuided(done = false) {
+    const total = S.review?.moments.length ?? 0;
+    S.review = null;
+    render();
+    if (done) toast(`Bilan terminé : ${total} moment${total > 1 ? 's' : ''} clé${total > 1 ? 's' : ''} revu${total > 1 ? 's' : ''}.`);
+  }
+  // Liste des moments clés en bas du panneau : un clic pour y aller.
+  function renderKeyList() {
+    if (!g.pass || S.free) return;
+    const moments = startReview(g.moves)?.moments ?? [];
+    $('#detail').insertAdjacentHTML('beforeend', `<div class="key-list"><div class="k">Moments clés de la partie</div>${moments.length
+      ? `<div class="chips">${moments.map((x) => { const mv = g.moves[x.ply - 1]; return `<button class="key-chip${x.ply === S.ply ? ' cur' : ''}" data-goto="${x.ply}" title="${esc(LABELS[x.classification])}"><span class="sym c-${x.classification}">${SYMBOLS[x.classification]}</span>${esc(moveNo(x.ply))} ${esc(fig(mv.san))}</button>`; }).join('')}</div>`
+      : '<div class="small muted">Aucun : ni gaffe, ni erreur, ni occasion manquée, ni coup brillant.</div>'}</div>`);
+  }
+  function renderReview() {
+    const box = $('#reviewBox');
+    $('#reviewBtn').textContent = S.review ? '■ Arrêter le bilan' : '▶ Bilan guidé';
+    if (!S.review) { box.innerHTML = ''; return; }
+    const m = currentMoment(S.review);
+    const mv = g.moves[m.ply - 1];
+    const last = S.review.index === S.review.moments.length - 1;
+    box.innerHTML = `<div class="review-bar" role="region" aria-label="Bilan guidé">
+      <div class="grow"><b>${esc(reviewProgress(S.review))}</b><br>${esc(OWNER[whose(mv)])} : ${esc(LABELS[mv.classification].toLowerCase())}</div>
+      <div class="review-dots" aria-hidden="true">${S.review.moments.map((_, i) => `<i class="${i === S.review.index ? 'on' : ''}"></i>`).join('')}</div>
+      <button id="rvPrev" ${S.review.index === 0 ? 'disabled' : ''} title="Moment précédent (flèche gauche)">◀</button>
+      <button id="rvNext" title="${last ? 'Terminer le bilan' : 'Moment suivant (flèche droite)'}">${last ? 'Terminer' : 'Suivant ▶'}</button>
+    </div>`;
   }
 
   // ------------------------------------------------------------------ événements
+  root.addEventListener('toggle', (e) => { if (e.target.matches?.('details.more')) S.detailsOpen = e.target.open; }, true);
   root.addEventListener('click', async (e) => {
     const t = e.target;
     const mv = t.closest('.mv[data-ply]');
@@ -173,6 +244,10 @@ export async function renderGame(root, id, startPly = 0) {
     if (t.closest('#backToGame')) { const base = S.free.basePly; const wasLine = S.free.fromLine; go(wasLine ? base + 1 : base); return; }
     if (t.closest('#playLine')) { if (S.free.cursor >= S.free.items.length) S.free.cursor = 0; free.playLine(); return; }
     if (t.closest('#askClaude')) { askClaude(ctx); return; }
+    if (t.closest('#reviewBtn')) { if (S.review) endGuided(); else startGuided(); return; }
+    if (t.closest('#rvNext')) { stepGuided(1); return; }
+    if (t.closest('#rvPrev')) { stepGuided(-1); return; }
+    if (t.closest('#sumToggle')) { S.sumOpen = !S.sumOpen; renderSummary(ctx); return; }
     if (t.closest('#prio')) { await api(`/api/games/${id}/prioritize`, {}); g.requested = true; render(); toast("Analyse demandée : la partie passe en tête de la file. Le résultat s'affichera automatiquement."); return; }
     if (t.closest('#reverify')) { await api(`/api/games/${id}/prioritize`, { reverify: true }); g.requested = true; render(); toast('Vérification demandée : seuls les coups douteux seront recalculés.'); return; }
     if (t.closest('#unprio')) { await api(`/api/games/${id}/unrequest`, {}); g.requested = false; render(); toast("Demande d'analyse annulée."); return; }
@@ -198,6 +273,10 @@ export async function renderGame(root, id, startPly = 0) {
 
   const onKey = (e) => {
     if (e.target.closest('input, textarea, select')) return;
+    const mvEl = e.target.closest('.mv[data-ply]');
+    if (mvEl && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); go(Number(mvEl.dataset.ply)); return; }
+    if (S.review && !S.free && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); stepGuided(e.key === 'ArrowRight' ? 1 : -1); return; }
+    if (S.review && e.key === 'Escape') { endGuided(); return; }
     if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
     else if (e.key === 'Home' || e.key === 'ArrowUp') { e.preventDefault(); toStart(); }
@@ -223,7 +302,7 @@ export async function renderGame(root, id, startPly = 0) {
 
   // Accès pour les tests manuels depuis la console.
   // play('d2', 'd4') joue un coup comme sur l'échiquier (mode libre).
-  window.__partie = { state: S, go, jumpTo, play: (orig, dest) => free.onBoardMove(orig, dest), claudeText: () => claudeText(ctx), get data() { return g; } };
+  window.__partie = { state: S, go, jumpTo, startGuided, stepGuided, endGuided, play: (orig, dest) => free.onBoardMove(orig, dest), claudeText: () => claudeText(ctx), get data() { return g; } };
 
   return () => {
     window.removeEventListener('keydown', onKey);

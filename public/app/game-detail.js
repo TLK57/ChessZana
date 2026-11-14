@@ -1,17 +1,17 @@
 // Écran d'une partie — panneau d'explication du coup affiché (classement, perte, explication en français,
 // lignes de Stockfish, profondeur atteinte) et résumé de la profondeur sous le graphe.
-import { esc, fig, symbol, LABELS, fmtPct, fmtClock, fmtSpent, moveNo, lineText } from './util.js';
+import { esc, fig, SYMBOLS, LABELS, fmtPct, fmtClock, fmtSpent, moveNo, lineText } from './util.js';
 
 const DOUBTFUL = new Set(['mistake', 'blunder', 'miss', 'brilliant', 'great']);
 
 export function linesHtml(lines, basePly) {
   if (!lines?.length) return '';
-  return `<div class="lines"><div class="small muted">Meilleures lignes de Stockfish avant ce coup :</div>${lines.map((l, i) => `
+  return `<div class="lines"><div class="small muted">Meilleures lignes de Stockfish avant ce coup (cliquez pour les jouer) :</div>${lines.map((l, i) => `
     <div class="line"><span class="ev">${esc(l.evalText)}</span><a href="#" class="pv" data-line="${i}" data-base="${basePly}">${esc(lineText(l.line.slice(0, 8)))}</a></div>`).join('')}</div>`;
 }
 
 export function claudeButton() {
-  return '<button id="askClaude" title="Copie une question prête à coller sur claude.ai">🤖 Demander à Claude</button>';
+  return '<button id="askClaude" title="Copie une question prête à coller sur claude.ai">Demander à Claude</button>';
 }
 
 export function depthNote(m) {
@@ -34,33 +34,56 @@ export function depthSummary(g) {
   return `Analyse profonde : profondeur atteinte ${span}.${verify}`;
 }
 
+// Une phrase claire quand le coup n'a pas d'explication détaillée (coups bons ou forcés).
+function plainSentence(m, g) {
+  const best = m.bestSan ? fig(m.bestSan) : null;
+  switch (m.classification) {
+    case 'brilliant': return 'Sacrifice correct : vous donnez du matériel et la position tient. Seul un très bon calcul le trouve.';
+    case 'great': return 'Le seul bon coup : les autres lâchaient nettement la partie.';
+    case 'best': return 'Le meilleur coup selon Stockfish.';
+    case 'excellent': return best ? `Presque aussi bon que le meilleur coup (${best}).` : 'Presque aussi bon que le meilleur coup.';
+    case 'good': return best ? `Correct, mais ${best} était un peu meilleur.` : 'Correct, mais il y avait un peu mieux.';
+    case 'book': return `Coup de théorie${g.opening.name ? ` (${g.opening.name})` : ''}.`;
+    default: return best && m.bestUci !== m.uci ? `Stockfish préférait ${best}.` : '';
+  }
+}
+
 export function moveDetailHtml(ctx, m, basePly, { live = false } = {}) {
   // m : coup de la partie, ou résultat d'analyse en direct (mêmes champs)
-  const { g } = ctx;
+  const { g, S } = ctx;
   const cls = m.classification;
   const parts = [];
-  parts.push(`<h3>${moveNo(basePly + 1)} ${esc(fig(m.san))} ${cls ? `${symbol(cls)} <span class="t-${cls}">${esc(LABELS[cls])}</span>` : ''}</h3>`);
-  const stats = [];
-  if (m.loss != null && cls !== 'book') stats.push(`Perte : <b>${fmtPct(m.loss)} %</b> de chances de gain`);
-  if (m.accuracy != null && cls !== 'book') stats.push(`précision du coup : ${fmtPct(m.accuracy, 0)}`);
-  if (m.evalAfterText) stats.push(`éval. après le coup : ${esc(m.evalAfterText)}`);
-  if (stats.length) parts.push(`<p class="small">${stats.join(' · ')}</p>`);
-  if (!live && m.timeSpentMs != null) parts.push(`<p class="small">⏱ Temps utilisé : <b>${fmtSpent(m.timeSpentMs)}</b>${m.clockMs != null ? ` · il restait ${fmtClock(m.clockMs)}` : ''}</p>`);
-  if (cls === 'book') parts.push(`<p>Coup de théorie${g.opening.name ? ` (${esc(g.opening.name)})` : ''}.</p>`);
-  if (!live && g.opening.exitPly === basePly + 1) parts.push('<p class="small"><b>Sortie de la théorie</b> : ce coup ne figure plus dans la base d\'ouvertures.</p>');
-  if (cls === 'brilliant') parts.push('<p>Sacrifice de matériel correct : seul un très bon calcul le trouve.</p>');
-  if (cls === 'great') parts.push('<p>Seul coup qui tenait la position : les autres coups perdaient nettement.</p>');
+  const mine = !live && g.myColor && ((m.color === 'w') === (g.myColor === 'white'));
+  const time = !live && m.timeSpentMs != null ? `${fmtSpent(m.timeSpentMs)} de réflexion` : '';
+  // 1. Le héros : tampon de correction, coup, classement.
+  parts.push(`<div class="hero">
+    ${cls ? `<div class="stamp s-${cls} press" aria-hidden="true">${SYMBOLS[cls]}</div>` : ''}
+    <div class="move">${moveNo(basePly + 1)} ${esc(fig(m.san))}${mine ? ' <span class="meta">(vous)</span>' : ''}</div>
+    ${cls ? `<div class="label t-${cls}">${esc(LABELS[cls])}</div>` : '<div class="label muted" style="font-size:18px">Pas encore classé</div>'}
+    ${time ? `<div class="meta">${esc(time)}</div>` : '<div></div>'}
+  </div>`);
+  // 2. L'explication en une phrase claire.
+  const sentences = m.explanation?.sentences?.length ? m.explanation.sentences : [plainSentence(m, g)].filter(Boolean);
+  parts.push(sentences.map((x) => `<p class="say">${esc(x)}</p>`).join(''));
+  if (!live && g.opening.exitPly === basePly + 1) parts.push('<p class="small muted">Premier coup hors de la théorie.</p>');
+  // 3. Le meilleur coup et la suite à rejouer.
   if (m.explanation) {
-    parts.push(`<div class="explain"><p><b>Meilleur coup : ${esc(fig(m.bestSan))}</b></p>${m.explanation.sentences.map((s) => `<p>${esc(s)}</p>`).join('')}
-      ${m.explanation.bestLine?.length ? `<div class="small muted">Suite de Stockfish (cliquez pour la jouer sur l'échiquier) :</div>
-      <div class="chips">${m.explanation.bestLine.map((x, i) => `${x.color === 'w' || i === 0 ? `<span class="chip num">${x.moveNumber}${x.color === 'w' ? '.' : '...'}</span>` : ''}<button class="chip" data-best="${i}" data-base="${basePly}">${esc(fig(x.san))}</button>`).join('')}</div>
-      <div class="actions"><button id="playBest" data-base="${basePly}">▶ Voir la suite sur l'échiquier</button></div>` : ''}
-    </div>`);
-  } else if (m.bestSan && m.bestUci !== m.uci && cls && !['book', 'best', 'brilliant', 'great'].includes(cls)) {
-    parts.push(`<p class="small">Stockfish préférait ${esc(fig(m.bestSan))}.</p>`);
+    parts.push(`<div class="best-box"><div><span class="k">Meilleur coup :</span> <b>${esc(fig(m.bestSan))}</b></div>
+      ${m.explanation.bestLine?.length ? `<div class="chips">${m.explanation.bestLine.map((x, i) => `${x.color === 'w' || i === 0 ? `<span class="chip num">${x.moveNumber}${x.color === 'w' ? '.' : '...'}</span>` : ''}<button class="chip" data-best="${i}" data-base="${basePly}" title="Voir la position après ce coup">${esc(fig(x.san))}</button>`).join('')}</div>
+      <div class="actions"><button id="playBest" data-base="${basePly}">▶ Rejouer la suite</button></div>` : ''}</div>`);
   }
-  parts.push(linesHtml(m.lines, basePly));
-  if (!live && cls && cls !== 'book') parts.push(`<p class="small muted">${esc(depthNote(m))}</p>`);
+  // 4. Les détails techniques, repliés.
+  const facts = [];
+  if (m.loss != null && cls !== 'book') facts.push(['Perte', `${fmtPct(m.loss)} % de chances de gain`]);
+  if (m.accuracy != null && cls !== 'book') facts.push(['Précision du coup', fmtPct(m.accuracy, 0)]);
+  if (m.evalAfterText) facts.push(['Évaluation après', esc(m.evalAfterText)]);
+  if (!live && m.clockMs != null) facts.push(['Pendule après', fmtClock(m.clockMs)]);
+  if (!live && cls && cls !== 'book') facts.push(['Calcul', esc(depthNote(m))]);
+  const lines = linesHtml(m.lines, basePly);
+  if (facts.length || lines) {
+    parts.push(`<details class="more"${S.detailsOpen ? ' open' : ''}><summary>Détails</summary>
+      ${facts.length ? `<dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>` : ''}${lines}</details>`);
+  }
   if (cls) parts.push(`<div class="actions">${claudeButton()}</div>`);
   return parts.join('');
 }
@@ -74,7 +97,7 @@ export function renderDetail(ctx, nd) {
     if (!it) { box.innerHTML = `<p>Position de la partie après ${f.basePly ? `${moveNo(f.basePly)} ${esc(fig(g.moves[f.basePly - 1].san))}` : 'le départ'}.</p><p class="small muted">Jouez un coup sur l'échiquier : Stockfish l'évalue en direct.</p>`; return; }
     const ply = f.basePly + f.cursor - 1;
     if (it.engine) {
-      box.innerHTML = `<h3>${moveNo(ply + 1)} ${esc(fig(it.san))} <span class="muted small">— variante de Stockfish</span></h3>
+      box.innerHTML = `<h3>${moveNo(ply + 1)} ${esc(fig(it.san))} <span class="muted small">(variante de Stockfish)</span></h3>
         <p class="small muted">Utilisez ◀ ▶ (ou les flèches du clavier) pour avancer dans la suite, ou jouez vos propres coups.</p>
         ${it.lineEval?.text ? `<p class="small">Évaluation de la ligne : <b>${esc(it.lineEval.text)}</b></p>` : ''}`;
       return;
@@ -88,9 +111,8 @@ export function renderDetail(ctx, nd) {
   }
   if (S.ply === 0) {
     box.innerHTML = `<h3>Position de départ</h3>
-      <p class="small">Naviguez avec les flèches ← → du clavier (Début / Fin pour aller au début ou à la fin), en cliquant sur les coups ou sur le graphe.</p>
-      <p class="small">Vous pouvez aussi jouer vos propres coups sur l'échiquier (mode libre).</p>
-      ${g.pass ? '' : '<p>Cette partie n\'est pas encore analysée.</p>'}`;
+      <p class="say">${g.pass ? 'Lancez le <b>bilan guidé</b> pour revoir les moments clés, ou avancez coup par coup.' : 'Cette partie n\'est pas encore analysée.'}</p>
+      <p class="small muted">Flèches ← → du clavier pour avancer, Début et Fin pour sauter. Vous pouvez aussi jouer vos propres coups sur l'échiquier : Stockfish les évalue en direct.</p>`;
   } else {
     box.innerHTML = moveDetailHtml(ctx, g.moves[S.ply - 1], S.ply - 1);
   }

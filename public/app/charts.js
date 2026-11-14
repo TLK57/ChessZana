@@ -1,7 +1,7 @@
 // Petits graphiques SVG faits main (lignes dans le temps, barres) avec infobulle au survol.
 import { esc } from './util.js';
 
-const H = 220;
+const HEIGHT = 220;
 const PAD = { l: 44, r: 14, t: 12, b: 26 };
 
 function niceRange(min, max, ticks = 4) {
@@ -29,7 +29,7 @@ export function movingAverage(points, k = 10, min = 1) {
 /**
  * Graphique en lignes dans le temps.
  * series : [{ label, color, points: [{x: ms, y, data}], dots: bool, line: bool, width }]
- * opts : { yMin, yMax, yFormat, tip(data, series) -> html, onClick(data) }
+ * opts : { yMin, yMax, yFormat, tip(data, series) -> html, onClick(data), height, empty (texte quand il n'y a rien à montrer) }
  */
 export function lineChart(container, series, opts = {}) {
   const el = document.createElement('div');
@@ -37,7 +37,8 @@ export function lineChart(container, series, opts = {}) {
   container.innerHTML = '';
   container.appendChild(el);
   const all = series.flatMap((s) => s.points).filter((p) => p.y != null);
-  if (!all.length) { el.innerHTML = '<p class="muted small">Pas encore assez de parties analysées.</p>'; return; }
+  if (!all.length) { el.innerHTML = `<div class="empty">${esc(opts.empty ?? 'Analysez des parties pour voir ce graphique.')}</div>`; return; }
+  const H = opts.height ?? HEIGHT;
   const xs = all.map((p) => p.x);
   const xMin = Math.min(...xs), xMax = Math.max(...xs) === xMin ? xMin + 864e5 : Math.max(...xs);
   const yr = niceRange(opts.yMin ?? Math.min(...all.map((p) => p.y)), opts.yMax ?? Math.max(...all.map((p) => p.y)));
@@ -71,7 +72,7 @@ export function lineChart(container, series, opts = {}) {
         : `<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${s.r ?? 3}" fill="${s.color}" opacity="${s.opacity ?? 0.45}"/>`)).join('') : '';
       return `<g data-s="${si}">${dots}${path}</g>`;
     }).join('');
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img">${grid.join('')}${ticks.join('')}${marks}
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(series.map((s) => s.label).join(', '))}">${grid.join('')}${ticks.join('')}${marks}
       <line class="cross" x1="0" x2="0" y1="${PAD.t}" y2="${H - PAD.b}" visibility="hidden"/><g class="hl"></g></svg>
       <div class="tip" hidden></div>`;
     const svg = el.querySelector('svg');

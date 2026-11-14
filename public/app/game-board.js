@@ -79,7 +79,7 @@ export function renderPlayers(ctx) {
     const p = color === 'white' ? g.white : g.black;
     const clk = clockAt(ctx, color === 'white' ? 'w' : 'b', ply);
     const me = g.myColor === color ? ' <span class="muted small">(vous)</span>' : '';
-    return `<span><span class="colordot ${color}"></span> ${esc(p.name)} ${p.elo ? `<span class="muted">(${p.elo})</span>` : ''}${me}</span><span class="clock">${clk != null ? fmtClock(clk) : ''}</span>`;
+    return `<span class="who"><span class="colordot ${color}"></span>${esc(p.name)} ${p.elo ? `<span class="muted">${p.elo}</span>` : ''}${me}</span>${clk != null ? `<span class="clock" title="Temps restant à la pendule">${fmtClock(clk)}</span>` : ''}`;
   };
   const bottom = S.orientation;
   $('#bottomPlayer').innerHTML = line(bottom);
@@ -100,4 +100,5 @@ export function renderEvalBar(ctx, nd) {
     if (white) bottom.textContent = label; else top.textContent = label.replace(/^[−-]/, '');
   }
   bar.title = nd.text ? `Évaluation : ${nd.text} (${Math.round(w)} % de chances de gain pour les Blancs)` : 'Pas encore analysé';
+  bar.setAttribute('aria-label', bar.title);
 }
