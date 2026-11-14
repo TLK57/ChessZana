@@ -149,7 +149,37 @@ Elles sont fabriquées par des règles à partir de la position et des lignes de
 5. **Mat raté** : « Vous aviez un mat en N : … ».
 6. **Ce que le meilleur coup gagnait** : fourchette, clouage, enfilade, attaque à la découverte, prise gagnant du
    matériel (« La prise ♘xe5 gagnait du matériel : elle prend son cavalier en e5, qui n'était pas défendu »).
-7. Sinon : « Stockfish préférait X : la suite montre pourquoi ».
+7. **Matériel qui tombe plus loin** (jusqu'à 10 demi-coups) : on suit la ligne de Stockfish jusqu'au coup où le
+   matériel tombe et on nomme la tactique qui le fait tomber : fourchette, clouage, enfilade, découverte,
+   **surcharge** (« votre dame en d2 ne pouvait pas défendre à la fois c3 et f4 ») ou **pièce piégée** (« votre fou en
+   a7 n'avait plus aucune case sûre »). Un motif n'est retenu que si la pièce qu'il vise tombe vraiment ensuite. Sans
+   tactique, on indique la pièce qui n'est plus défendue (« votre pion en e3 n'est plus défendu et ♕xe3+ le prend »).
+8. **Règles de position**, quand aucun matériel n'est en jeu :
+   - **échec perpétuel permis** : une position gagnante devient nulle par une suite d'échecs ;
+   - **pion passé adverse laissé avancer** : il avance d'au moins deux cases (ou jusqu'à 3 cases de la promotion)
+     dans la ligne jouée, moins dans la meilleure ;
+   - **roi exposé** : l'adversaire enchaîne les échecs, les pièces adverses se massent autour du roi (hors finale),
+     ou un pion de l'abri du roi avance ;
+   - **roque perdu ou tardif** : le roi bouge sans roquer, une tour fait perdre le roque, il fallait roquer, ou le
+     meilleur coup empêchait le roi adverse de roquer ;
+   - **pièce non développée** : dans les 15 premiers coups, avec au moins deux pièces mineures encore chez elles, le
+     meilleur coup en sortait une ;
+   - **pièce sans retraite ou mal placée** : la pièce jouée n'a plus qu'une case sûre (ou aucune) et l'adversaire
+     l'attaque, ou un cavalier / fou part au bord de l'échiquier avec deux cases sûres au plus ;
+   - **pion isolé ou doublé créé** dans les 6 demi-coups qui suivent (et pas avec le meilleur coup) ;
+   - **pièce adverse non chassée** : le meilleur coup attaquait une pièce adverse avec un pion ;
+   - **roi passif en finale** : le meilleur coup rapprochait le roi du centre, ou le coup joué l'en éloigne.
+9. Sinon : « Stockfish préférait X : la suite montre pourquoi » (type « Erreur de position »).
+
+Mesuré sur les 246 erreurs, gaffes et occasions manquées des parties analysées de Dilo56 :
+
+| Type d'explication | Avant | Après |
+|---|---|---|
+| Erreur de position (pas de tactique simple) | 48 (19,5 %) | 22 (8,9 %) |
+| Matériel perdu quelques coups plus loin | 36 (14,6 %) | 10 (4,1 %) |
+| Tactiques nommées (fourchette, clouage, enfilade, découverte, surcharge, pièce piégée), permises ou ratées | 65 (26,4 %) | 68 (27,6 %) |
+| Pièce laissée en prise ou mal défendue | 46 (18,7 %) | 66 (26,8 %) |
+| Nouvelles règles de position (roi, roque, développement, pions, pièces, finale) | – | 33 (13,4 %) |
 
 ### Mode libre
 

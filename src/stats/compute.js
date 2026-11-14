@@ -7,7 +7,7 @@ import { explainMove } from '../analysis/explain.js';
 import { gamePhases, clocksBefore, isSimpleMove, isSlow, lostOnTimeWinning, LOW_CLOCK_MS } from './rules.js';
 
 // À augmenter quand les règles changent : toutes les statistiques sont alors recalculées automatiquement.
-export const STATS_VERSION = 1;
+export const STATS_VERSION = 2; // 2 : nouvelles règles d'explication (types d'erreurs recalculés)
 const ERRORS = new Set(['mistake', 'blunder', 'miss']);
 const BAD = new Set(['inaccuracy', 'mistake', 'blunder', 'miss']);
 
