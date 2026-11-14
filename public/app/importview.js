@@ -56,6 +56,15 @@ export async function renderImport(root) {
     </section>
   </div>
   <section class="card" style="margin-top:16px">
+    <h2>Classement des coups</h2>
+    <label class="radio"><input type="radio" name="preset" value="chesscom"> <b>Inspiré de chess.com</b> (par défaut) — imprécision dès 6 % de
+      chances de gain perdues, erreur dès 12 %, gaffe dès 22 % (seuils un peu plus larges sous 1400 Elo), avec les catégories
+      Meilleur, Excellent, Bon, Très bon, Brillant et Occasion manquée.</label>
+    <label class="radio"><input type="radio" name="preset" value="lichess"> <b>Seuils Lichess (5 / 10 / 15 %)</b> — imprécision dès 5 %,
+      erreur dès 10 %, gaffe dès 15 % de chances de gain perdues, quel que soit l'Elo.</label>
+    <p class="small muted" id="presetTxt">Changer de réglage reclasse toutes les parties déjà analysées, sans les recalculer (quelques secondes).</p>
+  </section>
+  <section class="card" style="margin-top:16px">
     <h2>Sauvegardes de la base</h2>
     <p class="small muted">Une sauvegarde est faite automatiquement au démarrage (si la dernière a plus de 24 h) et avant chaque mise à jour
       de la structure de la base. Les <span id="keep">7</span> dernières sont gardées dans le dossier <code>data/backups</code>.</p>
@@ -95,6 +104,11 @@ export async function renderImport(root) {
       $('cBar').style.width = '0%';
     }
     $('pauseBtn').textContent = q.paused ? 'Reprendre' : 'Pause';
+    const C = s.classification;
+    for (const r of root.querySelectorAll('input[name=preset]')) r.checked = r.value === C.preset;
+    const RC = C.reclassify ?? {};
+    if (RC.running) $('presetTxt').innerHTML = `<span class="spinner"></span> Reclassement des parties analysées : ${RC.done} / ${RC.total || '?'}…`;
+    else if (RC.total) $('presetTxt').textContent = `${RC.total} analyse(s) reclassée(s) avec ce réglage${RC.failed ? ` (${RC.failed} à relancer : évaluations absentes)` : ''}.`;
     const H = q.history;
     $('histTxt').innerHTML = H.totalGames === 0 ? 'Importez d\'abord vos parties.'
       : H.remainingGames === 0 ? `<b>Tout votre historique est analysé</b> (${H.totalGames} parties).`
@@ -145,6 +159,9 @@ export async function renderImport(root) {
   $('pauseBtn').onclick = async () => { const s = await api('/api/status'); await api(s.queue.paused ? '/api/queue/resume' : '/api/queue/pause', {}); refresh(); };
   $('retryBtn').onclick = () => api('/api/queue/retry', {}).then(refresh);
   $('histBtn').onclick = () => api('/api/queue/history', { action: $('histBtn').dataset.action }).then(refresh).catch((e) => alert(e.message));
+  root.querySelectorAll('input[name=preset]').forEach((r) => {
+    r.onchange = () => api('/api/settings/classification', { preset: r.value }).then(refresh).catch((e) => alert(e.message));
+  });
   $('histStop').onclick = () => api('/api/queue/history', { action: 'stop' }).then(refresh).catch((e) => alert(e.message));
   $('mode').onchange = () => api('/api/queue/mode', { mode: $('mode').value }).then(refresh).catch((e) => alert(e.message));
 

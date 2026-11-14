@@ -1,9 +1,10 @@
 # Analyse d'échecs locale — étapes 1, 2 et 3
 
 Application gratuite qui tourne **sur votre ordinateur** (Windows ou Mac). Elle récupère vos parties
-chess.com et Lichess (ou un PGN), les analyse avec **Stockfish 19** et classe chaque coup comme chess.com
-(théorie, meilleur, excellent, bon, imprécision, erreur, gaffe, occasion manquée, très bon, brillant),
-avec la précision de la partie et un Elo estimé.
+chess.com et Lichess (ou un PGN), les analyse avec **Stockfish 19** et classe chaque coup avec un classement
+**inspiré de chess.com** (théorie, meilleur, excellent, bon, imprécision, erreur, gaffe, occasion manquée, très bon,
+brillant) ou, au choix, avec les **seuils Lichess**. Il donne aussi la précision de chaque partie et votre **Elo de
+performance** par cadence.
 
 - **Étape 1** : moteur d'analyse, import des parties, base de données.
 - **Étape 2** : liste de vos parties avec filtres, écran d'analyse (échiquier, barre et graphe d'évaluation,
@@ -253,6 +254,7 @@ Après une modification, fermez et relancez l'application.
 | `lichess.timeoutMs` | `6000` | Délai d'attente d'une réponse Lichess |
 | `lichess.pauseAfterRateLimitSec` | `60` | Pause de la source Lichess après un « trop de requêtes » (429) |
 | `lichess.pauseAfterErrorSec` | `120` | Pause de la source Lichess après une panne |
+| `classification.preset` | `"chesscom"` | `"chesscom"` (inspiré de chess.com) ou `"lichess"` (seuils 5 / 10 / 15 %) ; se change aussi dans l'application, qui retient le choix |
 | `classification.thresholds` | `2.5 / 6 / 12 / 22` | Seuils de perte (voir ci-dessous) |
 | `classification.lowElo` | sous 1400 : `3 / 7.5 / 14 / 26` | Seuils plus indulgents sous 1400 Elo |
 | `classification.greatMinGap` | `10` | Écart minimal (%) avec le 2e coup pour « Très bon » |
@@ -282,6 +284,10 @@ Chaque évaluation est convertie en **chances de gain** (formule Lichess), du po
 - Une position des **tables de finales** vaut 100 % (gagnée), 50 % (nulle) ou 0 % (perdue).
 
 ### 5.2 Classement des coups
+
+Ce classement est **inspiré de chess.com** : chess.com ne publie pas son algorithme, les catégories sont les mêmes
+mais les seuils ci-dessous sont les nôtres. Un réglage permet d'utiliser à la place les **seuils Lichess (5 / 10 / 15 %)**
+(voir plus bas).
 
 Pour chaque position, Stockfish calcule les **2 meilleurs coups** (MultiPV 2). Si le coup joué n'est pas parmi eux,
 il est évalué à la même profondeur avec `searchmoves`. La **perte** est :
@@ -314,6 +320,14 @@ Précisions :
 - **Très bon** : une simple reprise de pièce (prendre sur la case où l'adversaire vient de prendre) n'est pas
   comptée, sinon presque chaque échange produirait un « Très bon » (réglage `greatIgnoreRecaptures`).
 
+**Réglage « Seuils Lichess (5 / 10 / 15 %) »** (écran *Importer & file d'analyse*, carte « Classement des coups ») :
+imprécision dès 5 % de chances de gain perdues, erreur dès 10 %, gaffe dès 15 %, comme Lichess, quel que soit l'Elo.
+Les autres catégories (meilleur, excellent, très bon, brillant, occasion manquée) restent calculées comme ci-dessus.
+Changer de réglage **reclasse toutes les parties déjà analysées** en quelques secondes : la perte de chaque coup est
+déjà enregistrée, seuls les seuils changent (aucune position n'est recalculée, et revenir au réglage précédent redonne
+exactement le même classement). Les statistiques et les puzzles suivent. Un coup qui devient
+douteux avec les nouveaux seuils sans avoir été vérifié à la profondeur 22 rend la partie « à revérifier ».
+
 ### 5.3 Précision
 
 - **Par coup** (formule Lichess) : `103,1668 × e^(−0,04354 × perte) − 3,1669`, bornée entre 0 et 100.
@@ -322,7 +336,20 @@ Précisions :
   gain sur une fenêtre glissante (taille = nombre de coups / 10, entre 2 et 8), borné entre 0,5 et 12 — et
   (b) la **moyenne harmonique** des précisions par coup (qui punit fortement les gaffes).
 
-### 5.4 Elo estimé de la partie (estimation !)
+### 5.4 Elo de performance et Elo estimé
+
+**Elo de performance (tuile principale du tableau de bord).** Pour chaque cadence (bullet, blitz, rapide…), sur toutes
+vos parties de la sélection, analysées ou non :
+
+    Elo de performance = Elo moyen des adversaires + 400 × (victoires − défaites) / nombre de parties
+
+C'est une mesure directe de vos résultats, sans dépendre du moteur. Sa **fourchette** vient de l'intervalle de
+confiance à 95 % du score (méthode de Wilson, voir 5.6) : comme (V − D) / N = 2 × score − 1, la fourchette va de
+adversaires + 400 × (2 × bas − 1) à adversaires + 400 × (2 × haut − 1). L'Elo d'une cadence n'est pas comparable à
+celui d'une autre : la tuile affiche la cadence filtrée (ou la plus jouée) et résume les autres en dessous.
+
+**Elo estimé d'après la précision (indicateur secondaire, indicatif).** Affiché avec sa fourchette (moyenne ± 1,96 ×
+écart-type / √n) et la mention « indicatif ». Calcul :
 
 La précision de la partie est convertie en Elo par **interpolation linéaire** dans cette table :
 

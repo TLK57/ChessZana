@@ -6,6 +6,9 @@ import { ensureStatsSchema } from './compute.js';
 import { PHASE_LABELS } from './rules.js';
 import { calibratedElo, calibrationInfo } from './calibration.js';
 import { MIN_GAMES, compare, wilson } from './confidence.js';
+import { estimatedEloByTimeClass, performanceByTimeClass } from './performance.js';
+import { myResults } from '../library.js';
+import { config } from '../config.js';
 
 const TIME_CLASSES = ['bullet', 'blitz', 'rapid', 'classical', 'daily'];
 
@@ -64,6 +67,11 @@ export function dashboard(f = {}) {
     avgAccuracy: ratio(withAcc.reduce((a, g) => a + g.accuracy, 0), withAcc.length),
     accuracyGames: withAcc.length,
     avgEstElo: ratio(withElo.reduce((a, g) => a + g.est_elo, 0), withElo.length),
+    // Tuile principale : Elo de performance par cadence, sur toutes mes parties (analysées ou non).
+    performance: performanceByTimeClass(myResults(f)),
+    // Indicateur secondaire : Elo estimé d'après la précision (indicatif), par cadence, avec sa fourchette.
+    estimated: estimatedEloByTimeClass(games.map((g) => ({ timeClass: g.time_class, estElo: g.est_elo }))),
+    classificationPreset: config.classification.preset,
     calibration: calibrationInfo(),
     series: games.map((g) => ({
       gameId: g.game_id, playedAt: g.played_at, timeClass: g.time_class, color: g.my_color, outcome: g.outcome,

@@ -1,4 +1,5 @@
-// Classement des coups « à la chess.com ».
+// Classement des coups, inspiré de chess.com (ce n'est pas l'algorithme de chess.com, qui n'est pas public).
+// Réglage possible : seuils Lichess (imprécision dès 5 %, erreur dès 10 %, gaffe dès 15 % de chances de gain perdues).
 import { Chess } from 'chess.js';
 import { config } from '../config.js';
 import { materialBalance, playUci } from '../chessutil.js';
@@ -21,9 +22,14 @@ export const SYMBOLS = {
   inaccuracy: '?!', mistake: '?', miss: '✗', blunder: '??',
 };
 
-// Seuils de perte (en % de chances de gain) selon l'Elo du joueur qui a joué le coup.
+export const PRESETS = ['chesscom', 'lichess'];
+// Seuils Lichess : perte de chances de gain d'au moins 5 % (imprécision), 10 % (erreur), 15 % (gaffe).
+export const LICHESS_THRESHOLDS = { excellent: 2.5, good: 5, inaccuracy: 10, mistake: 15 };
+
+// Seuils de perte (en % de chances de gain) selon le réglage et l'Elo du joueur qui a joué le coup.
 export function thresholdsFor(elo) {
   const c = config.classification;
+  if (c.preset === 'lichess') return LICHESS_THRESHOLDS;
   if (Number.isFinite(elo) && elo > 0 && c.lowElo && elo < c.lowElo.below) return c.lowElo.thresholds;
   return c.thresholds;
 }

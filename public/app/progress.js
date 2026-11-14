@@ -20,7 +20,7 @@ export async function renderProgress(root) {
         </div>
       </div>
       <div class="card"><h2>Précision par partie</h2><div class="legend"><span><i style="background:var(--series-1)"></i>moyenne des 10 dernières parties</span><span><i style="background:var(--series-1);opacity:.45;height:6px;width:6px;border-radius:50%"></i>une partie (cliquez pour l'ouvrir)</span></div><div id="accChart"></div></div>
-      <div class="card"><h2>Elo réel et Elo estimé</h2><div class="legend"><span><i style="background:var(--series-1)"></i>Elo réel (chess.com / Lichess)</span><span><i style="background:var(--series-2)"></i>Elo estimé d'après la précision, calibré sur vos parties (moyenne des 10 dernières)</span></div><div id="eloChart"></div><p class="note" id="eloNote"></p></div>
+      <div class="card"><h2>Elo réel et Elo estimé</h2><div class="legend"><span><i style="background:var(--series-1)"></i>Elo réel (chess.com / Lichess)</span><span><i style="background:var(--series-2)"></i>Elo estimé d'après la précision, indicatif, calibré sur vos parties (moyenne des 10 dernières)</span></div><div id="eloChart"></div><p class="note" id="eloNote"></p></div>
       <div class="cols2">
         <div class="card"><h2>Précision par phase de jeu</h2><div id="phases"></div>
           <p class="note">Ouverture : jusqu'à ce qu'il reste 10 pièces ou moins (rois et pions non comptés), qu'un camp ait moins de 4 pièces sur sa première rangée, ou après le 15e coup. Finale : 6 pièces ou moins. Moyenne de la précision de vos coups, hors coups de théorie.</p></div>
@@ -50,11 +50,22 @@ export async function renderProgress(root) {
     $('refreshNote').textContent = d.refresh?.refreshing ? `Mise à jour des statistiques… (${d.refresh.done}/${d.refresh.total})` : `${d.count} parties analysées dans la sélection`;
     const last = [...d.series].reverse().find((g) => g.myElo);
     const small = isSmall(d.count);
-    $('kpis').innerHTML = [
-      ['Parties analysées', d.count, `${d.results.win} V · ${d.results.draw} N · ${d.results.loss} D`, small],
-      ['Score', pctText(d.score?.p), `victoire = 1, nulle = ½ · ${ciText(d.score)} · ${nText(d.count)}`, small],
+    // Tuile principale : Elo de performance de la cadence affichée (l'Elo d'une cadence n'est pas comparable à une autre).
+    const mainTc = filters.timeClass || d.performance[0]?.timeClass;
+    const P = d.performance.find((x) => x.timeClass === mainTc);
+    const others = d.performance.filter((x) => x !== P);
+    const E = d.estimated.find((x) => x.timeClass === mainTc);
+    const perfTile = `<div class="card kpi kpi-main${P && isSmall(P.n) ? ' thin' : ''}" title="Elo de performance = Elo moyen des adversaires + 400 × (victoires − défaites) / nombre de parties">
+      <div class="l">Elo de performance${mainTc ? ` — ${esc(TIME_CLASS[mainTc] ?? mainTc)}` : ''}</div>
+      <div class="v">${P ? P.performance : '–'}</div>
+      <div class="l">${P ? `fourchette ${P.low}–${P.high} (IC 95 %) · ${esc(nText(P.n))} (analysées ou non) · adversaires ${P.avgOpp} de moyenne, ${P.win} V · ${P.draw} N · ${P.loss} D` : 'aucune partie avec l\'Elo des adversaires'}</div>
+      ${others.length ? `<div class="l">Autres cadences : ${others.map((x) => `${esc(TIME_CLASS[x.timeClass] ?? x.timeClass)} <b>${x.performance}</b> (n = ${x.n}${isSmall(x.n) ? ', échantillon trop petit' : ''})`).join(' · ')}</div>` : ''}
+    </div>`;
+    $('kpis').innerHTML = perfTile + [
+      ['Score', pctText(d.score?.p), `victoire = 1, nulle = ½ · ${ciText(d.score)} · ${nText(d.count)} analysées`, small],
       ['Précision moyenne', d.avgAccuracy != null ? `${fmtPct(d.avgAccuracy)} %` : '–', `méthode Lichess · ${nText(d.accuracyGames)}`, isSmall(d.accuracyGames)],
-      ['Elo estimé moyen', d.avgEstElo ? Math.round(d.avgEstElo) : '–', `${d.calibration?.enabled ? `calibré sur vos parties (${d.calibration.points} joueurs-parties)` : 'estimation d\'après la précision (non calibrée)'} · ${nText(d.series.filter((g) => g.estElo != null).length)}`, isSmall(d.series.filter((g) => g.estElo != null).length)],
+      [`Elo estimé d'après la précision${mainTc ? ` — ${TIME_CLASS[mainTc] ?? mainTc}` : ''}`, E ? E.mean : '–',
+        `indicatif${E?.low != null ? ` · fourchette ${E.low}–${E.high}` : ''} · ${nText(E?.n ?? 0)} · ${d.calibration?.enabled ? 'calibré sur vos parties' : 'non calibré'} (une partie seule : ± 500)`, isSmall(E?.n ?? 0)],
       ['Elo réel (dernière partie)', last?.myElo ?? '–', last ? `${TIME_CLASS[last.timeClass] ?? last.timeClass}` : '', false],
     ].map(([l, v, s, thin]) => `<div class="card kpi${thin ? ' thin' : ''}"${thin ? ` title="${SMALL_SAMPLE}"` : ''}><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div><div class="l">${esc(s)}</div></div>`).join('');
 

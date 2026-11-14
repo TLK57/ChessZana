@@ -44,6 +44,9 @@ export const DEFAULTS = {
     pauseAfterErrorSec: 120,
   },
   classification: {
+    // chesscom = seuils inspirés de chess.com (ci-dessous) ; lichess = seuils Lichess 5 / 10 / 15 %.
+    // Se change aussi dans l'application (écran « Importer & file d'analyse »).
+    preset: 'chesscom',
     bestMaxLoss: 0.1,
     thresholds: { excellent: 2.5, good: 6, inaccuracy: 12, mistake: 22 },
     lowElo: { below: 1400, thresholds: { excellent: 3, good: 7.5, inaccuracy: 14, mistake: 26 } },

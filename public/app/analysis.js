@@ -309,7 +309,7 @@ export async function renderGame(root, id, startPly = 0) {
       return `<div class="card">
         <div class="who"><span class="colordot ${color}"></span>${esc(p.name)}${g.myColor === color ? ' <span class="muted small">(vous)</span>' : ''}</div>
         <div class="big">${fmtPct(p.accuracy)}<span class="small muted"> % précision</span></div>
-        <div class="small" title="${g.calibration?.enabled ? `Estimation calibrée sur vos parties (sans calibrage : ${p.estEloGeneric ?? '–'})` : 'Estimation générique'}">Elo estimé : <b>${p.estElo ?? '–'}</b> <span class="muted">(${g.calibration?.enabled ? 'estimation calibrée' : 'estimation'})</span></div>
+        <div class="small" title="${g.calibration?.enabled ? `Estimation calibrée sur vos parties (sans calibrage : ${p.estEloGeneric ?? '–'})` : 'Estimation générique'}">Elo estimé : <b>${p.estElo ?? '–'}</b> <span class="muted">(indicatif, ± 500 sur une partie${g.calibration?.enabled ? ', calibré' : ''})</span></div>
         <div class="counters">${ORDER.map((k) => {
           const v = p.counts?.[k] ?? 0;
           return `<button class="counter" data-color="${c}" data-cls="${k}" ${v ? '' : 'disabled'} title="${v ? 'Aller au coup suivant de ce type' : ''}">${symbol(k, false)} ${LABELS[k]} <span class="n">${v}</span></button>`;

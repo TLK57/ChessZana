@@ -3,8 +3,8 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { ROOT, config } from './config.js';
-import { closeDb, getDb, openDb } from './db.js';
+import { ROOT, config, overrideConfig } from './config.js';
+import { closeDb, getDb, openDb, setMeta, getMeta } from './db.js';
 import { getEvaluator, getLiveEvaluator } from './engine/evaluator.js';
 import { installedEngine, ensureEngine } from './engine/install.js';
 import { lichessStatus } from './engine/lichess.js';
@@ -13,7 +13,8 @@ import { syncChessCom } from './importers/chesscom.js';
 import { syncLichess } from './importers/lichess.js';
 import { importPgnText } from './importers/pgnfile.js';
 import { listPlayers } from './games.js';
-import { LABELS } from './analysis/classify.js';
+import { LABELS, PRESETS } from './analysis/classify.js';
+import { reclassifyAll } from './analysis/reclassify.js';
 import { backfillOpenings, listMyGames, openingFamilies } from './library.js';
 import { buildGameView, liveMove } from './analysis/gameview.js';
 import { ensureStatsSchema, refreshAllStats, refreshGameStats, resetStatsSchema } from './stats/compute.js';
@@ -31,6 +32,7 @@ const state = {
   integrity: { ok: true, messages: [] },
   engine: { status: 'starting', message: 'Démarrage…', pct: 0, name: null },
   imports: [], // historique des imports (le plus récent en premier)
+  reclassify: { running: false },
 };
 let importChain = Promise.resolve();
 const evaluator = getEvaluator();
@@ -242,6 +244,7 @@ async function handle(req, res) {
       contactSet: !!String(config.contact || '').trim(),
       integrity: state.integrity,
       lastBackup: listBackups()[0] ?? null,
+      classification: { preset: config.classification.preset, reclassify: state.reclassify },
     });
   }
   if (req.method === 'GET' && p === '/api/games') {
@@ -270,6 +273,7 @@ async function handle(req, res) {
     if (um) { queue.unrequest(Number(um[1])); return send(res, 200, { ok: true }); }
     if (p === '/api/queue/mode') { queue.setMode(String(body.mode)); return send(res, 200, queue.progress()); }
     if (p === '/api/queue/history') return send(res, 200, queue.setHistory(String(body.action)));
+    if (p === '/api/settings/classification') return send(res, 200, setClassificationPreset(String(body.preset)));
     if (p === '/api/training/answer') {
       liveActiveUntil = Date.now() + LIVE_PAUSE_MS;
       return send(res, 200, await answerPuzzle(Number(body.id), String(body.uci ?? ''), { evaluator: state.engine.status === 'ready' ? liveEvaluator : null }));
@@ -318,6 +322,40 @@ function setupQueue() {
   queue.onAnalyzed = (gameId) => refreshGameStats(gameId);
 }
 
+// Réglage du classement (« inspiré de chess.com » ou « seuils Lichess ») : enregistré dans la base, puis
+// toutes les parties déjà analysées sont reclassées à partir des évaluations en cache (sans recalcul).
+function setClassificationPreset(preset) {
+  if (!PRESETS.includes(preset)) throw Object.assign(new Error('Réglage inconnu'), { status: 400 });
+  const changed = preset !== config.classification.preset;
+  setMeta('classification_preset', preset);
+  overrideConfig({ classification: { preset } });
+  if (changed) reclassifyInBackground();
+  return { preset, reclassify: state.reclassify };
+}
+
+// Le réglage choisi dans l'application (enregistré dans la base) l'emporte sur config.json.
+function loadClassificationPreset() {
+  try {
+    const p = getMeta('classification_preset', config.classification.preset);
+    if (PRESETS.includes(p)) overrideConfig({ classification: { preset: p } });
+  } catch { /* base illisible : réglage par défaut */ }
+}
+
+function reclassifyInBackground() {
+  if (state.reclassify.running) { state.reclassify.again = true; return; }
+  state.reclassify = { running: true, done: 0, total: 0, preset: config.classification.preset };
+  reclassifyAll({
+    onProgress: (done, total) => Object.assign(state.reclassify, { done, total }),
+    onGame: (gameId) => refreshGameStats(gameId),
+    skip: (gameId) => queue?.current?.gameId === gameId, // analysée en ce moment : déjà avec les nouveaux seuils
+  }).then((r) => {
+    const again = state.reclassify.again;
+    state.reclassify = { running: false, done: r.total, total: r.total, failed: r.failed.length, preset: config.classification.preset };
+    if (r.failed.length) console.error(`  Reclassement : ${r.failed.length} analyse(s) à relancer (${r.failed[0].error})`);
+    if (again) reclassifyInBackground();
+  }).catch((e) => { state.reclassify = { running: false, error: e.message }; });
+}
+
 // Statistiques : mises à jour au démarrage pour les parties analysées depuis.
 function refreshStatsInBackground() {
   backfillOpenings()
@@ -334,6 +372,7 @@ async function restore(name) {
   resetStatsSchema();
   ensureStatsSchema();
   state.integrity = integrityCheck();
+  loadClassificationPreset();
   setupQueue();
   if (state.engine.status === 'ready' && state.integrity.ok) queue.start();
   refreshStatsInBackground();
@@ -367,6 +406,7 @@ async function main() {
   if (!started) return;
 
   openDb();
+  loadClassificationPreset();
   // Contrôle d'intégrité, puis sauvegarde quotidienne d'une base saine.
   state.integrity = integrityCheck();
   if (!state.integrity.ok) {

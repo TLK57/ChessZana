@@ -61,6 +61,28 @@ const MY_COLOR_SQL = (names) => `
 export const TIME_CLASSES = ['bullet', 'blitz', 'rapid', 'classical', 'daily'];
 
 /**
+ * Toutes mes parties terminées (analysées ou non) : cadence, résultat, couleur, Elo des deux joueurs.
+ * filtres : { timeClass, color, from, to, opponent: 'stronger' | 'weaker' } (comme le tableau de bord).
+ */
+export function myResults(f = {}) {
+  const names = trackedNames();
+  const where = ['x.my_color IS NOT NULL', "x.result IN ('1-0', '0-1', '1/2-1/2')"];
+  const fargs = [];
+  if (TIME_CLASSES.includes(f.timeClass)) { where.push('x.time_class = ?'); fargs.push(f.timeClass); }
+  if (f.color === 'white' || f.color === 'black') { where.push('x.my_color = ?'); fargs.push(f.color); }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(f.from ?? '')) { where.push('x.played_at >= ?'); fargs.push(`${f.from}T00:00:00`); }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(f.to ?? '')) { where.push('x.played_at <= ?'); fargs.push(`${f.to}T23:59:59.999Z`); }
+  const mine = "CASE x.my_color WHEN 'white' THEN x.white_elo ELSE x.black_elo END";
+  const theirs = "CASE x.my_color WHEN 'white' THEN x.black_elo ELSE x.white_elo END";
+  if (f.opponent === 'stronger') where.push(`${theirs} > ${mine}`);
+  if (f.opponent === 'weaker') where.push(`${theirs} < ${mine}`);
+  return getDb().prepare(`SELECT x.* FROM (
+      SELECT g.id, g.time_class, g.result, g.white_elo, g.black_elo, g.played_at, ${MY_COLOR_SQL(names)} AS my_color
+      FROM games g LEFT JOIN (SELECT game_id, MIN(color) AS color FROM player_games GROUP BY game_id) pg ON pg.game_id = g.id) x
+    WHERE ${where.join(' AND ')}`).all(...names, ...names, ...fargs);
+}
+
+/**
  * filters : { timeClass, color, result, from, to, opening, limit, offset }
  *   result : win | loss | draw (du point de vue de l'utilisateur)
  */
