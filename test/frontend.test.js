@@ -11,6 +11,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const files = [
   ...fs.readdirSync(path.join(ROOT, 'public', 'app')).filter((f) => f.endsWith('.js')).map((f) => path.join('public', 'app', f)),
   path.join('src', 'server.js'),
+  ...fs.readdirSync(path.join(ROOT, 'src', 'routes')).filter((f) => f.endsWith('.js')).map((f) => path.join('src', 'routes', f)),
 ];
 
 for (const file of files) {
@@ -24,7 +25,8 @@ test('la page principale charge les modules attendus', () => {
   const html = fs.readFileSync(path.join(ROOT, 'public', 'index.html'), 'utf8');
   assert.match(html, /\/app\/main\.js/);
   assert.match(html, /\/vendor\/chessground\.base\.css/);
-  for (const f of ['main.js', 'list.js', 'analysis.js', 'graph.js', 'importview.js', 'util.js', 'app.css']) {
+  for (const f of ['main.js', 'list.js', 'analysis.js', 'game-board.js', 'game-moves.js', 'game-detail.js', 'game-free.js', 'game-prompt.js',
+    'graph.js', 'importview.js', 'util.js', 'app.css']) {
     assert.ok(fs.existsSync(path.join(ROOT, 'public', 'app', f)), f);
   }
 });
