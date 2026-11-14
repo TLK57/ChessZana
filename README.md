@@ -1,17 +1,29 @@
-# Analyse d'échecs locale — étapes 1, 2 et 3
+# Analyse d'échecs locale
 
-Application gratuite qui tourne **sur votre ordinateur** (Windows ou Mac). Elle récupère vos parties
-chess.com et Lichess (ou un PGN), les analyse avec **Stockfish 19** et classe chaque coup avec un classement
-**inspiré de chess.com** (théorie, meilleur, excellent, bon, imprécision, erreur, gaffe, occasion manquée, très bon,
-brillant) ou, au choix, avec les **seuils Lichess**. Il donne aussi la précision de chaque partie et votre **Elo de
-performance** par cadence.
+Analysez vos parties d'échecs **sur votre propre ordinateur**, gratuitement et sans créer de compte. L'application
+récupère vos parties chess.com et Lichess (ou un fichier PGN), les fait analyser par **Stockfish 19**, classe chaque
+coup (classement inspiré de chess.com, ou seuils Lichess au choix), **explique vos erreurs en français** et suit votre
+progression : Elo de performance par cadence, précision, erreurs récurrentes, répertoire d'ouvertures, gestion du
+temps et puzzles tirés de vos propres gaffes. Tout reste chez vous ; seuls chess.com, Lichess et les sites de
+téléchargement (Node.js, Stockfish) sont contactés.
 
-- **Étape 1** : moteur d'analyse, import des parties, base de données.
-- **Étape 2** : liste de vos parties avec filtres, écran d'analyse (échiquier, barre et graphe d'évaluation,
-  coups classés, explications en français), mode libre et bouton « Demander à Claude ».
-- **Étape 3** : comprendre pourquoi vous perdez et vous entraîner : tableau de bord de progression, répertoire
-  d'ouvertures, gestion du temps, erreurs récurrentes, puzzles tirés de vos propres gaffes (répétition espacée)
-  et « Bilan pour Claude ».
+![Écran d'analyse d'une partie : échiquier, graphe, coups classés et explication de l'erreur](captures/2-ecran-analyse.png)
+
+| Mes parties | Progression | Mes erreurs récurrentes |
+|---|---|---|
+| ![Liste des parties](captures/1-mes-parties.png) | ![Tableau de bord de progression](captures/5-progression.png) | ![Types d'erreurs les plus fréquents](captures/7-erreurs.png) |
+
+## Lancer l'application en 3 étapes
+
+1. **Téléchargez** le dossier : sur GitHub, bouton vert **Code** → **Download ZIP**, puis décompressez-le
+   (clic droit → *Extraire tout* sous Windows, double-clic sur Mac).
+2. **Double-cliquez** sur `Lancer-Windows.bat` (Windows) ou `Lancer-Mac.command` (Mac ; la première fois :
+   clic droit → *Ouvrir*). Au premier lancement, il faut Internet quelques minutes : le lanceur prépare tout seul
+   Node.js et Stockfish, sans rien installer sur l'ordinateur.
+3. Votre navigateur s'ouvre sur l'application. Dans **Importer & file d'analyse**, tapez votre pseudo chess.com ou
+   Lichess, puis ouvrez une partie et cliquez sur **Analyser**.
+
+Le reste de ce document détaille l'installation, l'utilisation, les réglages et les méthodes de calcul.
 
 ---
 
@@ -195,7 +207,7 @@ coup joué, son classement, les 2 meilleures lignes de Stockfish avec leurs éva
 « Explique-moi pourquoi mon coup est mauvais et quelle idée j'aurais dû voir ». Si le navigateur refuse l'accès au
 presse-papiers, le texte s'affiche dans une fenêtre pour le copier à la main.
 
-### Étape 3 : progression et entraînement
+### Progression et entraînement
 
 Ces écrans utilisent **vos parties analysées** (passe rapide ou profonde). Pour avoir des statistiques sur toutes
 vos parties, choisissez « Passe rapide sur toutes mes parties » dans *Importer & file d'analyse* (environ 30 s à
@@ -552,10 +564,21 @@ Télécharge la dernière version de [lichess-org/chess-openings](https://github
 `resources/openings/`. Si un fichier est abîmé, rien n'est modifié. La version téléchargée est notée dans
 `resources/openings/SOURCE.txt`, et les noms d'ouverture des parties sont recalculés au lancement suivant.
 
-## Crédits
+## Licence
 
-- [Stockfish](https://stockfishchess.org) (GPL v3), téléchargé tel quel depuis les versions officielles.
-- [chess.js](https://github.com/jhlywa/chess.js) (BSD-2).
-- [chessground](https://github.com/lichess-org/chessground) (GPL v3), l'échiquier de Lichess, avec les pièces « cburnett ».
-- [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0), copié dans `resources/openings/`.
-- Formules de chances de gain et de précision : [Lichess](https://github.com/lichess-org/lila) (AGPL).
+Ce logiciel est distribué sous licence **GNU GPL version 3** (ou toute version ultérieure) : voir le fichier
+[`LICENSE`](LICENSE). Vous pouvez l'utiliser, l'étudier, le modifier et le redistribuer ; une version modifiée que
+vous distribuez doit rester sous la même licence, avec son code source.
+
+## Licences tierces
+
+| Composant | Rôle | Licence | Comment il est utilisé |
+|---|---|---|---|
+| [Stockfish](https://github.com/official-stockfish/Stockfish) | moteur d'analyse | GPL-3.0 | binaire officiel téléchargé au premier lancement (empreinte SHA-256 vérifiée), jamais modifié |
+| [chessground](https://github.com/lichess-org/chessground) | échiquier de l'interface (celui de Lichess) | GPL-3.0-or-later | dépendance npm, avec ses pièces « cburnett » |
+| [chess.js](https://github.com/jhlywa/chess.js) | règles des échecs, lecture des PGN | BSD-2-Clause | dépendance npm |
+| [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) | livre d'ouvertures (noms, codes ECO) | CC0-1.0 | copié dans `resources/openings/` (`npm run update-openings`) |
+
+Les formules de chances de gain et de précision suivent celles publiées par
+[Lichess](https://github.com/lichess-org/lila) ; elles sont réécrites ici, aucun code de Lichess n'est copié.
+Node.js, téléchargé par les lanceurs s'il manque, est distribué par nodejs.org sous licence MIT.
