@@ -6,6 +6,7 @@
 import { getDb } from '../db.js';
 import { getJson } from '../http.js';
 import { insertGame, makeYielder, upsertPlayer } from '../games.js';
+import { Problems, checkChessComArchives, checkChessComGame, checkChessComMonth, checkChessComProfile } from './validate.js';
 
 const API = 'https://api.chess.com/pub';
 const HTTP_OPTS = { retries: 5, rateLimitDelayMs: 5000, errorDelayMs: 3000, timeoutMs: 30000 };
@@ -63,11 +64,17 @@ export async function syncChessCom(username, { onProgress, signal } = {}) {
   const profile = await getJson(`${API}/player/${uname}`, { ...HTTP_OPTS, signal });
   if (profile.status === 404) throw new Error(`Le pseudo chess.com « ${username} » n'existe pas.`);
   if (!profile.ok) throw new Error(`chess.com ne répond pas (HTTP ${profile.status}).`);
-  const player = upsertPlayer('chesscom', uname, profile.json?.username ?? uname);
+  const problems = new Problems();
+  const badProfile = checkChessComProfile(profile.json);
+  if (badProfile) problems.add(badProfile);
+  const player = upsertPlayer('chesscom', uname, (!badProfile && profile.json?.username) || uname);
 
   const arch = await getJson(`${API}/player/${uname}/games/archives`, { ...HTTP_OPTS, signal });
   if (!arch.ok) throw new Error(`Impossible de lire la liste des archives (HTTP ${arch.status}).`);
-  const archives = Array.isArray(arch.json?.archives) ? arch.json.archives : [];
+  const checked = checkChessComArchives(arch.json);
+  if (checked.error) throw new Error(checked.error);
+  for (let i = 0; i < checked.invalid; i++) problems.add('adresse de mois illisible dans la liste des archives');
+  const archives = checked.urls;
 
   const d = getDb();
   const getArchive = d.prepare('SELECT * FROM sync_archives WHERE player_id = ? AND url = ?');
@@ -77,7 +84,7 @@ export async function syncChessCom(username, { onProgress, signal } = {}) {
         complete = excluded.complete, fetched_at = excluded.fetched_at`);
 
   const todo = archives.filter((url) => !getArchive.get(player.id, url)?.complete);
-  const stats = { months: archives.length, monthsDownloaded: 0, monthsUnchanged: 0, monthsSkipped: archives.length - todo.length, added: 0, duplicate: 0, skipped: 0 };
+  const stats = { months: archives.length, monthsDownloaded: 0, monthsUnchanged: 0, monthsSkipped: archives.length - todo.length, monthsFailed: 0, added: 0, duplicate: 0, skipped: 0, invalid: 0 };
   report({ message: `${archives.length} mois au total, ${todo.length} à télécharger`, done: 0, total: todo.length, stats });
 
   const breathe = makeYielder();
@@ -88,13 +95,24 @@ export async function syncChessCom(username, { onProgress, signal } = {}) {
     const res = await getJson(url, { ...HTTP_OPTS, headers, signal });
     const now = Date.now();
     const complete = ym && isArchiveComplete(ym.year, ym.month, now) ? 1 : 0;
+    const label = ym ? `${String(ym.month).padStart(2, '0')}/${ym.year}` : url;
+    const badMonth = res.ok && res.status !== 304 ? checkChessComMonth(res.json) : null;
+    if (badMonth || (!res.ok && res.status !== 304)) {
+      // Mois illisible : ignoré pour cette fois (il sera redemandé à la prochaine synchronisation), l'import continue.
+      problems.add(`mois ${label} : ${badMonth ?? `chess.com a répondu HTTP ${res.status}`}, il sera redemandé à la prochaine synchronisation`);
+      stats.monthsFailed++;
+      report({ message: `Mois ${label} ignoré (réponse inattendue), on continue`, done: i + 1, total: todo.length, stats });
+      continue;
+    }
     if (res.status === 304) {
       stats.monthsUnchanged++; // mois revérifié, rien de nouveau (ETag)
       saveArchive.run(player.id, url, ym?.year ?? null, ym?.month ?? null, known.etag, null, complete, new Date(now).toISOString());
     } else if (res.ok) {
-      const games = Array.isArray(res.json?.games) ? res.json.games : [];
+      const games = res.json.games;
       for (const [k, g] of games.entries()) {
         await breathe();
+        const bad = checkChessComGame(g);
+        if (bad) { problems.add(bad); stats.invalid++; continue; }
         const r = insertChessComGame(g, player);
         if (r === 'added') stats.added++;
         else if (r === 'duplicate') stats.duplicate++;
@@ -103,12 +121,12 @@ export async function syncChessCom(username, { onProgress, signal } = {}) {
       }
       saveArchive.run(player.id, url, ym?.year ?? null, ym?.month ?? null, res.headers.get('etag'), games.length, complete, new Date(now).toISOString());
       stats.monthsDownloaded++;
-    } else {
-      throw new Error(`Archive ${url} illisible (HTTP ${res.status}).`);
     }
-    report({ message: `Mois ${ym ? `${String(ym.month).padStart(2, '0')}/${ym.year}` : url} : ${stats.added} nouvelles parties`, done: i + 1, total: todo.length, stats });
+    report({ message: `Mois ${label} : ${stats.added} nouvelles parties`, done: i + 1, total: todo.length, stats });
   }
   d.prepare("UPDATE players SET last_sync_at = datetime('now') WHERE id = ?").run(player.id);
-  report({ message: `Terminé : ${stats.added} nouvelles parties`, done: todo.length, total: todo.length, stats, finished: true });
+  stats.problems = problems.list();
+  const warn = problems.summary();
+  report({ message: `Terminé : ${stats.added} nouvelles parties${warn ? `. Attention : ${warn}` : ''}`, done: todo.length, total: todo.length, stats, finished: true });
   return stats;
 }

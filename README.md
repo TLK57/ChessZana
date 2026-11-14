@@ -530,6 +530,28 @@ d'intégration, puis les lanceurs eux-mêmes avec téléchargement de Node.js po
 - Seules les **parties terminées** sont importées (archives mensuelles chess.com, `finished=true&ongoing=false` sur
   Lichess, résultat `*` refusé pour les PGN) : l'application ne peut pas servir à tricher pendant une partie.
 
+### Réponses inattendues
+
+Le format des réponses de chess.com et de Lichess est vérifié (profil, liste des mois, parties : PGN, date de fin,
+pseudos, identifiant…). Si quelque chose ne va pas, l'import **ne s'arrête pas** :
+- une partie au format inattendu est ignorée, les autres sont importées ;
+- un mois chess.com illisible est ignoré pour cette fois et sera redemandé à la prochaine synchronisation ;
+- une ligne illisible de l'export Lichess est ignorée ;
+- à la fin, l'écran *Importer & file d'analyse* l'indique en clair, par exemple : « Terminé : 120 nouvelles parties.
+  Attention : 2 éléments ignorés (format inattendu) : partie sans PGN (champ « pgn » absent) (2) ».
+
+Seule une liste des mois illisible arrête l'import chess.com, avec un message qui le dit (il n'y a alors rien à lire).
+Les tests s'appuient sur de vraies réponses enregistrées (`test/fixtures/api/`), puis sur des versions abîmées exprès.
+
+### Mettre à jour le livre d'ouvertures
+
+    npm run update-openings
+
+Télécharge la dernière version de [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings)
+(licence CC0), vérifie chaque ligne (en-tête, colonnes, code ECO, coups légaux) puis remplace les fichiers de
+`resources/openings/`. Si un fichier est abîmé, rien n'est modifié. La version téléchargée est notée dans
+`resources/openings/SOURCE.txt`, et les noms d'ouverture des parties sont recalculés au lancement suivant.
+
 ## Crédits
 
 - [Stockfish](https://stockfishchess.org) (GPL v3), téléchargé tel quel depuis les versions officielles.

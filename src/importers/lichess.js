@@ -4,6 +4,7 @@
 import { getDb } from '../db.js';
 import { getJson, politeGet } from '../http.js';
 import { insertGame, makeYielder, upsertPlayer } from '../games.js';
+import { Problems, checkLichessGame, checkLichessUser } from './validate.js';
 
 const OVERLAP_MS = 7 * 24 * 3600 * 1000; // on revérifie la dernière semaine (parties longues terminées depuis)
 const ALLOWED_VARIANTS = new Set(['standard', 'fromPosition']);
@@ -49,7 +50,10 @@ export async function syncLichess(username, { onProgress, signal } = {}) {
   const u = await getJson(`https://lichess.org/api/user/${uname}`, { retries: 3, rateLimitDelayMs: 60000, signal });
   if (u.status === 404) throw new Error(`Le pseudo Lichess « ${username} » n'existe pas.`);
   if (!u.ok) throw new Error(`Lichess ne répond pas (HTTP ${u.status}).`);
-  const player = upsertPlayer('lichess', uname, u.json?.username ?? uname);
+  const problems = new Problems();
+  const badUser = checkLichessUser(u.json);
+  if (badUser) problems.add(badUser);
+  const player = upsertPlayer('lichess', uname, (!badUser && u.json?.username) || uname);
 
   const since = player.sync_cursor ? Math.max(0, player.sync_cursor - OVERLAP_MS) : null;
   const params = new URLSearchParams({
@@ -58,8 +62,8 @@ export async function syncLichess(username, { onProgress, signal } = {}) {
   });
   if (since) params.set('since', String(since));
   const url = `https://lichess.org/api/games/user/${uname}?${params}`;
-  const stats = { added: 0, duplicate: 0, skipped: 0 };
-  const total = u.json?.count?.all ?? null;
+  const stats = { added: 0, duplicate: 0, skipped: 0, invalid: 0 };
+  const total = Number.isFinite(u.json?.count?.all) ? u.json.count.all : null;
   let cursor = player.sync_cursor ?? 0;
   const d = getDb();
   const saveCursor = d.prepare('UPDATE players SET sync_cursor = ? WHERE id = ?');
@@ -78,9 +82,11 @@ export async function syncLichess(username, { onProgress, signal } = {}) {
       const handleLine = (line) => {
         if (!line.trim()) return;
         let g;
-        try { g = JSON.parse(line); } catch { return; }
+        try { g = JSON.parse(line); } catch { problems.add('ligne illisible dans l\'export (ce n\'est pas du JSON)'); stats.invalid++; return; }
         n++;
-        if (!ALLOWED_VARIANTS.has(g.variant) || !g.pgn || g.status === 'started' || g.status === 'created') {
+        const bad = checkLichessGame(g);
+        if (bad) { problems.add(bad); stats.invalid++; return; }
+        if (!ALLOWED_VARIANTS.has(g.variant) || g.status === 'started' || g.status === 'created') {
           stats.skipped++;
         } else {
           const r = insertGame(g.pgn, lichessGameMeta(g, player));
@@ -109,6 +115,8 @@ export async function syncLichess(username, { onProgress, signal } = {}) {
 
   saveCursor.run(cursor || null, player.id);
   d.prepare("UPDATE players SET last_sync_at = datetime('now') WHERE id = ?").run(player.id);
-  report({ message: `Terminé : ${stats.added} nouvelles parties`, stats, finished: true });
+  stats.problems = problems.list();
+  const warn = problems.summary();
+  report({ message: `Terminé : ${stats.added} nouvelles parties${warn ? `. Attention : ${warn}` : ''}`, stats, finished: true });
   return stats;
 }
