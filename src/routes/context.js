@@ -7,7 +7,7 @@ import { syncChessCom } from '../importers/chesscom.js';
 import { syncLichess } from '../importers/lichess.js';
 import { listPlayers } from '../games.js';
 import { CLASSIFICATION_VERSION, METHODS, classificationSignature } from '../analysis/classify.js';
-import { reclassifyAll } from '../analysis/reclassify.js';
+import { reclassifyAll, reclassifyStored } from '../analysis/reclassify.js';
 import { referenceDataset } from '../analysis/reviews.js';
 import { currentParams, fitStyle, writeStyleFile } from '../analysis/fitstyle.js';
 import { backfillOpenings } from '../library.js';
@@ -84,13 +84,20 @@ export function syncTrackedPlayers() {
 // ---------------------------------------------------------------------------- classement des coups
 
 // Méthode de classement (« lichess » ou « chesscom », style chess.com) : enregistrée dans la base, puis toutes les
-// parties déjà analysées sont reclassées à partir des évaluations enregistrées (sans recalcul).
-export function setClassificationMethod(method) {
+// parties déjà analysées sont reclassées à partir des évaluations enregistrées (sans recalcul). gameId : la partie
+// affichée, reclassée tout de suite (l'écran se met à jour sans attendre les autres).
+export function setClassificationMethod(method, gameId = null) {
   if (!METHODS.includes(method)) throw Object.assign(new Error('Méthode inconnue'), { status: 400 });
   const changed = method !== config.classification.method;
   setMeta('classification_method', method);
   overrideConfig({ classification: { method } });
-  if (changed) reclassifyInBackground();
+  if (changed) {
+    if (gameId) {
+      for (const pass of ['quick', 'deep']) reclassifyStored(gameId, pass);
+      refreshGameStats(gameId);
+    }
+    reclassifyInBackground();
+  }
   return { method, reclassify: state.reclassify };
 }
 

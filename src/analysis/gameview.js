@@ -6,8 +6,9 @@ import { getDb } from '../db.js';
 import { getGame, getGameMoves } from '../games.js';
 import { computeOpening, myColorOf } from '../library.js';
 import { normalizeChessFen, playUci, moveToUci, terminalState } from '../chessutil.js';
-import { classifyGame, judgeLichess, LABELS } from './classify.js';
+import { METHOD_LABELS, chesscomAccuracy, classifyGame, currentMethod, judgeLichess, LABELS } from './classify.js';
 import { getReview } from './reviews.js';
+import { playersOf, storedMoves } from './reclassify.js';
 import { explainMove, pvDetails } from './explain.js';
 import { isBookPosition } from './openings.js';
 import { winPct } from './formulas.js';
@@ -123,9 +124,14 @@ export function buildGameView(gameId, { currentGameId = null } = {}) {
   const startEval = firstEval ? toWhite(scoreOf(firstEval), rows[0].color) : null;
 
   const counts = analysis?.counts ? JSON.parse(analysis.counts) : { w: {}, b: {} };
+  // Précision style chess.com (approximation), recalculée à partir des évaluations enregistrées avec les réglages
+  // actuels ; la précision enregistrée (accuracy) est celle de Lichess.
+  const stored = pass ? storedMoves(gameId, pass) : null;
+  const ccAccuracy = stored ? chesscomAccuracy(stored.list, playersOf(g)) : { white: null, black: null };
   const side = (color) => ({
     name: g[`${color}_name`], elo: g[`${color}_elo`],
     accuracy: analysis?.[`accuracy_${color}`] ?? null,
+    accuracyChesscom: ccAccuracy[color],
     estElo: analysis ? calibratedElo(analysis[`accuracy_${color}`], g.time_class, rows.filter((r) => r.color === color[0]).length) : null,
     estEloGeneric: analysis?.[`elo_${color}`] ?? null,
     counts: counts[color === 'white' ? 'w' : 'b'] ?? {},
@@ -150,6 +156,7 @@ export function buildGameView(gameId, { currentGameId = null } = {}) {
     startFen, startWin, startEval, startEvalText: evalText(startEval),
     moves,
     chesscomReview: getReview(gameId),
+    method: currentMethod(), methodLabels: METHOD_LABELS,
     labels: LABELS,
     calibration: calibrationInfo(),
   };

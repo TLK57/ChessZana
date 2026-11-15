@@ -170,9 +170,14 @@ défile. Sur tablette ou téléphone, la page défile, mais les deux joueurs et 
 - **Graphe d'évaluation** : au-dessus de la ligne du milieu, les Blancs mènent ; en dessous, les Noirs. Les moments
   clés sont marqués d'un point de couleur, le trait bleu suit le coup affiché, le survol donne le coup et
   l'évaluation, un clic va au coup.
-- **Résumé de la partie** : précision et nombre de **fautes graves** (erreurs, occasions manquées et gaffes) de
-  chaque joueur. « Détail » déplie les catégories : un clic sur l'une d'elles saute au coup suivant de ce type ;
-  les catégories à zéro tiennent sur une ligne.
+- **Résumé de la partie** : pour chaque joueur, deux **précisions** — **Lichess** (calculée exactement comme
+  Lichess) et **style chess.com** (une approximation, l'info-bulle ⓘ le rappelle : la formule de chess.com n'est pas
+  publique) — et le nombre de **fautes graves** (erreurs, occasions manquées et gaffes). « Détail » déplie les
+  catégories : un clic sur l'une d'elles saute au coup suivant de ce type ; les catégories à zéro tiennent sur une
+  ligne. Le menu **« Classer les coups avec »** choisit la méthode (Lichess ou style chess.com) qui classe les coups
+  dans la feuille de notation, sur l'échiquier et dans le bilan guidé : la partie affichée est reclassée tout de suite,
+  les autres en arrière-plan, sans recalcul. En dessous, **« Saisir le bilan chess.com »** permet de recopier le bilan
+  chess.com de la partie (voir « Ajuster le style chess.com sur vos parties »).
 - **Ouverture** (base libre lichess-org/chess-openings) et lien vers le **coup où l'on sort de la théorie**.
 - **Clavier** : `←` / `→` coup précédent / suivant, `Début` / `Fin` (ou `↑` / `↓`) début / fin de partie.
 

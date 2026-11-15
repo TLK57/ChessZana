@@ -62,7 +62,7 @@ export async function statusRoutes(req, res, { p, body }) {
     return true;
   }
   if (req.method === 'POST' && p === '/api/settings/classification') {
-    send(res, 200, setClassificationMethod(String(body.method)));
+    send(res, 200, setClassificationMethod(String(body.method), Number(body.gameId) || null));
     return true;
   }
   return false;

@@ -231,6 +231,24 @@ export async function renderGame(root, id, startPly = 0) {
   // (sinon ceux des parties ouvertes avant réagiraient encore aux clics).
   const onToggle = (e) => { if (e.target.matches?.('details.more')) S.detailsOpen = e.target.open; };
   root.addEventListener('toggle', onToggle, true);
+  // Méthode de classement choisie dans le résumé : cette partie est reclassée tout de suite, les autres en arrière-plan.
+  const onChange = async (e) => {
+    if (!e.target.matches?.('#methodSel')) return;
+    const method = e.target.value;
+    e.target.disabled = true;
+    try {
+      await api('/api/settings/classification', { method, gameId: id });
+      g = await api(`/api/games/${id}/view`);
+      S.review = null;
+      renderSummary(ctx);
+      render();
+      toast(`Coups classés avec la méthode « ${g.methodLabels[method]} ». Vos autres parties sont reclassées en arrière-plan.`);
+    } catch (err) {
+      toast(`Changement de méthode impossible : ${esc(err.message)}`);
+      renderSummary(ctx);
+    }
+  };
+  root.addEventListener('change', onChange);
   const onClick = async (e) => {
     const t = e.target;
     const mv = t.closest('.mv[data-ply]');
@@ -314,6 +332,7 @@ export async function renderGame(root, id, startPly = 0) {
   return () => {
     root.removeEventListener('toggle', onToggle, true);
     root.removeEventListener('click', onClick);
+    root.removeEventListener('change', onChange);
     window.removeEventListener('keydown', onKey);
     clearInterval(poll);
     stopPlaying();

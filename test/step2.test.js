@@ -82,6 +82,12 @@ test('écran d\'analyse : ouverture, sortie de théorie, pendules, explications,
   assert.ok(Number.isFinite(v.startWin));
   assert.ok(v.white.counts.blunder === undefined || v.white.counts.blunder === 0);
   assert.equal(v.black.counts.blunder, 1);
+  // Deux précisions : Lichess (enregistrée) et style chess.com (recalculée) ; méthode réglée et bilan chess.com.
+  assert.equal(v.method, 'lichess');
+  assert.deepEqual(v.methodLabels, { lichess: 'Lichess', chesscom: 'Style chess.com' });
+  for (const side of [v.white, v.black]) assert.ok(side.accuracyChesscom > 0 && side.accuracyChesscom <= 100, String(side.accuracyChesscom));
+  assert.ok(v.black.accuracyChesscom < v.white.accuracyChesscom, 'la gaffe des Noirs pèse aussi dans le style chess.com');
+  assert.equal(v.chesscomReview, null);
 });
 
 test('mode libre : coup joué depuis une position, classé avec les mêmes règles', async () => {
