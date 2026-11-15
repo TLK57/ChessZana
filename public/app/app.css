@@ -167,9 +167,12 @@ main { padding: 18px 20px 48px; max-width: 1360px; margin: 0 auto; }
 .list-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
 
 /* =====================================================================================================
-   Écran d'analyse : tout tient dans l'écran (1366 × 768) ; seule la feuille de notation défile.
+   Écran d'analyse : tout tient dans la fenêtre ; seule la feuille de notation défile.
+   La page fait exactement la hauteur de la fenêtre : menu (et bandeau éventuel), puis l'écran d'analyse.
    ===================================================================================================== */
-body.game-page main { max-width: none; padding: 10px 16px 10px; height: calc(100dvh - var(--topbar-h)); display: flex; flex-direction: column; overflow: hidden; }
+body.game-page { height: 100dvh; display: flex; flex-direction: column; }
+body.game-page .topbar { flex: none; }
+body.game-page main { flex: 1; min-height: 0; width: 100%; max-width: none; padding: 10px 16px; display: flex; flex-direction: column; overflow: hidden; }
 .game-head { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; min-height: 36px; margin-bottom: 8px; }
 .game-head .back { text-decoration: none; color: var(--graphite); font-weight: 500; }
 .game-head .back:hover { color: var(--pen); }
@@ -180,9 +183,13 @@ body.game-page main { max-width: none; padding: 10px 16px 10px; height: calc(100
 .outcome { font-weight: 600; }
 .outcome.win { color: var(--win); } .outcome.loss { color: var(--loss); }
 
-/* Taille de l'échiquier : la hauteur disponible, sans écraser les colonnes de droite. */
-.game-layout { --bsize: clamp(300px, min(calc(100dvh - var(--topbar-h) - 254px), calc(100vw - 32px - 40px - 268px - 380px - 28px)), 860px);
-  flex: 1; min-height: 0; display: grid; grid-template-columns: auto 268px minmax(380px, 1fr); gap: 14px; }
+/* Taille de l'échiquier : le plus grand carré qui tient dans la place restante.
+   En hauteur : joueur du haut, échiquier, joueur du bas (2 × 28 px), puis le graphe (8 px d'écart + sa hauteur).
+   En largeur : barre d'évaluation (40 px) et les deux colonnes de droite (268 + 380 px, écarts 2 × 14 px).
+   cqh / cqw : centièmes de la hauteur / largeur de .game-layout (déjà sans le menu, l'en-tête ni les marges). */
+.game-layout { --graph-h: clamp(56px, 13cqh, 110px);
+  --bsize: clamp(240px, min(100cqh - 56px - 8px - var(--graph-h), 100cqw - 40px - 268px - 380px - 28px), 860px);
+  container-type: size; flex: 1; min-height: 0; display: grid; grid-template-columns: auto 268px minmax(380px, 1fr); gap: 14px; }
 .board-col { display: flex; flex-direction: column; min-height: 0; }
 .board-row { display: flex; gap: 8px; }
 .board-wrap { width: var(--bsize); height: var(--bsize); flex: 0 0 auto; }
@@ -191,8 +198,9 @@ body.game-page main { max-width: none; padding: 10px 16px 10px; height: calc(100
 .player-line .who { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .player-line .clock { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px; padding: 1px 8px; border-radius: 5px; background: var(--sheet); border: 1px solid var(--rule); }
 
-/* Barre d'évaluation : large, valeur lisible du côté de celui qui mène. */
-.evalbar { width: 32px; flex: 0 0 32px; border-radius: 6px; overflow: hidden; position: relative; background: var(--graph-black); border: 1px solid var(--rule-strong); }
+/* Barre d'évaluation : large, valeur lisible du côté de celui qui mène. Même hauteur que l'échiquier dessiné
+   (---cg-height, donné par chessground : il arrondit la taille du plateau au pixel près). */
+.evalbar { width: 32px; flex: 0 0 32px; align-self: flex-start; height: var(---cg-height, var(--bsize)); border-radius: 6px; overflow: hidden; position: relative; background: var(--graph-black); border: 1px solid var(--rule-strong); }
 .evalbar .white { position: absolute; left: 0; right: 0; bottom: 0; background: var(--graph-white); transition: height .3s ease; }
 .evalbar .mid { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--miss); opacity: .7; z-index: 1; }
 .evalbar .txt { position: absolute; left: 0; right: 0; font-size: 11px; font-weight: 700; text-align: center; z-index: 2; letter-spacing: -.02em; }
@@ -202,7 +210,7 @@ body.game-page main { max-width: none; padding: 10px 16px 10px; height: calc(100
 .evalbar.flipped .txt { transform: rotate(180deg); }
 
 /* Graphe d'évaluation, sous l'échiquier. */
-.graph-wrap { margin: 8px 0 0 40px; flex: 1; min-height: 64px; max-height: 110px; display: flex; }
+.graph-wrap { margin: 8px 0 0 40px; flex: 1; min-height: var(--graph-h); max-height: 110px; display: flex; }
 #graphBox { flex: 1; min-width: 0; display: flex; }
 .graph { position: relative; flex: 1; min-width: 0; }
 .graph svg { width: 100%; height: 100%; display: block; cursor: pointer; border-radius: 6px; }
@@ -314,17 +322,19 @@ details.more > summary::-webkit-details-marker { display: none; }
 .free-moves { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 0; }
 .free-moves .mv { border: 1px solid var(--rule); border-radius: 6px; height: auto; }
 
-/* Écrans plus petits (tablette, petit portable) : la page défile normalement. */
-@media (max-width: 1100px), (max-height: 600px) {
+/* Fenêtre étroite (tablette) ou très basse : la page défile normalement, mais le joueur du haut, l'échiquier et
+   le joueur du bas tiennent toujours ensemble dans la hauteur de la fenêtre (2 × 28 px + 16 px de marge). */
+@media (max-width: 1100px), (max-height: 540px) {
+  body.game-page { height: auto; display: block; }
   body.game-page main { height: auto; overflow: visible; }
-  .game-layout { --bsize: min(calc(100vw - 32px - 40px), 620px); grid-template-columns: auto minmax(0, 1fr); }
+  .game-layout { container-type: normal; --graph-h: 90px; --bsize: min(100vw - 32px - 40px, 100dvh - 72px, 620px); grid-template-columns: auto minmax(0, 1fr); }
   .side-col { grid-column: 1 / -1; }
   .sheet-col { min-height: 300px; max-height: var(--bsize); }
   .detail { overflow: visible; }
   .graph-wrap { height: 90px; flex: none; }
 }
 @media (max-width: 900px) {
-  .game-layout { --bsize: min(calc(100vw - 32px - 40px), 640px); grid-template-columns: minmax(0, 1fr); }
+  .game-layout { --bsize: min(100vw - 32px - 40px, 100dvh - 72px, 640px); grid-template-columns: minmax(0, 1fr); }
   .sheet-col { max-height: 340px; }
 }
 

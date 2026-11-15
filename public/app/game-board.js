@@ -38,6 +38,8 @@ export function createBoard(ctx, onMove) {
     premovable: { enabled: false },
     draggable: { showGhost: true },
     drawable: { enabled: true, visible: true },
+    // Taille réelle du plateau dessiné (---cg-height) : la barre d'évaluation prend exactement la même hauteur.
+    addDimensionsCssVarsTo: ctx.$('.board-row'),
   });
 
   function boardShapes(nd) {
