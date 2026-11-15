@@ -7,7 +7,7 @@ progression : Elo de performance par cadence, précision, erreurs récurrentes, 
 temps et puzzles tirés de vos propres gaffes. Tout reste chez vous ; seuls chess.com, Lichess et les sites de
 téléchargement (Node.js, Stockfish) sont contactés.
 
-![Écran d'analyse d'une partie : échiquier, graphe, coups classés et explication de l'erreur](captures/2-ecran-analyse.png)
+![Écran d'analyse d'une partie : erreur marquée sur l'échiquier (pastille, cases teintées, flèche du meilleur coup), graphe, coups classés et explication en français](captures/2-ecran-analyse.png)
 
 | Mes parties | Progression | Mes erreurs récurrentes |
 |---|---|---|
@@ -142,20 +142,28 @@ Les filtres sont mémorisés.
 
 ### Écran d'analyse
 
-Sur un écran de portable (1366 × 768), tout tient sans faire défiler la page : échiquier, barre d'évaluation,
-feuille de notation, explication du coup et graphe. Seule la feuille de notation défile.
+L'échiquier prend la plus grande taille possible sans jamais dépasser de la fenêtre. Sur un portable (même avec le
+zoom de Windows à 125 ou 150 %) comme sur un grand écran, tout tient sans faire défiler la page : joueurs et pendules,
+échiquier, barre d'évaluation, feuille de notation, explication du coup et graphe. Seule la feuille de notation
+défile. Sur tablette ou téléphone, la page défile, mais les deux joueurs et l'échiquier tiennent toujours ensemble
+à l'écran.
 
 - **Le coup sélectionné** : son classement en grand, comme un **tampon de correction** dans la marge (un « Brillant »
   se voit tout de suite), puis l'explication en une phrase, le meilleur coup et la **suite de Stockfish** à rejouer
   sur l'échiquier (« Rejouer la suite », ou un clic sur un coup de la suite). Les détails techniques (perte de
   chances de gain, précision du coup, évaluation, profondeur de calcul, lignes de Stockfish) sont repliés dans
-  **Détails**. Sur un coup raté, une **flèche verte** montre le meilleur coup sur l'échiquier.
+  **Détails**.
 - **Bilan guidé** : le bouton fait défiler uniquement les **moments clés** de la partie (gaffes, occasions
   manquées, erreurs et coups brillants), un par un, avec leur explication, comme une revue avec un entraîneur.
   `←` / `→` passent d'un moment à l'autre, `Échap` arrête le bilan. Les moments clés sont aussi listés en bas du
   panneau : un clic pour y aller.
 - **Échiquier** orienté de votre côté (bouton ⇅ ou touche `F` pour le retourner) et **barre d'évaluation** large,
   avec la valeur écrite du côté de celui qui mène.
+- **Le coup affiché, sur l'échiquier**, comme sur chess.com : une **pastille** ronde en haut à droite de sa case
+  d'arrivée reprend le symbole et la couleur de son classement (les mêmes que dans la feuille de notation), et ses
+  deux cases sont teintées de cette couleur (vert pour meilleur ou bon, bleu pour très bon, jaune pour imprécision,
+  orange pour erreur, rouge pour gaffe…). Sur une imprécision, une erreur, une occasion manquée ou une gaffe, une
+  **flèche verte** semi-transparente montre le meilleur coup de Stockfish.
 - **Feuille de notation** : chaque coup avec son symbole (`!!` brillant, `!` très bon, `★` meilleur, `✓` excellent /
   bon, livre = théorie, `?!` imprécision, `?` erreur, `✗` occasion manquée, `??` gaffe) et, en discret, le **temps
   passé** sur le coup (calculé à partir des pendules `%clk`).
@@ -172,8 +180,8 @@ feuille de notation, explication du coup et graphe. Seule la feuille de notation
 
 Le bouton ◐ en haut à droite passe de **automatique** (comme le système) à **clair**, puis **sombre**. Le choix est
 mémorisé dans le navigateur. L'interface respecte aussi le réglage « réduire les animations » du système : seules
-les animations qui montrent un changement (coup joué, panneau ouvert, tampon) existent, et elles disparaissent
-alors.
+les animations qui montrent un changement (coup joué, pastille du classement, panneau ouvert, tampon) existent, et
+elles disparaissent alors.
 
 ### Explications en français (par des règles)
 
@@ -223,7 +231,8 @@ Mesuré sur les 246 erreurs, gaffes et occasions manquées des parties analysée
 Jouez n'importe quel coup sur l'échiquier (glisser-déposer ou clic-clic), depuis n'importe quelle position : Stockfish
 l'évalue en direct avec **le même classement** que l'analyse des parties. Un premier avis arrive en moins d'une seconde
 (profondeur 12), puis il est affiné (profondeur 18, quelques secondes). Pendant ce temps, la file d'analyse de fond se
-met en pause toute seule. Le bouton **↩ Revenir à la partie** remet la partie d'origine.
+met en pause toute seule. Une fois évalué, votre coup reçoit sa pastille et sa couleur sur l'échiquier, comme les coups
+de la partie. Le bouton **↩ Revenir à la partie** remet la partie d'origine.
 
 ### Bouton « Demander à Claude »
 
