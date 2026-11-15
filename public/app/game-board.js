@@ -87,7 +87,14 @@ export function createBoard(ctx, onMove) {
     });
     if (!nd.lastMove) cg.set({ lastMove: undefined });
     cg.setAutoShapes(boardShapes(nd));
-    renderBadge(shownClassification(nd), nd.lastMove?.[1]);
+    const cls = shownClassification(nd);
+    renderBadge(cls, nd.lastMove?.[1]);
+    // Cases du dernier coup teintées avec la couleur de son classement (la même variable CSS que la feuille de
+    // notation : --best, --blunder…). Sans classement, elles restent jaunes.
+    const wrap = ctx.$('.board-wrap');
+    wrap.classList.toggle('classified', Boolean(cls && nd.lastMove));
+    if (cls) wrap.style.setProperty('--cls-color', `var(--${cls})`);
+    else wrap.style.removeProperty('--cls-color');
   }
 
   return { update, destroy: () => cg.destroy() };

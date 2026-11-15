@@ -341,6 +341,9 @@ details.more > summary::-webkit-details-marker { display: none; }
 /* ---------- Échiquier « ardoise » ---------- */
 .cg-wrap cg-board { background-color: var(--sq-light); background-image: var(--board-img); background-size: 100% 100%; border-radius: 4px; }
 .cg-wrap cg-board square.last-move { background-color: var(--sq-last); }
+/* Écran d'analyse : cases du dernier coup à la couleur de son classement (vert meilleur / bon, bleu très bon,
+   jaune imprécision, orange erreur, rouge gaffe…), mêlée de transparence pour garder les pièces lisibles. */
+.board-wrap.classified cg-board square.last-move { background-color: color-mix(in srgb, var(--cls-color) 50%, transparent); }
 .cg-wrap coords { font-size: 10px; font-weight: 600; }
 .cg-wrap coords coord { color: var(--coord) !important; opacity: .85; }
 
