@@ -87,7 +87,8 @@ export async function renderRepertoire(root) {
       </tbody></table>` : '<div class="empty">Aucune ligne à problème pour le moment.</div>';
   }
 
-  root.addEventListener('click', (e) => {
+  // root est la zone principale, commune à tous les écrans : l'écouteur est retiré quand on quitte l'écran.
+  const onClick = (e) => {
     const row = e.target.closest('.node[data-key]');
     if (row) {
       const key = row.dataset.key;
@@ -103,8 +104,9 @@ export async function renderRepertoire(root) {
       const l = data.problemLines[Number(line.dataset.line)];
       showGames(l.ids, `Sortie de théorie : ${l.path.map((s, k) => (k % 2 === 0 ? `${k / 2 + 1}. ${fig(s)}` : fig(s))).join(' ')}`);
     }
-  });
+  };
+  root.addEventListener('click', onClick);
 
   await load();
-  return null;
+  return () => root.removeEventListener('click', onClick);
 }

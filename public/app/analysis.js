@@ -225,8 +225,11 @@ export async function renderGame(root, id, startPly = 0) {
   }
 
   // ------------------------------------------------------------------ événements
-  root.addEventListener('toggle', (e) => { if (e.target.matches?.('details.more')) S.detailsOpen = e.target.open; }, true);
-  root.addEventListener('click', async (e) => {
+  // root est la zone principale, commune à tous les écrans : ces écouteurs sont retirés à la fermeture de la partie
+  // (sinon ceux des parties ouvertes avant réagiraient encore aux clics).
+  const onToggle = (e) => { if (e.target.matches?.('details.more')) S.detailsOpen = e.target.open; };
+  root.addEventListener('toggle', onToggle, true);
+  const onClick = async (e) => {
     const t = e.target;
     const mv = t.closest('.mv[data-ply]');
     if (mv) { go(Number(mv.dataset.ply)); return; }
@@ -251,7 +254,8 @@ export async function renderGame(root, id, startPly = 0) {
     if (t.closest('#prio')) { await api(`/api/games/${id}/prioritize`, {}); g.requested = true; render(); toast("Analyse demandée : la partie passe en tête de la file. Le résultat s'affichera automatiquement."); return; }
     if (t.closest('#reverify')) { await api(`/api/games/${id}/prioritize`, { reverify: true }); g.requested = true; render(); toast('Vérification demandée : seuls les coups douteux seront recalculés.'); return; }
     if (t.closest('#unprio')) { await api(`/api/games/${id}/unrequest`, {}); g.requested = false; render(); toast("Demande d'analyse annulée."); return; }
-  });
+  };
+  root.addEventListener('click', onClick);
 
   function currentDetailMove() {
     if (S.free) return node().item?.result ?? null;
@@ -305,6 +309,8 @@ export async function renderGame(root, id, startPly = 0) {
   window.__partie = { state: S, go, jumpTo, startGuided, stepGuided, endGuided, play: (orig, dest) => free.onBoardMove(orig, dest), claudeText: () => claudeText(ctx), get data() { return g; } };
 
   return () => {
+    root.removeEventListener('toggle', onToggle, true);
+    root.removeEventListener('click', onClick);
     window.removeEventListener('keydown', onKey);
     clearInterval(poll);
     stopPlaying();

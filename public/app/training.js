@@ -117,7 +117,8 @@ export async function renderTraining(root) {
       </tbody></table>` : '<div class="empty">Aucun puzzle pour le moment.</div>';
   }
 
-  root.addEventListener('click', async (e) => {
+  // root est la zone principale, commune à tous les écrans : l'écouteur est retiré quand on quitte l'écran.
+  const onClick = async (e) => {
     const dot = e.target.closest('.dot[data-i]');
     if (dot) { index = Number(dot.dataset.i); show(); return; }
     if (e.target.closest('#next')) { index = Math.min(session.puzzles.length - 1, index + 1); show(); return; }
@@ -129,7 +130,8 @@ export async function renderTraining(root) {
       return;
     }
     if (e.target.closest('#newSession')) { session = await api('/api/training/session/new', {}); index = 0; show(); }
-  });
+  };
+  root.addEventListener('click', onClick);
 
   session = await api('/api/training/session');
   // Reprendre au premier puzzle pas encore fait aujourd'hui.
@@ -137,5 +139,5 @@ export async function renderTraining(root) {
   show();
   loadStats();
   window.__training = { get session() { return session; }, get index() { return index; }, submit: (uci) => submit(uci, null, undefined) };
-  return () => { cg.destroy(); delete window.__training; };
+  return () => { root.removeEventListener('click', onClick); cg.destroy(); delete window.__training; };
 }
