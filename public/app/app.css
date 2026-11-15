@@ -344,6 +344,16 @@ details.more > summary::-webkit-details-marker { display: none; }
 .cg-wrap coords { font-size: 10px; font-weight: 600; }
 .cg-wrap coords coord { color: var(--coord) !important; opacity: .85; }
 
+/* Pastille du classement du coup affiché, en haut à droite de sa case d'arrivée (comme chess.com).
+   C'est le même .sym.c-… que dans la feuille de notation ; seules sa taille (proportionnelle à la case, cqw) et sa
+   position changent. Elle déborde un peu de la case, au-dessus des pièces mais sous une pièce qu'on fait glisser. */
+.cls-layer { position: absolute; inset: 0; pointer-events: none; z-index: 9; }
+.cls-square { position: absolute; width: 12.5%; height: 12.5%; container-type: size; }
+.cls-square .sym { position: absolute; top: -10%; right: -10%; width: 40%; height: 40%; min-width: 0; padding: 0;
+  font-size: 19cqw; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); animation: badge-in .18s ease-out .12s both; }
+.cls-square .sym svg { width: 58%; height: 58%; }
+@keyframes badge-in { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
 /* ---------- Divers ---------- */
 .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--rule); border-top-color: var(--pen); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; }
 @keyframes spin { to { transform: rotate(360deg); } }

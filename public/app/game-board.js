@@ -1,7 +1,7 @@
 // Écran d'une partie — échiquier (chessground), barre d'évaluation et joueurs avec leur pendule.
 import { Chessground } from '/vendor/chessground.js';
 import { Chess } from '/vendor/chess.js';
-import { esc, BAD, fmtClock } from './util.js';
+import { esc, BAD, fmtClock, symbol } from './util.js';
 
 export function destsOf(chess) {
   const d = new Map();
@@ -27,8 +27,16 @@ export function askPromotion(color) {
   });
 }
 
+/** Classement du coup affiché : coup de la partie, ou coup joué en mode libre une fois analysé. */
+const shownClassification = (nd) => nd.move?.classification ?? nd.item?.result?.classification ?? null;
+
 /** Échiquier de l'écran : onMove(orig, dest) est appelé quand l'utilisateur joue un coup. */
 export function createBoard(ctx, onMove) {
+  // Couche de la pastille du classement, posée sur le plateau (chessground la remet en place s'il redessine tout).
+  const badgeLayer = document.createElement('div');
+  badgeLayer.className = 'cls-layer';
+  let badgeKey = '';
+
   const cg = Chessground(ctx.$('#board'), {
     coordinates: true,
     orientation: ctx.S.orientation,
@@ -40,7 +48,23 @@ export function createBoard(ctx, onMove) {
     drawable: { enabled: true, visible: true },
     // Taille réelle du plateau dessiné (---cg-height) : la barre d'évaluation prend exactement la même hauteur.
     addDimensionsCssVarsTo: ctx.$('.board-row'),
+    events: { insert: (elements) => elements.container.appendChild(badgeLayer) },
   });
+
+  // Pastille ronde en haut à droite de la case d'arrivée (comme chess.com) : même symbole et même couleur que
+  // dans la feuille de notation (symbol() et les classes .c-… de util.js / app.css). Rien sur la position de départ.
+  function renderBadge(cls, dest) {
+    const white = ctx.S.orientation === 'white';
+    const key = cls && dest ? `${cls}|${dest}|${white}` : '';
+    if (key === badgeKey) return;
+    badgeKey = key;
+    if (!key) { badgeLayer.innerHTML = ''; return; }
+    const file = dest.charCodeAt(0) - 97;
+    const rank = Number(dest[1]) - 1;
+    const col = white ? file : 7 - file;
+    const row = white ? 7 - rank : rank;
+    badgeLayer.innerHTML = `<div class="cls-square" style="left:${col * 12.5}%;top:${row * 12.5}%">${symbol(cls, false)}</div>`;
+  }
 
   function boardShapes(nd) {
     const shapes = [];
@@ -63,6 +87,7 @@ export function createBoard(ctx, onMove) {
     });
     if (!nd.lastMove) cg.set({ lastMove: undefined });
     cg.setAutoShapes(boardShapes(nd));
+    renderBadge(shownClassification(nd), nd.lastMove?.[1]);
   }
 
   return { update, destroy: () => cg.destroy() };
