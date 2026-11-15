@@ -147,9 +147,11 @@ test('cache par FEN : une position déjà évaluée n\'est jamais recalculée', 
 });
 
 test('passe profonde optimisée : budget de nœuds, cache par nœuds, positions déjà jouées non recalculées', async () => {
-  // Les Blancs ont une dame de plus : la partie est jouée, l'analyse rapide suffit pour ces coups.
-  const fen = '4k3/8/8/8/8/8/3QK3/8 w - - 0 1';
-  const moves = buildMoves(fen, ['Qd4', 'Ke7', 'Qe4+']);
+  // Les Blancs ont deux dames de plus : chaque coup laisse un mat forcé (4 coups au plus), la partie est jouée et
+  // l'analyse rapide suffit. (Avec une seule dame, 3. De4+ valait tantôt « mat », tantôt +8,89 selon que la passe
+  // rapide le classait ou non parmi ses 2 meilleures lignes : 96,4 %, juste sous le seuil de 97 %, d'où un test instable.)
+  const fen = '4k3/8/8/8/8/8/2QQK3/8 w - - 0 1';
+  const moves = buildMoves(fen, ['Qd4', 'Ke7', 'Qde4+']);
   const opts = { evaluator: ev, depth: 22, nodes: 50000, allowCloud: false, standardStart: false, finalFen: moves.at(-1).finalFen };
   const light = await analyzeMoveList(moves, { ...opts, skipDecided: true });
   assert.equal(light.lightPositions, 3, 'positions gagnées d\'avance gardées de la passe rapide');
