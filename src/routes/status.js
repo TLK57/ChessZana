@@ -4,7 +4,9 @@ import { getDb } from '../db.js';
 import { lichessStatus } from '../engine/lichess.js';
 import { listPlayers } from '../games.js';
 import { listBackups } from '../backup.js';
-import { evaluator, getQueue, liveActive, setClassificationMethod, state } from './context.js';
+import { evaluator, getQueue, liveActive, setClassificationMethod, startStyleFit, state } from './context.js';
+import { referenceDataset } from '../analysis/reviews.js';
+import { currentParams, lastFit } from '../analysis/fitstyle.js';
 import { send } from './respond.js';
 
 function counts() {
@@ -48,6 +50,15 @@ export async function statusRoutes(req, res, { p, body }) {
       lastBackup: listBackups()[0] ?? null,
       classification: { method: config.classification.method, reclassify: state.reclassify },
     });
+    return true;
+  }
+  if (req.method === 'GET' && p === '/api/chesscom-style') {
+    const { games, missing } = referenceDataset(getDb());
+    send(res, 200, { references: games.length, notAnalysed: missing.length, params: currentParams(), lastFit: lastFit(), fit: state.fit });
+    return true;
+  }
+  if (req.method === 'POST' && p === '/api/chesscom-style/fit') {
+    send(res, 200, startStyleFit());
     return true;
   }
   if (req.method === 'POST' && p === '/api/settings/classification') {

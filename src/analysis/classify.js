@@ -146,15 +146,16 @@ function featuresOf(fen, uci) {
  *   evalBest / evalPlayed / evalSecond : { cp, mate, wdl } du point de vue du joueur qui joue le coup.
  *   Le sacrifice éventuel est mesuré sur la position (échange statique), sans moteur.
  * players : { w: { elo }, b: { elo } } (Elo de la partie, pour les points attendus).
+ * opts.curve : une autre courbe que celle des réglages (ajustement sur les bilans chess.com).
  * Renvoie pour chaque coup { classification, loss, xpBest, xpPlayed, xpSecond, gain }.
  */
-export function classifyChesscom(moves, players = {}) {
+export function classifyChesscom(moves, players = {}, { curve = config.classification.curve } = {}) {
   const c = config.classification;
   const th = thresholdsFor('chesscom');
   const ms = c.miss;
   return moves.map((m, i) => {
     const elo = players[m.color]?.elo ?? null;
-    const xp = (s) => chesscomXp(s, elo);
+    const xp = (s) => chesscomXp(s, elo, curve);
     const xpBest = xp(m.evalBest);
     const xpPlayed = xp(m.evalPlayed);
     const xpSecond = m.evalSecond ? xp(m.evalSecond) : null;

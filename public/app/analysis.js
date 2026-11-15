@@ -4,6 +4,7 @@
 //   game-detail.js : panneau d'explication du coup (classement, explication, lignes, profondeur) ;
 //   game-free.js   : mode libre (coups joués sur l'échiquier, variantes de Stockfish) ;
 //   game-prompt.js : question prête à copier pour « Demander à Claude » ;
+//   game-review.js : saisie du bilan chess.com de la partie ;
 //   review.js      : bilan guidé (les moments clés, un par un).
 import { api, esc, fig, fmtDate, toast, TIME_CLASS, LABELS, SYMBOLS, moveNo, fmtTimeControl } from './util.js';
 import { createGraph } from './graph.js';
@@ -12,6 +13,7 @@ import { renderMoves, renderOpening, renderSummary } from './game-moves.js';
 import { depthSummary, renderDetail } from './game-detail.js';
 import { createFreeMode, renderFree } from './game-free.js';
 import { askClaude, claudeText } from './game-prompt.js';
+import { openReviewForm } from './game-review.js';
 import { startReview, stepReview, currentMoment, reviewProgress, KEY_CLASSES } from './review.js';
 
 const RESULT_TXT = { '1-0': 'Victoire des Blancs', '0-1': 'Victoire des Noirs', '1/2-1/2': 'Nulle' };
@@ -251,6 +253,7 @@ export async function renderGame(root, id, startPly = 0) {
     if (t.closest('#rvNext')) { stepGuided(1); return; }
     if (t.closest('#rvPrev')) { stepGuided(-1); return; }
     if (t.closest('#sumToggle')) { S.sumOpen = !S.sumOpen; renderSummary(ctx); return; }
+    if (t.closest('#ccReview')) { openReviewForm(ctx, (review) => { g.chesscomReview = review; renderSummary(ctx); }); return; }
     if (t.closest('#prio')) { await api(`/api/games/${id}/prioritize`, {}); g.requested = true; render(); toast("Analyse demandée : la partie passe en tête de la file. Le résultat s'affichera automatiquement."); return; }
     if (t.closest('#reverify')) { await api(`/api/games/${id}/prioritize`, { reverify: true }); g.requested = true; render(); toast('Vérification demandée : seuls les coups douteux seront recalculés.'); return; }
     if (t.closest('#unprio')) { await api(`/api/games/${id}/unrequest`, {}); g.requested = false; render(); toast("Demande d'analyse annulée."); return; }

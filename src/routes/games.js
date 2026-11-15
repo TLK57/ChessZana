@@ -3,6 +3,7 @@ import { getDb } from '../db.js';
 import { LABELS } from '../analysis/classify.js';
 import { listMyGames, openingFamilies } from '../library.js';
 import { buildGameView, liveMove } from '../analysis/gameview.js';
+import { saveReview } from '../analysis/reviews.js';
 import { getQueue, liveEvaluator, markLiveActive, state } from './context.js';
 import { send } from './respond.js';
 
@@ -73,6 +74,8 @@ export async function gameRoutes(req, res, { p, url, body }) {
   if (req.method === 'POST') {
     const pm = /^\/api\/games\/(\d+)\/prioritize$/.exec(p);
     if (pm) { queue.prioritize(Number(pm[1]), { reverify: !!body.reverify }); send(res, 200, { ok: true }); return true; }
+    const rv = /^\/api\/games\/(\d+)\/chesscom-review$/.exec(p);
+    if (rv) { send(res, 200, { review: saveReview(Number(rv[1]), body) }); return true; }
     const um = /^\/api\/games\/(\d+)\/unrequest$/.exec(p);
     if (um) { queue.unrequest(Number(um[1])); send(res, 200, { ok: true }); return true; }
     if (p === '/api/live/move') {

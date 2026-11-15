@@ -58,8 +58,14 @@ export function renderSummary(ctx) {
       <div class="counters">${some.map((k) => `<button class="counter" data-color="${c}" data-cls="${k}" title="Aller au coup suivant de ce type">${symbol(k, false)}${LABELS[k]} <span class="n">${p.counts[k]}</span></button>`).join('')}</div>
       ${none.length ? `<div class="zero-line">Aucun : ${none.map((k) => LABELS[k].toLowerCase()).join(', ')}.</div>` : ''}</div>`;
   };
+  // Bilan chess.com saisi à la main (pour comparer et ajuster le style chess.com).
+  const rv = g.chesscomReview;
+  const rvAcc = (side) => (rv?.[side]?.accuracy != null ? `${fmtPct(rv[side].accuracy)} %` : '–');
+  const foot = `<div class="sum-foot"><span class="small muted">${rv ? `Bilan chess.com saisi : précision ${rvAcc('white')} et ${rvAcc('black')}` : 'Pas de bilan chess.com saisi.'}</span>
+    <button class="ghost mini" id="ccReview" title="Recopier les chiffres du bilan chess.com de cette partie">${rv ? 'Modifier le bilan chess.com' : 'Saisir le bilan chess.com'}</button></div>`;
   $('#summary').innerHTML = row('white', true) + row('black', false)
-    + (S.sumOpen ? `<div class="sum-more" id="sumMore">${more('white')}${more('black')}<p class="small muted" style="margin:0">${esc(depthSummary(g))}</p></div>` : '');
+    + (S.sumOpen ? `<div class="sum-more" id="sumMore">${more('white')}${more('black')}<p class="small muted" style="margin:0">${esc(depthSummary(g))}</p></div>` : '')
+    + foot;
 }
 
 export function renderOpening(ctx) {

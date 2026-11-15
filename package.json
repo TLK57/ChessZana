@@ -17,7 +17,8 @@
     "install-engine": "node --disable-warning=ExperimentalWarning src/engine/install.js",
     "update-openings": "node --disable-warning=ExperimentalWarning scripts/update-openings.js",
     "fit-curves": "node --disable-warning=ExperimentalWarning scripts/fit-curves.js",
-    "compare-chesscom": "node --disable-warning=ExperimentalWarning scripts/compare-chesscom.js"
+    "compare-chesscom": "node --disable-warning=ExperimentalWarning scripts/compare-chesscom.js",
+    "ajuster-chesscom": "node --disable-warning=ExperimentalWarning scripts/ajuster-chesscom.js"
   },
   "dependencies": {
     "chess.js": "^1.4.0",

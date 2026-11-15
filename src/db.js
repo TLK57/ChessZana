@@ -6,7 +6,7 @@ import { config } from './config.js';
 import { backupDatabase } from './backup.js';
 
 // Version du schéma : quand une base plus ancienne est ouverte, elle est sauvegardée avant d'être migrée.
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS meta (
@@ -160,6 +160,15 @@ CREATE TABLE IF NOT EXISTS analysis_queue (
   PRIMARY KEY (game_id, pass)
 );
 CREATE INDEX IF NOT EXISTS idx_queue_status ON analysis_queue(status, pass);
+
+-- Bilans chess.com (« Game Review ») saisis à la main : précision et nombre de coups par catégorie, pour chaque
+-- couleur. Ils servent à ajuster le style chess.com (npm run ajuster-chesscom). Rien n'est lu sur chess.com.
+CREATE TABLE IF NOT EXISTS chesscom_reviews (
+  game_id    INTEGER PRIMARY KEY REFERENCES games(id) ON DELETE CASCADE,
+  white      TEXT NOT NULL,                 -- JSON { accuracy, brilliant, great, best, excellent, good, book, … }
+  black      TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
 
 let db = null;

@@ -11,8 +11,8 @@ import { estimateElo } from './formulas.js';
 const parse = (j) => (j ? JSON.parse(j) : null);
 
 /** Coups d'une analyse enregistrée, prêts pour le classement (null si des évaluations manquent). */
-export function storedMoves(gameId, pass) {
-  const rows = getDb().prepare(`SELECT ma.ply, ma.classification, ma.loss, ma.eval_best, ma.eval_played, ma.eval_second, ma.win_second,
+export function storedMoves(gameId, pass, db = getDb()) {
+  const rows = db.prepare(`SELECT ma.ply, ma.classification, ma.loss, ma.eval_best, ma.eval_played, ma.eval_second, ma.win_second,
         ma.best_uci, ma.verified, ma.depth, ma.source, gm.uci, gm.san, gm.color, gm.fen_before
       FROM move_analysis ma JOIN game_moves gm ON gm.game_id = ma.game_id AND gm.ply = ma.ply
       WHERE ma.game_id = ? AND ma.pass = ? ORDER BY ma.ply`).all(gameId, pass);

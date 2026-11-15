@@ -65,6 +65,13 @@ export async function renderImport(root) {
       catégories Meilleur, Excellent, Bon, Très bon, Brillant et Occasion manquée.</label>
     <p class="small muted" id="methodTxt">Changer de méthode reclasse toutes les parties déjà analysées, sans les recalculer (quelques secondes).
       La précision affichée partout reste celle de Lichess.</p>
+    <h3 style="margin-top:14px">Ajuster le style chess.com sur vos parties</h3>
+    <p class="small">Sur l'écran d'une partie analysée, bouton « Saisir le bilan chess.com », recopiez les chiffres du
+      bilan de chess.com (précision, nombre de coups par catégorie). L'ajustement cherche ensuite la courbe et la formule de
+      précision qui s'en rapprochent le plus. Comptez une dizaine de parties au moins, variées (victoires et défaites,
+      adversaires de niveaux différents). Rien n'est récupéré sur chess.com.</p>
+    <p class="small muted" id="fitTxt"></p>
+    <div class="actions"><button id="fitBtn">Ajuster sur mes bilans chess.com</button></div>
   </section>
   <section class="card" style="margin-top:16px">
     <h2>Sauvegardes de la base</h2>
@@ -75,7 +82,23 @@ export async function renderImport(root) {
   </section>`;
   const $ = (id) => root.querySelector(`#${id}`);
 
+  const fr1 = (x) => (x == null ? '–' : x.toFixed(1).replace('.', ','));
+  async function refreshFit() {
+    const f = await api('/api/chesscom-style');
+    const F = f.fit ?? {};
+    const L = f.lastFit;
+    const base = `${f.references} bilan(s) chess.com saisi(s) sur des parties analysées${f.notAnalysed ? ` (${f.notAnalysed} sur des parties pas encore analysées, ignorés)` : ''}.`;
+    if (F.running) $('fitTxt').innerHTML = `<span class="spinner"></span> Ajustement en cours sur ${F.games} partie(s) : ${Math.floor((100 * F.done) / (F.total || 1))} %…`;
+    else if (F.error) $('fitTxt').textContent = `${base} Ajustement impossible : ${F.error}`;
+    else if (L) {
+      $('fitTxt').textContent = `${base} Dernier ajustement le ${L.date.split('-').reverse().join('/')}, sur ${L.parties} partie(s) : écart moyen de précision `
+        + `${fr1(L.ecartMoyenAvant.precision)} → ${fr1(L.ecartMoyenApres.precision)} points, fautes graves ${fr1(L.ecartMoyenAvant.fautesGraves)} → ${fr1(L.ecartMoyenApres.fautesGraves)} coups par joueur.`;
+    } else $('fitTxt').textContent = `${base} Pas encore d'ajustement : réglages de départ.`;
+    $('fitBtn').disabled = !!F.running || !f.references;
+  }
+
   async function refresh() {
+    refreshFit().catch(() => {});
     let s;
     try { s = await api('/api/status'); } catch { return; }
     $('contactWarn').hidden = s.contactSet;
@@ -160,6 +183,7 @@ export async function renderImport(root) {
   drop.addEventListener('drop', (e) => { e.preventDefault(); readFiles(e.dataTransfer.files); });
   $('pauseBtn').onclick = async () => { const s = await api('/api/status'); await api(s.queue.paused ? '/api/queue/resume' : '/api/queue/pause', {}); refresh(); };
   $('retryBtn').onclick = () => api('/api/queue/retry', {}).then(refresh);
+  $('fitBtn').onclick = () => api('/api/chesscom-style/fit', {}).then(refresh).catch((e) => alert(e.message));
   $('histBtn').onclick = () => api('/api/queue/history', { action: $('histBtn').dataset.action }).then(refresh).catch((e) => alert(e.message));
   root.querySelectorAll('input[name=method]').forEach((r) => {
     r.onchange = () => api('/api/settings/classification', { method: r.value }).then(refresh).catch((e) => alert(e.message));

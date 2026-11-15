@@ -562,43 +562,57 @@ CAPS2, qui n'est pas publiée ; la précision Lichess est documentée ci-dessus.
 même échelle : un 85 % ici n'est ni meilleur ni moins bon qu'un 80 % sur chess.com (sur la partie 620, par exemple :
 87,9 % et 83,0 % ici, 79,0 % et 75,7 % chez chess.com). Pour suivre vos progrès, comparez nos précisions entre elles.
 
-### Comparer avec chess.com
+### Ajuster le style chess.com sur vos parties
 
-`npm run compare-chesscom` compare, catégorie par catégorie, notre classement des coups aux bilans « Game Review »
-de chess.com recopiés dans `test/fixtures/chesscom-reviews.json`. Rien n'est modifié : les évaluations enregistrées
-sont reclassées en mémoire, une fois avec les courbes par niveau (réglage par défaut), une fois avec la formule
-Lichess. L'indicateur principal est le nombre de **fautes sérieuses** (erreurs + occasions manquées + gaffes) de
-chaque joueur ; l'objectif est d'être à ±1 de chess.com sur la plupart des parties.
+chess.com ne publie ni sa courbe de points attendus ni sa formule de précision. Le style chess.com s'en approche en
+ajustant ses réglages sur **vos propres bilans chess.com**, que vous recopiez à la main. Rien n'est récupéré
+automatiquement sur chess.com (ni téléchargement, ni lecture de leur site) : seulement les chiffres que vous saisissez.
 
-**Ajouter une partie** :
+**1. Saisir des bilans.** Pour une partie importée et analysée (de préférence en profondeur), ouvrez son « Game
+Review » sur chess.com, puis dans l'application, sur l'écran de la partie, cliquez sur **« Saisir le bilan
+chess.com »** (sous la précision des joueurs). Recopiez la précision de chaque joueur et le nombre de coups de chaque
+catégorie (Brillant, Très bon, Meilleur, Excellent, Bon, Théorie, Imprécision, Erreur, Occasion manquée, Gaffe).
+Mettez 0 quand chess.com affiche 0 ; une case vide n'est pas comparée. Les bilans sont enregistrés dans votre base
+(table `chesscom_reviews`) ; ceux du fichier `test/fixtures/chesscom-reviews.json` (la partie 620) y sont repris une
+fois au démarrage.
 
-1. Analysez-la dans l'application (de préférence avec « Revérifier les coups douteux »).
-2. Sur chess.com, ouvrez son « Game Review » et notez pour chaque joueur les nombres affichés (Brillant, Excellent,
-   Meilleur, Erreur, Occasion manquée, Gaffe…), la précision et le « Game Rating ».
-3. Ajoutez un bloc dans la liste `games` du fichier, sur le modèle de la partie 620 :
+**Combien de parties ?** Au moins **10**, idéalement **20 ou plus**, et variées : victoires et défaites, adversaires
+plus faibles et plus forts que vous (la courbe dépend de l'Elo : sans écarts de niveau, la part qui dépend du
+classement ne peut pas être ajustée). Avec moins de parties, les réglages trouvés restent fragiles.
 
-        {
-          "url": "https://www.chess.com/game/live/123456789",
-          "note": "Moi – adversaire, rapide",
-          "timeClass": "rapid",
-          "white": { "brilliant": 0, "excellent": 4, "best": 18, "mistake": 2, "miss": 1, "blunder": 0, "accuracy": 81.2, "gameRating": 1400 },
-          "black": { "brilliant": 0, "excellent": 3, "best": 15, "mistake": 3, "miss": 2, "blunder": 1, "accuracy": 70.4, "gameRating": 1150 }
-        }
+**2. Lancer l'ajustement.** Deux façons, qui font exactement la même chose :
 
-   Les noms possibles sont `brilliant`, `great` (très bon), `best`, `excellent`, `good` (bon), `book` (théorie),
-   `inaccuracy`, `mistake`, `miss`, `blunder` ; une catégorie absente n'est pas comparée. La partie est retrouvée dans
-   votre base par le numéro à la fin de `url`. Le champ `fixture` (facultatif) désigne un fichier de
-   `test/fixtures/games/` à utiliser quand la partie n'est pas dans la base.
+- dans l'application, écran **Importer**, carte « Classement des coups », bouton **« Ajuster sur mes bilans
+  chess.com »** (quelques secondes ; l'application reste utilisable pendant le calcul) ;
+- ou dans un terminal, dans le dossier de l'application : `npm run ajuster-chesscom` (ajoute `-- --essai` pour voir
+  le résultat sans rien enregistrer, `-- --detail` pour les chiffres de chaque joueur).
 
-Premier résultat, partie 620 (profondeur 22 sur les coups douteux) — fautes sérieuses :
+L'ajustement cherche les 5 réglages (`k1500`, `eloSlope` pour la courbe ; `decay`, `scale`, `harmonicWeight` pour la
+précision) qui rapprochent le plus nos chiffres de ceux de chess.com : d'abord une grille de 525 courbes, avec pour
+chacune les meilleurs réglages de précision (méthode du simplexe), puis un affinage des 5 réglages ensemble. Un
+coup d'écart sur une imprécision, une erreur, une occasion manquée ou une gaffe compte autant que 3 points d'écart de
+précision ; les autres catégories comptent moins, la théorie pas du tout (elle ne dépend pas des réglages). Un léger
+rappel vers les valeurs de départ évite des réglages absurdes avec peu de parties. Les seuils (publiés par chess.com)
+ne changent pas.
 
-| | chess.com | Courbes par niveau | Formule Lichess |
-|---|---|---|---|
-| Blancs (1082) | 6 | 2 | 3 |
-| Noirs (1106) | 6 | 2 | 5 |
+Il affiche l'**écart moyen par joueur avant et après** : précision (en points), fautes graves et chaque catégorie
+(en nombre de coups). Exemple réel, partie 620 seule (une seule partie : à ne pas généraliser) :
 
-Sur cette partie, la formule Lichess est plus proche de chess.com que les courbes par niveau. Une seule partie ne
-suffit pas à trancher : ajoutez-en d'autres avant d'en tirer des conclusions.
+| Écart moyen par joueur | avant | après |
+|---|---|---|
+| Précision (points) | 15,7 | 0,7 |
+| Fautes graves (coups) | 4,5 | 2,5 |
+
+**3. Résultat.** Les réglages trouvés sont enregistrés dans `data/style-chesscom.json` (avec la date, le nombre de
+parties et les écarts avant / après) ; ils remplacent ceux de `config.json`. Après le bouton, ils s'appliquent tout de
+suite ; après la commande, au prochain lancement. Si le style chess.com classe les coups, les parties analysées sont
+alors reclassées (sans Stockfish). Pour revenir aux valeurs de départ, supprimez ce fichier.
+
+**Comparer sans ajuster** : `npm run compare-chesscom` montre, partie par partie et catégorie par catégorie, les
+chiffres de chess.com, du style chess.com et de la méthode Lichess, et compte les joueurs dont les fautes graves sont
+à ±1 de chess.com. Un fichier de bilans au format `{ "games": [{ "url": "…", "white": { "accuracy": 81.2, "mistake": 2, … },
+"black": { … } }] }` peut être ajouté : `npm run compare-chesscom -- bilans.json` (même option `-- --fichier bilans.json`
+pour l'ajustement) ; la partie est retrouvée dans votre base par le numéro à la fin de `url`.
 
 ### 5.4 Elo de performance et Elo estimé
 
@@ -682,7 +696,8 @@ centre = (p + z²/2n) / (1 + z²/n) et demi-largeur = z·√(p(1−p)/n + z²/4n
 ## 6. Où sont mes données ?
 
 Tout est dans le dossier `data/` :
-- `data/echecs.sqlite` : la base (joueurs, parties avec PGN et pendules `%clk`, positions, évaluations, classements, file d'analyse) ;
+- `data/echecs.sqlite` : la base (joueurs, parties avec PGN et pendules `%clk`, positions, évaluations, classements, file d'analyse, bilans chess.com saisis) ;
+- `data/style-chesscom.json` (après un ajustement) : les réglages du style chess.com ajustés sur vos bilans ;
 - `data/engine/` : Stockfish ;
 - `runtime/` (s'il existe) : la version portable de Node.js téléchargée par le lanceur.
 
@@ -724,7 +739,9 @@ statistiques, bilan pour Claude), les filtres de la liste, l'ouverture et la sor
 fourchette, clouage, enfilade, découverte, mat raté ou subi, finale gâchée), le mode libre, et aussi : mat en 2 trouvé, mat en 2 raté (gaffe), dame laissée en prise (gaffe), coups de théorie,
 finale à 6 pièces (doit venir de la table), partie de plus de 150 coups, partie abandonnée au 3e coup, cache par FEN,
 repli sur Stockfish quand Lichess est injoignable, import chess.com (429, incrémental, parties terminées seulement),
-import Lichess et PGN (pendules, doublons, parties en cours refusées).
+import Lichess et PGN (pendules, doublons, parties en cours refusées), les règles exactes de Lichess (seuils en « winning
+chances », règles des mats, précision avec bonus et plafond), le style chess.com (courbe selon l'Elo, seuils publiés,
+occasion manquée, précision réglable), la saisie des bilans chess.com et l'ajustement (qui retrouve des réglages connus).
 
 `npm run smoke` lance un test de fumée : l'application démarre dans un dossier temporaire, installe Stockfish si
 besoin et analyse une courte partie. Les lanceurs ont aussi un mode test (`Lancer-Windows.bat --test`,

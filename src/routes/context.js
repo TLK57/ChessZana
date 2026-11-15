@@ -1,5 +1,5 @@
 // État partagé du serveur (moteurs, file d'analyse, imports, réglages) et tâches de fond.
-import { config, overrideConfig } from '../config.js';
+import { config, overrideConfig, readStyleFile } from '../config.js';
 import { getMeta, setMeta } from '../db.js';
 import { getEvaluator, getLiveEvaluator } from '../engine/evaluator.js';
 import { AnalysisQueue } from '../queue.js';
@@ -8,6 +8,8 @@ import { syncLichess } from '../importers/lichess.js';
 import { listPlayers } from '../games.js';
 import { CLASSIFICATION_VERSION, METHODS, classificationSignature } from '../analysis/classify.js';
 import { reclassifyAll } from '../analysis/reclassify.js';
+import { referenceDataset } from '../analysis/reviews.js';
+import { currentParams, fitStyle, writeStyleFile } from '../analysis/fitstyle.js';
 import { backfillOpenings } from '../library.js';
 import { ensureStatsSchema, refreshAllStats, refreshGameStats, resetStatsSchema } from '../stats/compute.js';
 import { backupDatabase, integrityCheck, restoreBackup } from '../backup.js';
@@ -19,6 +21,7 @@ export const state = {
   engine: { status: 'starting', message: 'Démarrage…', pct: 0, name: null },
   imports: [], // historique des imports (le plus récent en premier)
   reclassify: { running: false },
+  fit: { running: false }, // ajustement du style chess.com sur les bilans saisis
 };
 
 export const evaluator = getEvaluator();
@@ -136,6 +139,27 @@ function reclassifyInBackground(onDone = null) {
     else { onDone?.(); if (!again) setMeta('classification_signature', classificationSignature()); }
     if (again) reclassifyInBackground();
   }).catch((e) => { state.reclassify = { running: false, error: e.message }; });
+}
+
+// ---------------------------------------------------------------------------- style chess.com
+
+// Ajuste le style chess.com sur les bilans saisis (en tâche de fond), enregistre data/style-chesscom.json, applique
+// les nouveaux réglages et, si le style chess.com classe les coups, reclasse les parties.
+export function startStyleFit() {
+  if (state.fit.running) return state.fit;
+  const { games, missing } = referenceDataset(getDb());
+  if (!games.length) throw Object.assign(new Error('Aucun bilan chess.com saisi sur une partie analysée.'), { status: 400 });
+  state.fit = { running: true, done: 0, total: 1, games: games.length, missing: missing.length };
+  const start = currentParams();
+  fitStyle(games, { start, onProgress: (done, total) => Object.assign(state.fit, { done, total }) })
+    .then((result) => {
+      writeStyleFile(result, { games: games.length });
+      overrideConfig(readStyleFile(config.dataDir));
+      if (getMeta('classification_signature', '') !== classificationSignature()) reclassifyInBackground();
+      state.fit = { running: false, games: games.length, missing: missing.length, before: result.before.mae, after: result.after.mae, start, params: result.params };
+    })
+    .catch((e) => { state.fit = { running: false, error: e.message }; });
+  return state.fit;
 }
 
 // ---------------------------------------------------------------------------- statistiques et sauvegardes

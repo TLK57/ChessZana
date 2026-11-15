@@ -7,6 +7,7 @@ import { getGame, getGameMoves } from '../games.js';
 import { computeOpening, myColorOf } from '../library.js';
 import { normalizeChessFen, playUci, moveToUci, terminalState } from '../chessutil.js';
 import { classifyGame, judgeLichess, LABELS } from './classify.js';
+import { getReview } from './reviews.js';
 import { explainMove, pvDetails } from './explain.js';
 import { isBookPosition } from './openings.js';
 import { winPct } from './formulas.js';
@@ -148,6 +149,7 @@ export function buildGameView(gameId, { currentGameId = null } = {}) {
     requested: getDb().prepare("SELECT COUNT(*) AS n FROM analysis_queue WHERE game_id = ? AND priority > 0 AND status IN ('pending', 'running')").get(gameId).n > 0,
     startFen, startWin, startEval, startEvalText: evalText(startEval),
     moves,
+    chesscomReview: getReview(gameId),
     labels: LABELS,
     calibration: calibrationInfo(),
   };

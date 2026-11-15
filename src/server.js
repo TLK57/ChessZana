@@ -15,6 +15,7 @@ import {
 } from './routes/context.js';
 import { readJson, send } from './routes/respond.js';
 import { serveStatic } from './routes/static.js';
+import { importReviewsFile } from './analysis/reviews.js';
 import { statusRoutes } from './routes/status.js';
 import { gameRoutes } from './routes/games.js';
 import { statsRoutes } from './routes/stats.js';
@@ -90,6 +91,10 @@ async function main() {
   }
   setupQueue();
   ensureStatsSchema();
+  try {
+    const n = importReviewsFile();
+    if (n) console.log(`  Bilans chess.com repris du fichier : ${n}`);
+  } catch (e) { console.error(`  Bilans chess.com : ${e.message}`); }
   if (!state.integrity.ok || !reclassifyIfRulesChanged()) refreshStatsInBackground();
   console.log(`\n  Analyse d'échecs — prête sur ${url}\n  (laissez cette fenêtre ouverte ; Ctrl+C pour quitter)\n`);
   if (config.openBrowser) openBrowser(url);
