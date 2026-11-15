@@ -754,7 +754,8 @@ besoin et analyse une courte partie. Les lanceurs ont aussi un mode test (`Lance
 
 À chaque envoi sur GitHub, l'intégration continue (`.github/workflows/ci.yml`) refait tout cela sur Windows, macOS
 (Apple Silicon et Intel) et Linux : installation des dépendances, tests unitaires, installation de Stockfish, tests
-d'intégration, puis les lanceurs eux-mêmes avec téléchargement de Node.js portable.
+d'intégration, puis les lanceurs eux-mêmes avec téléchargement de Node.js portable. Si un test échoue, son nom et son
+message apparaissent en annotation sur la page de la CI (`test/reporter-github.js`), lisibles sans compte GitHub.
 
 ## 8. Problèmes fréquents
 
