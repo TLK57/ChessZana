@@ -30,7 +30,7 @@ export async function renderRepertoire(root) {
           <div class="tree"><div class="node head"><span>Coup</span><span class="num">Parties</span><span class="num">Score</span><span class="num">Précision</span></div><div id="tree"></div></div>
           <p class="note"><span class="tag book">théorie</span> coup de la base d'ouvertures, <span class="tag exit">sortie</span> premier coup hors théorie. Cliquez sur un coup pour voir les parties.</p></div>
       </div>
-      <div class="card" id="gamesBox" style="position:sticky;top:70px"><h2>Parties</h2><div class="empty">Cliquez sur un coup de l'arbre ou sur une ligne à travailler.</div></div>
+      <div class="card" id="gamesBox" style="position:sticky;top:16px"><h2>Parties</h2><div class="empty">Cliquez sur un coup de l'arbre ou sur une ligne à travailler.</div></div>
     </div>`;
   const $ = (id) => root.querySelector(`#${id}`);
   let filters = filterBar($('filters'), (f) => { filters = f; load(); }, { color: false });

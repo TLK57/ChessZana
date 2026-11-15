@@ -98,7 +98,8 @@ main:focus { outline: none; }
 .skip:focus { top: 8px; }
 
 /* ---------- Barre du haut ---------- */
-.topbar { display: flex; align-items: center; gap: 14px; height: var(--topbar-h); padding: 0 16px; background: var(--sheet); border-bottom: 1px solid var(--rule); position: sticky; top: 0; z-index: 20; }
+/* Pas collée en haut de l'écran : elle défile avec la page et ne recouvre jamais le contenu (échiquier compris). */
+.topbar { display: flex; align-items: center; gap: 14px; height: var(--topbar-h); padding: 0 16px; background: var(--sheet); border-bottom: 1px solid var(--rule); position: relative; z-index: 20; }
 .brand { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .brand-mark { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 50%; background: var(--pen); color: var(--on-pen); font-size: 17px; }
 .topbar nav { display: flex; gap: 2px; height: 100%; }
