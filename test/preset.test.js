@@ -1,5 +1,5 @@
 // Elo de performance par cadence, Elo estimé « indicatif » avec fourchette, seuils Lichess (5 / 10 / 15 %)
-// et reclassement des parties déjà analysées sans recalcul (évaluations en cache).
+// et reclassement des parties déjà analysées sans recalcul quand on change de méthode (évaluations enregistrées).
 import { useRecordedEngine } from './_unit.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -7,8 +7,8 @@ import { overrideConfig, config } from '../src/config.js';
 import { openDb, getDb } from '../src/db.js';
 import { Evaluator } from '../src/engine/evaluator.js';
 import { analyzeGame } from '../src/analysis/analyze.js';
-import { reclassifyAll } from '../src/analysis/reclassify.js';
-import { LICHESS_THRESHOLDS, lossCategory, thresholdsFor } from '../src/analysis/classify.js';
+import { reclassifyAll, storedMoves } from '../src/analysis/reclassify.js';
+import { LICHESS_THRESHOLDS, judgeLichess, lossCategory, thresholdsFor } from '../src/analysis/classify.js';
 import { importPgnText } from '../src/importers/pgnfile.js';
 import { upsertPlayer } from '../src/games.js';
 import { myResults } from '../src/library.js';
@@ -19,7 +19,7 @@ openDb();
 overrideConfig({ lichess: { cloudEval: false, tablebase: false }, engine: { quickDepth: 10 } });
 const ev = new Evaluator();
 test.before(async () => { await ev.init(); });
-test.after(async () => { await ev.close(); overrideConfig({ classification: { preset: 'chesscom' } }); });
+test.after(async () => { await ev.close(); overrideConfig({ classification: { method: 'lichess' } }); });
 
 test('Elo de performance : adversaires + 400 × (V − D) / N, par cadence, avec fourchette', () => {
   const g = (time_class, result, my_color, white_elo, black_elo) => ({ time_class, result, my_color, white_elo, black_elo });
@@ -48,46 +48,48 @@ test('Elo estimé (indicatif) : moyenne par cadence et fourchette de la moyenne'
 });
 
 test('seuils Lichess : imprécision dès 5 %, erreur dès 10 %, gaffe dès 15 %, quel que soit l\'Elo', () => {
-  overrideConfig({ classification: { preset: 'lichess' } });
-  assert.deepEqual(thresholdsFor(900), LICHESS_THRESHOLDS);
-  const th = thresholdsFor(2000);
+  overrideConfig({ classification: { method: 'lichess' } });
+  assert.deepEqual(thresholdsFor(), LICHESS_THRESHOLDS);
+  const th = thresholdsFor();
   assert.equal(lossCategory(4.9, th), 'good');
   assert.equal(lossCategory(5, th), 'inaccuracy');
   assert.equal(lossCategory(10, th), 'mistake');
   assert.equal(lossCategory(14.9, th), 'mistake');
   assert.equal(lossCategory(15, th), 'blunder');
-  overrideConfig({ classification: { preset: 'chesscom' } });
-  assert.equal(lossCategory(15, thresholdsFor(2000)), 'mistake', 'inspiré de chess.com : gaffe dès 20 %');
-  assert.equal(lossCategory(20, thresholdsFor(2000)), 'blunder');
+  overrideConfig({ classification: { method: 'chesscom' } });
+  assert.equal(lossCategory(15, thresholdsFor()), 'mistake', 'style chess.com : gaffe dès 20 %');
+  assert.equal(lossCategory(20, thresholdsFor()), 'blunder');
+  overrideConfig({ classification: { method: 'lichess' } });
 });
 
-test('changement de seuils : toutes les analyses sont reclassées sans recalcul, puis retour à l\'identique', async () => {
+test('changement de méthode : toutes les analyses sont reclassées sans recalcul, puis retour à l\'identique', async () => {
   upsertPlayer('pgn', 'Moi', 'Moi');
   // Piège de Blackburne-Shilling : des fautes de toutes tailles.
   const pgn = '[White "Moi"]\n[Black "Adv"]\n[Result "0-1"]\n[TimeControl "300"]\n\n1. e4 e5 2. Nf3 Nc6 3. Bc4 Nd4 4. Nxe5 Qg5 5. Nxf7 Qxg2 6. Rf1 Qxe4+ 7. Be2 Nf3# 0-1';
   const id = (await importPgnText(pgn)).ids[0];
+  overrideConfig({ classification: { method: 'lichess' } });
   const original = await analyzeGame(id, 'quick', { evaluator: ev });
   const searches = ev.stats.stockfish;
-  const lossBased = new Set(['excellent', 'good', 'inaccuracy', 'mistake', 'blunder']);
-  const classes = () => getDb().prepare("SELECT ply, classification, loss FROM move_analysis WHERE game_id = ? AND pass = 'quick' ORDER BY ply").all(id);
+  const classes = () => getDb().prepare("SELECT ply, classification, loss, accuracy FROM move_analysis WHERE game_id = ? AND pass = 'quick' ORDER BY ply").all(id);
+  const gameAcc = () => getDb().prepare("SELECT accuracy_white, accuracy_black FROM game_analysis WHERE game_id = ? AND pass = 'quick'").get(id);
+  const accBefore = { ...gameAcc() };
+  // Méthode Lichess à l'analyse : classement et précision donnés par judgeLichess sur les évaluations enregistrées.
+  const lichess = judgeLichess(storedMoves(id, 'quick').list);
+  assert.deepEqual(original.moves.map((m) => m.classification), lichess.moves.map((m) => m.classification));
+  assert.ok(Math.abs(accBefore.accuracy_white - lichess.accuracy.white) < 1e-9);
 
-  overrideConfig({ classification: { preset: 'lichess' } });
+  overrideConfig({ classification: { method: 'chesscom' } });
   const r = await reclassifyAll();
   assert.equal(r.failed.length, 0, JSON.stringify(r.failed));
   assert.equal(ev.stats.stockfish, searches, 'aucune recherche Stockfish pour reclasser');
   const after = classes();
-  let changed = 0;
-  for (const [i, m] of original.moves.entries()) {
-    if (!lossBased.has(m.classification)) continue;
-    const want = lossCategory(m.loss, LICHESS_THRESHOLDS);
-    if (lossBased.has(after[i].classification)) assert.equal(after[i].classification, want, `coup ${m.ply} (perte ${m.loss.toFixed(1)} %)`);
-    if (lossCategory(m.loss, config.classification.thresholds) !== want) changed++;
-  }
-  if (changed) assert.ok(after.some((m, i) => m.classification !== original.moves[i].classification), 'au moins un coup change de catégorie');
+  assert.ok(after.some((m, i) => m.classification !== original.moves[i].classification), 'au moins un coup change de catégorie');
+  assert.deepEqual({ ...gameAcc() }, accBefore, 'la précision enregistrée reste celle de Lichess');
 
-  overrideConfig({ classification: { preset: 'chesscom' } });
+  overrideConfig({ classification: { method: 'lichess' } });
   await reclassifyAll();
-  assert.deepEqual(classes().map((m) => m.classification), original.moves.map((m) => m.classification), 'retour aux seuils d\'origine : classement identique');
+  assert.deepEqual(classes().map((m) => m.classification), original.moves.map((m) => m.classification), 'retour à la méthode d\'origine : classement identique');
+  assert.deepEqual(classes().map((m) => m.accuracy), original.moves.map((m) => m.accuracy));
 });
 
 test('mes résultats pour l\'Elo de performance : toutes mes parties terminées, analysées ou non', async () => {

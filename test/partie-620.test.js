@@ -4,11 +4,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { openDb } from '../src/db.js';
 import { reclassifyStored } from '../src/analysis/reclassify.js';
+import { overrideConfig } from '../src/config.js';
 import { classOf, loadPartie620, ply } from './_partie620.js';
 
 openDb();
 let id;
-test.before(async () => { id = await loadPartie620(); reclassifyStored(id, 'deep'); });
+// Ces tests vérifient le style chess.com (la méthode Lichess est testée dans lichess.test.js).
+test.before(async () => { overrideConfig({ classification: { method: 'chesscom' } }); id = await loadPartie620(); reclassifyStored(id, 'deep'); });
+test.after(() => overrideConfig({ classification: { method: 'lichess' } }));
 
 test('seuils comme chess.com : 20.Qe3 (perte ≈ 11 %) devient une erreur', () => {
   assert.equal(classOf(id, '20.'), 'mistake');

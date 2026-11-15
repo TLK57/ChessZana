@@ -4,7 +4,7 @@ import { getDb } from '../db.js';
 import { lichessStatus } from '../engine/lichess.js';
 import { listPlayers } from '../games.js';
 import { listBackups } from '../backup.js';
-import { evaluator, getQueue, liveActive, setClassificationPreset, state } from './context.js';
+import { evaluator, getQueue, liveActive, setClassificationMethod, state } from './context.js';
 import { send } from './respond.js';
 
 function counts() {
@@ -46,12 +46,12 @@ export async function statusRoutes(req, res, { p, body }) {
       contactSet: !!String(config.contact || '').trim(),
       integrity: state.integrity,
       lastBackup: listBackups()[0] ?? null,
-      classification: { preset: config.classification.preset, reclassify: state.reclassify },
+      classification: { method: config.classification.method, reclassify: state.reclassify },
     });
     return true;
   }
   if (req.method === 'POST' && p === '/api/settings/classification') {
-    send(res, 200, setClassificationPreset(String(body.preset)));
+    send(res, 200, setClassificationMethod(String(body.method)));
     return true;
   }
   return false;

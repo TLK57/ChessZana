@@ -37,7 +37,7 @@ export function bilanText(n = 25, filters = {}) {
   const oppAvg = series.filter((g) => g.oppElo).reduce((a, g) => a + g.oppElo, 0) / Math.max(1, series.filter((g) => g.oppElo).length);
   const { win, draw, loss } = db.results;
   const L = [];
-  L.push(`Bonjour ! Voici le bilan de mes dernières parties d'échecs, analysées par mon logiciel (Stockfish 19, classement des coups ${db.classificationPreset === 'lichess' ? 'avec les seuils Lichess : imprécision dès 5 %, erreur dès 10 %, gaffe dès 15 % de chances de gain perdues' : 'inspiré de chess.com'}).`);
+  L.push(`Bonjour ! Voici le bilan de mes dernières parties d'échecs, analysées par mon logiciel (Stockfish 19, classement des coups ${db.classificationMethod === 'chesscom' ? 'de style chess.com' : 'comme Lichess : imprécision dès 5 %, erreur dès 10 %, gaffe dès 15 % de chances de gain perdues'}).`);
   L.push('');
   L.push(`== Vue d'ensemble : ${db.count} parties, du ${first.playedAt?.slice(0, 10)} au ${lastG.playedAt?.slice(0, 10)} ==`);
   L.push(`Résultats : ${win} victoires, ${draw} nulles, ${loss} défaites (score ${pct((win + draw / 2) / db.count, 0)}, ${ci(db.score)}, n = ${db.count} parties${small(db.count)}).`);

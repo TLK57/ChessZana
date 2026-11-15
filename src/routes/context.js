@@ -6,7 +6,7 @@ import { AnalysisQueue } from '../queue.js';
 import { syncChessCom } from '../importers/chesscom.js';
 import { syncLichess } from '../importers/lichess.js';
 import { listPlayers } from '../games.js';
-import { CLASSIFICATION_VERSION, PRESETS } from '../analysis/classify.js';
+import { CLASSIFICATION_VERSION, METHODS } from '../analysis/classify.js';
 import { reclassifyAll } from '../analysis/reclassify.js';
 import { backfillOpenings } from '../library.js';
 import { ensureStatsSchema, refreshAllStats, refreshGameStats, resetStatsSchema } from '../stats/compute.js';
@@ -80,22 +80,23 @@ export function syncTrackedPlayers() {
 
 // ---------------------------------------------------------------------------- classement des coups
 
-// Réglage du classement (« inspiré de chess.com » ou « seuils Lichess ») : enregistré dans la base, puis
-// toutes les parties déjà analysées sont reclassées à partir des pertes enregistrées (sans recalcul).
-export function setClassificationPreset(preset) {
-  if (!PRESETS.includes(preset)) throw Object.assign(new Error('Réglage inconnu'), { status: 400 });
-  const changed = preset !== config.classification.preset;
-  setMeta('classification_preset', preset);
-  overrideConfig({ classification: { preset } });
+// Méthode de classement (« lichess » ou « chesscom », style chess.com) : enregistrée dans la base, puis toutes les
+// parties déjà analysées sont reclassées à partir des évaluations enregistrées (sans recalcul).
+export function setClassificationMethod(method) {
+  if (!METHODS.includes(method)) throw Object.assign(new Error('Méthode inconnue'), { status: 400 });
+  const changed = method !== config.classification.method;
+  setMeta('classification_method', method);
+  overrideConfig({ classification: { method } });
   if (changed) reclassifyInBackground();
-  return { preset, reclassify: state.reclassify };
+  return { method, reclassify: state.reclassify };
 }
 
-// Le réglage choisi dans l'application (enregistré dans la base) l'emporte sur config.json.
-export function loadClassificationPreset() {
+// La méthode choisie dans l'application (enregistrée dans la base) l'emporte sur config.json.
+// (L'ancien réglage « classification_preset » n'est plus lu : la méthode Lichess exacte est la nouvelle valeur par défaut.)
+export function loadClassificationMethod() {
   try {
-    const p = getMeta('classification_preset', config.classification.preset);
-    if (PRESETS.includes(p)) overrideConfig({ classification: { preset: p } });
+    const m = getMeta('classification_method', config.classification.method);
+    if (METHODS.includes(m)) overrideConfig({ classification: { method: m } });
   } catch { /* base illisible : réglage par défaut */ }
 }
 
@@ -114,14 +115,14 @@ export function reclassifyIfRulesChanged() {
 
 function reclassifyInBackground(onDone = null) {
   if (state.reclassify.running) { state.reclassify.again = true; return; }
-  state.reclassify = { running: true, done: 0, total: 0, preset: config.classification.preset };
+  state.reclassify = { running: true, done: 0, total: 0, method: config.classification.method };
   reclassifyAll({
     onProgress: (done, total) => Object.assign(state.reclassify, { done, total }),
     onGame: (gameId) => refreshGameStats(gameId),
     skip: (gameId) => queue?.current?.gameId === gameId, // analysée en ce moment : déjà avec les nouveaux seuils
   }).then((r) => {
     const again = state.reclassify.again;
-    state.reclassify = { running: false, done: r.total, total: r.total, failed: r.failed.length, preset: config.classification.preset };
+    state.reclassify = { running: false, done: r.total, total: r.total, failed: r.failed.length, method: config.classification.method };
     if (r.failed.length) console.error(`  Reclassement : ${r.failed.length} analyse(s) à relancer (${r.failed[0].error})`);
     else onDone?.();
     if (again) reclassifyInBackground();
@@ -146,7 +147,7 @@ export async function restore(name) {
   resetStatsSchema();
   ensureStatsSchema();
   state.integrity = integrityCheck();
-  loadClassificationPreset();
+  loadClassificationMethod();
   setupQueue();
   if (state.engine.status === 'ready' && state.integrity.ok) queue.start();
   refreshStatsInBackground();

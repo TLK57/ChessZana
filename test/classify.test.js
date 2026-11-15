@@ -1,7 +1,7 @@
 import './_setup.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyMoves, scoreFromWin, WINNING } from '../src/analysis/classify.js';
+import { classifyChesscom, scoreFromWin, WINNING } from '../src/analysis/classify.js';
 import { pieceSacrifice, staticExchange } from '../src/analysis/patterns.js';
 import { winPct } from '../src/analysis/formulas.js';
 import { START_FEN } from '../src/chessutil.js';
@@ -13,10 +13,10 @@ const move = (o = {}) => ({
   color: 'w', uci: 'e2e4', san: 'e4', fenBefore: START_FEN, book: false, bestUci: o.best ? 'e2e4' : 'd2d4',
   evalBest: sc(o.wb ?? 60), evalPlayed: sc(o.wp ?? o.wb ?? 60), evalSecond: o.ws != null ? sc(o.ws) : null, ...o.extra,
 });
-const cls = (o, players = { w: { elo: 1800 } }) => classifyMoves([move(o)], players)[0].classification;
+const cls = (o, players = { w: { elo: 1800 } }) => classifyChesscom([move(o)], players)[0].classification;
 // Coup adverse précédent (les Noirs), vu de leur côté : évaluation du meilleur coup et du coup joué.
 const prevBlack = (theirBest, theirPlayed) => ({ color: 'b', uci: 'e7e5', san: 'e5', book: true, evalBest: sc(theirBest), evalPlayed: sc(theirPlayed) });
-const afterPrev = (prev, o) => classifyMoves([prev, move(o)], { w: { elo: 1500 } })[1];
+const afterPrev = (prev, o) => classifyChesscom([prev, move(o)], { w: { elo: 1500 } })[1];
 
 test('seuils de perte 2 / 5 / 10 / 20 %', () => {
   assert.equal(cls({ wb: 60, wp: 58.5 }), 'excellent');
@@ -39,7 +39,7 @@ test("très bon : une simple reprise n'est pas comptée", () => {
   const fen = 'rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2';
   const prev = { color: 'b', uci: 'f6d5', san: 'Nxd5', book: true, evalBest: sc(50), evalPlayed: sc(50) };
   const recapture = { ...move({ wb: 70, best: true, ws: 30 }), uci: 'e4d5', san: 'exd5', bestUci: 'e4d5', fenBefore: fen };
-  assert.equal(classifyMoves([prev, recapture], {})[1].classification, 'best');
+  assert.equal(classifyChesscom([prev, recapture], {})[1].classification, 'best');
 });
 
 test(`occasion manquée : l'erreur adverse n'est pas punie (seuil gagnant ${WINNING} %)`, () => {
@@ -98,7 +98,7 @@ const greek = (o) => ({
   color: 'w', uci: 'd3h7', san: 'Bxh7+', fenBefore: GREEK, book: false, bestUci: o.best === false ? 'f3g5' : 'd3h7',
   evalBest: sc(o.wb), evalPlayed: sc(o.wp ?? o.wb), evalSecond: sc(o.ws ?? 55),
 });
-const one = (m, elo = 1800) => classifyMoves([m], { w: { elo } })[0].classification;
+const one = (m, elo = 1800) => classifyChesscom([m], { w: { elo } })[0].classification;
 
 test('brillant : bon sacrifice, meilleur coup ou presque, position pas mauvaise, pas déjà complètement gagnant', () => {
   assert.equal(one(greek({ wb: 75 })), 'brilliant');

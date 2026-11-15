@@ -6,10 +6,10 @@ import { getDb } from '../db.js';
 import { getGame, getGameMoves } from '../games.js';
 import { computeOpening, myColorOf } from '../library.js';
 import { normalizeChessFen, playUci, moveToUci, terminalState } from '../chessutil.js';
-import { classifyMoves, LABELS } from './classify.js';
+import { classifyGame, judgeLichess, LABELS } from './classify.js';
 import { explainMove, pvDetails } from './explain.js';
 import { isBookPosition } from './openings.js';
-import { moveAccuracy, winPct } from './formulas.js';
+import { winPct } from './formulas.js';
 import { calibratedElo, calibrationInfo } from '../stats/calibration.js';
 
 const BAD = new Set(['inaccuracy', 'mistake', 'blunder', 'miss']);
@@ -187,8 +187,10 @@ export async function liveMove(evaluator, body) {
     color, uci, san: mv.san, fenBefore: fen, book, bestUci: best?.move ?? null,
     evalBest: scoreOf(best), evalPlayed: scoreOf(played), evalSecond: second ? scoreOf(second) : null,
   };
-  const judged = classifyMoves(prevMove ? [prevMove, current] : [current], { [color]: { elo: Number(body.elo) || null }, timeClass: body.timeClass ?? null }).at(-1);
+  const pair = prevMove ? [prevMove, current] : [current];
+  const judged = classifyGame(pair, { [color]: { elo: Number(body.elo) || null }, timeClass: body.timeClass ?? null }).at(-1);
   const { classification, loss } = judged;
+  const accuracy = judgeLichess(pair).moves.at(-1).accuracy;
   const evalPlayed = scoreOf(played);
   let explanation = null;
   if (BAD.has(classification)) {
@@ -205,7 +207,7 @@ export async function liveMove(evaluator, body) {
   const evalAfter = toWhite(evalPlayed, color);
   return {
     san: mv.san, uci, color, fenBefore: fen, fenAfter: after.fen(),
-    classification, label: LABELS[classification], loss, accuracy: moveAccuracy(Math.max(0, winBest - winPlayed)),
+    classification, label: LABELS[classification], loss, accuracy,
     winBest, winPlayed, winWhiteAfter: whiteAfter, scoreBest: scoreOf(best), scorePlayed: evalPlayed,
     evalAfter, evalAfterText: term === 'checkmate' ? '#' : evalText(evalAfter),
     bestUci: best?.move ?? null, bestSan: best ? (pvDetails(fen, [best.move])[0]?.san ?? null) : null,

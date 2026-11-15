@@ -44,14 +44,14 @@ export const DEFAULTS = {
     pauseAfterErrorSec: 120,
   },
   classification: {
-    // chesscom = seuils inspirés de chess.com (ci-dessous) ; lichess = seuils Lichess 5 / 10 / 15 %.
-    // Se change aussi dans l'application (écran « Importer »).
-    preset: 'chesscom',
-    // Mode « inspiré de chess.com » : chances de gain selon le niveau et la cadence (resources/expected-points.json).
+    // Méthode de classement des coups : lichess = règles exactes de Lichess ; chesscom = style chess.com (réglages
+    // ci-dessous). Se change aussi dans l'application, qui retient le choix.
+    method: 'lichess',
+    // Style chess.com : chances de gain selon le niveau et la cadence (resources/expected-points.json).
     // false = formule Lichess, la même pour tous les niveaux.
     levelCurves: true,
     bestMaxLoss: 0.1,
-    // Seuils de perte (points de chances de gain) : < 2 excellent, < 5 bon, < 10 imprécision, < 20 erreur, sinon gaffe.
+    // Style chess.com. Seuils de perte (points de chances de gain) : < 2 excellent, < 5 bon, < 10 imprécision, < 20 erreur, sinon gaffe.
     // Les mêmes pour tous les niveaux : le niveau du joueur compte seulement dans le calcul des chances de gain.
     thresholds: { excellent: 2, good: 5, inaccuracy: 10, mistake: 20 },
     // Brillant : bon sacrifice de pièce (matériel net donné selon l'échange statique, en points).
@@ -62,7 +62,8 @@ export const DEFAULTS = {
     lowElo: { below: 1400, brilliant: { maxLoss: 5, minAfter: 40, maxAlternative: 95 }, great: { maxLoss: 2, minGap: 10 } },
   },
   accuracy: {
-    uncertaintyBonus: 0,
+    // Précision Lichess : +1 à la précision de chaque coup imparfait (« bonus d'incertitude » de Lichess).
+    uncertaintyBonus: 1,
   },
   elo: {
     minMoves: 8,

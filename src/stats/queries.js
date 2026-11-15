@@ -71,7 +71,7 @@ export function dashboard(f = {}) {
     performance: performanceByTimeClass(myResults(f)),
     // Indicateur secondaire : Elo estimé d'après la précision (indicatif), par cadence, avec sa fourchette.
     estimated: estimatedEloByTimeClass(games.map((g) => ({ timeClass: g.time_class, estElo: g.est_elo }))),
-    classificationPreset: config.classification.preset,
+    classificationMethod: config.classification.method,
     calibration: calibrationInfo(),
     series: games.map((g) => ({
       gameId: g.game_id, playedAt: g.played_at, timeClass: g.time_class, color: g.my_color, outcome: g.outcome,

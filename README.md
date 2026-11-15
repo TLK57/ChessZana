@@ -2,7 +2,7 @@
 
 Analysez vos parties d'échecs **sur votre propre ordinateur**, gratuitement et sans créer de compte. L'application
 récupère vos parties chess.com et Lichess (ou un fichier PGN), les fait analyser par **Stockfish 19**, classe chaque
-coup (classement inspiré de chess.com, ou seuils Lichess au choix), **explique vos erreurs en français** et suit votre
+coup (règles exactes de Lichess, ou style chess.com au choix), **explique vos erreurs en français** et suit votre
 progression : Elo de performance par cadence, précision, erreurs récurrentes, répertoire d'ouvertures, gestion du
 temps et puzzles tirés de vos propres gaffes. Tout reste chez vous ; seuls chess.com, Lichess et les sites de
 téléchargement (Node.js, Stockfish) sont contactés.
@@ -330,13 +330,13 @@ Après une modification, fermez et relancez l'application.
 | `lichess.timeoutMs` | `6000` | Délai d'attente d'une réponse Lichess |
 | `lichess.pauseAfterRateLimitSec` | `60` | Pause de la source Lichess après un « trop de requêtes » (429) |
 | `lichess.pauseAfterErrorSec` | `120` | Pause de la source Lichess après une panne |
-| `classification.preset` | `"chesscom"` | `"chesscom"` (inspiré de chess.com) ou `"lichess"` (seuils 5 / 10 / 15 %) ; se change aussi dans l'application, qui retient le choix |
+| `classification.method` | `"lichess"` | Méthode de classement : `"lichess"` (règles exactes de Lichess) ou `"chesscom"` (style chess.com) ; se change aussi dans l'application, qui retient le choix |
 | `classification.levelCurves` | `true` | Points espérés selon le niveau et la cadence (voir « Chances de gain selon le niveau ») ; `false` = formule Lichess |
 | `classification.thresholds` | `2 / 5 / 10 / 20` | Seuils de perte (voir ci-dessous), les mêmes pour tous les niveaux |
 | `classification.brilliant` | `2 / 2 / 45 / 90` | Brillant : sacrifice minimal (points), perte maximale, points espérés minimaux après le coup, meilleure autre possibilité maximale |
 | `classification.great` | `1 / 15` | Très bon : perte maximale, écart minimal pour « seul bon coup » (et `ignoreRecaptures`) |
 | `classification.lowElo` | sous 1400 : `5 / 40 / 95`, `2 / 10` | Valeurs plus généreuses pour les joueurs de moins de 1400 Elo |
-| `accuracy.uncertaintyBonus` | `0` | Lichess ajoute +1 à la précision de chaque coup imparfait ; mettez `1` pour l'imiter |
+| `accuracy.uncertaintyBonus` | `1` | Lichess ajoute +1 à la précision de chaque coup imparfait (« bonus d'incertitude ») ; `0` pour s'en passer |
 | `elo.minMoves` | `8` | Nombre minimum de coups hors théorie pour estimer un Elo |
 | `elo.table` | voir §5.4 | Table précision → Elo (générique, avant calibrage) |
 | `elo.calibrate` | `true` | Recentre l'Elo estimé sur votre niveau réel (voir §5.4) |
@@ -352,25 +352,67 @@ Chaque évaluation est convertie en **chances de gain** (formule Lichess), du po
 
     Gain% = 50 + 50 × (2 / (1 + e^(−0,00368208 × cp)) − 1)
 
-- Un **mat en N** vaut 100 % (pour celui qui mate) ou 0 % (pour celui qui est maté). Les mats ne passent jamais
-  dans la formule en centipions.
-- Une position des **tables de finales** vaut 100 % (gagnée), 50 % (nulle) ou 0 % (perdue).
+- Pour le **graphe et la barre d'évaluation**, un **mat en N** vaut 100 % (pour celui qui mate) ou 0 % (pour celui qui
+  est maté), et une position des **tables de finales** 100 % (gagnée), 50 % (nulle) ou 0 % (perdue).
+- Pour la **méthode Lichess** (classement et précision), on reprend exactement le code de Lichess (scalachess
+  `eval.scala`) : pour la précision, l'évaluation est plafonnée à ±10 pions et un mat vaut ±10 pions (environ 97,5 %) ;
+  pour juger un coup, il n'y a pas de plafond et les mats ont leurs propres règles (ci-dessous).
 
-### 5.2 Classement des coups
+### 5.2 Classement des coups : deux méthodes
 
-Ce classement est **inspiré de chess.com** : chess.com ne publie pas son algorithme, les catégories sont les mêmes
-mais les seuils ci-dessous sont les nôtres. Un réglage permet d'utiliser à la place les **seuils Lichess (5 / 10 / 15 %)**
-(voir plus bas).
+L'application connaît deux méthodes ; on choisit celle qui classe les coups (liste, échiquier, bilan guidé,
+statistiques) dans l'écran *Importer*, carte « Classement des coups ».
+
+- **Lichess** (par défaut) : les règles **exactes** de Lichess, vérifiées dans son code source (lila
+  `modules/tree/src/main/Advice.scala`).
+- **Style chess.com** : une **approximation** de chess.com, dont l'algorithme n'est pas public (voir plus bas).
+
+Changer de méthode **reclasse toutes les parties déjà analysées** en quelques secondes, sans recalcul par Stockfish :
+toutes les évaluations sont enregistrées. Revenir à la méthode précédente redonne exactement le même classement.
+Les statistiques et les puzzles suivent. La **précision** affichée partout (liste, progression, Elo estimé) reste
+celle de Lichess, quelle que soit la méthode.
 
 Pour chaque position, Stockfish calcule les **2 meilleurs coups** (MultiPV 2). Si le coup joué n'est pas parmi eux,
-il est évalué à la même profondeur avec `searchmoves`. La **perte** est :
+il est évalué à la même profondeur avec `searchmoves`.
+
+#### Méthode Lichess
+
+Comme Lichess, chaque coup est jugé sur l'évaluation de la **position avant** le coup et de la **position après**
+(l'évaluation de la position suivante, c'est-à-dire du coup suivant ; pour le dernier coup de la partie, l'évaluation
+du coup joué). Le coup qu'aurait joué le moteur n'est jamais jugé.
+
+| Catégorie | Règle (perte de chances de gain, vue du joueur qui vient de jouer) |
+|---|---|
+| **Imprécision** | au moins 5 points (0,1 en « winning chances », de −1 à +1) |
+| **Erreur** | au moins 10 points (0,2) |
+| **Gaffe** | au moins 15 points (0,3) |
+
+Quand l'une des deux évaluations est un **mat**, Lichess applique ses règles de mats :
+
+- **mat créé** (après votre coup, vous vous faites mater) : imprécision si vous étiez déjà à −10 pions ou pire,
+  erreur à −7 pions ou pire, gaffe sinon ;
+- **mat perdu** (vous aviez un mat forcé et ne l'avez plus) : imprécision si vous restez à +10 pions ou plus, erreur
+  à +7 ou plus, gaffe sinon ;
+- un mat qui s'allonge, ou un mat qui apparaît pour vous : rien à signaler.
+
+Lichess n'a pas d'autres catégories. Pour l'affichage, les autres coups sont notés **Meilleur** (le coup du moteur),
+**Excellent** (perte de moins de 2,5 points) ou **Bon**, et les coups de **Théorie** (base libre
+[lichess-org/chess-openings](https://github.com/lichess-org/chess-openings)) restent marqués comme tels. Il n'y a ni
+Brillant, ni Très bon, ni Occasion manquée avec cette méthode.
+
+**Écart avec le site de Lichess** : avec les mêmes évaluations, le classement est identique. Mais Lichess part de ses
+propres évaluations (Stockfish à une autre profondeur, et le cache cloud sur les 14 premiers coups) : quelques coups
+proches d'un seuil peuvent changer de catégorie, et la précision peut différer d'un point environ.
+
+#### Style chess.com
+
+Les catégories sont celles de chess.com ; chess.com ne publie pas son algorithme. La **perte** est :
 
     perte = points espérés(meilleur coup) − points espérés(coup joué), du point de vue du joueur qui vient de jouer.
 
 Les **points espérés** (0 à 100 %) traduisent l'évaluation de Stockfish en score moyen attendu. Comme chez chess.com,
 ils dépendent du **niveau** du joueur et de la **cadence** : un +3 ne vaut pas la même chose à 1100 et à 2500 Elo
-(voir « Chances de gain selon le niveau » plus bas). En mode « Seuils Lichess », c'est la formule Lichess, la même
-pour tous. La précision de la partie, le graphe et l'Elo estimé utilisent toujours la formule Lichess.
+(voir « Chances de gain selon le niveau » plus bas).
 
 | Catégorie | Règle |
 |---|---|
@@ -418,13 +460,8 @@ Précisions :
   reste une simple imprécision ; s'il perd 10 points ou plus, c'est une occasion manquée. Une occasion manquée est
   comptée à part, même si le coup est très mauvais.
 
-**Réglage « Seuils Lichess (5 / 10 / 15 %) »** (écran *Importer*, carte « Classement des coups ») :
-imprécision dès 5 % de chances de gain perdues, erreur dès 10 %, gaffe dès 15 %, comme Lichess, quel que soit l'Elo.
-Les autres catégories (meilleur, excellent, très bon, brillant, occasion manquée) restent calculées comme ci-dessus.
-Changer de réglage **reclasse toutes les parties déjà analysées** en quelques secondes : la perte de chaque coup est
-déjà enregistrée, seuls les seuils changent (aucune position n'est recalculée, et revenir au réglage précédent redonne
-exactement le même classement). Les statistiques et les puzzles suivent. Un coup qui devient
-douteux avec les nouveaux seuils sans avoir été vérifié à la profondeur 22 rend la partie « à revérifier ».
+Un coup qui devient douteux après un changement de méthode, sans avoir été vérifié à la profondeur 22, rend la partie
+« à revérifier » (la vérification tient compte des deux méthodes).
 
 ### Chances de gain selon le niveau
 
@@ -487,8 +524,13 @@ général plus élevé aux niveaux modestes). Les courbes sont utilisées avec l
 
 ### 5.3 Précision
 
-- **Par coup** (formule Lichess) : `103,1668 × e^(−0,04354 × perte) − 3,1669`, bornée entre 0 et 100.
-- **Par partie** (méthode Lichess complète) : moyenne de
+La précision enregistrée suit exactement Lichess (lila `AccuracyPercent.scala`), quelle que soit la méthode de
+classement.
+
+- **Par coup** : à partir des chances de gain du joueur dans la position avant et après son coup (évaluations
+  plafonnées à ±10 pions, mat = ±10 pions) : 100 % si elles ne baissent pas, sinon
+  `103,1668 × e^(−0,04354 × perte) − 3,1669`, **plus 1** (le « bonus d'incertitude » de Lichess), bornée entre 0 et 100.
+- **Par partie** : moyenne de
   (a) la moyenne des précisions **pondérée par la volatilité** — le poids d'un coup est l'écart-type des chances de
   gain sur une fenêtre glissante (taille = nombre de coups / 10, entre 2 et 8), borné entre 0,5 et 12 — et
   (b) la **moyenne harmonique** des précisions par coup (qui punit fortement les gaffes).
@@ -496,7 +538,7 @@ général plus élevé aux niveaux modestes). Les courbes sont utilisées avec l
 **Notre précision et celle de chess.com ne sont pas comparables.** chess.com calcule la sienne avec sa formule CAPS2,
 qui n'est pas publiée ; la nôtre suit la méthode Lichess, documentée ci-dessus. Les deux chiffres ne sont pas sur la
 même échelle : un 85 % ici n'est ni meilleur ni moins bon qu'un 80 % sur chess.com (sur la partie 620, par exemple :
-90,1 % et 82,8 % ici, 79,0 % et 75,7 % chez chess.com). Pour suivre vos progrès, comparez nos précisions entre elles.
+87,9 % et 83,0 % ici, 79,0 % et 75,7 % chez chess.com). Pour suivre vos progrès, comparez nos précisions entre elles.
 
 ### Comparer avec chess.com
 

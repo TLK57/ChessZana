@@ -3,13 +3,12 @@ import './_unit.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { overrideConfig } from '../src/config.js';
 import { CURVES_FILE, curveFor, expectedPoints, loadCurves } from '../src/analysis/classify.js';
 import { winPct } from '../src/analysis/formulas.js';
 import { addGame, fitLogistic, parseEvals, speedOf, stripSkippableFrames } from '../scripts/fit-curves.js';
 
 const real = JSON.parse(fs.readFileSync(CURVES_FILE, 'utf8'));
-test.after(() => { loadCurves(''); overrideConfig({ classification: { preset: 'chesscom' } }); });
+test.after(() => { loadCurves(''); });
 
 test('fichier des courbes : source, mois, échantillon d\'au moins 200 000 parties, 18 tranches par cadence', () => {
   assert.match(real.source, /^https:\/\/database\.lichess\.org\/standard\/lichess_db_standard_rated_\d{4}-\d{2}\.pgn\.zst$/);
@@ -36,9 +35,8 @@ test('courbe d\'un joueur : interpolation entre les tranches, bornes, cadences s
   assert.equal(curveFor(null, 'blitz', data).b, 0.4, 'Elo inconnu : 1500 (borné à la dernière tranche ici)');
 });
 
-test('points espérés : courbe du niveau en mode « inspiré de chess.com », formule Lichess sinon', () => {
+test('points espérés : courbe du niveau (style chess.com), formule Lichess sans fichier de courbes', () => {
   loadCurves(CURVES_FILE);
-  overrideConfig({ classification: { preset: 'chesscom' } });
   const at = (cp, elo) => expectedPoints({ cp }, { elo, timeClass: 'blitz' });
   assert.ok(Math.abs(at(0, 1500) - 50) < 10, 'position égale : environ 50 %');
   assert.ok(at(300, 1500) > at(100, 1500) && at(100, 1500) > at(-100, 1500), 'croissante');
@@ -46,9 +44,6 @@ test('points espérés : courbe du niveau en mode « inspiré de chess.com », f
   assert.ok(expectedPoints({ mate: 3 }, { elo: 1100, timeClass: 'blitz' }) > 80, 'mat en faveur');
   assert.equal(expectedPoints({ mate: 0 }, { elo: 1100 }), 0, 'déjà maté');
   assert.equal(expectedPoints({ wdl: 'win' }, { elo: 1100 }), 100, 'table de finales : exact');
-  overrideConfig({ classification: { preset: 'lichess' } });
-  assert.equal(expectedPoints({ cp: 300 }, { elo: 1100, timeClass: 'blitz' }), winPct({ cp: 300 }), 'mode Lichess : formule Lichess');
-  overrideConfig({ classification: { preset: 'chesscom' } });
   loadCurves('');
   assert.equal(expectedPoints({ cp: 300 }, { elo: 1100 }), winPct({ cp: 300 }), 'sans fichier de courbes : formule Lichess');
 });

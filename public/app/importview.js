@@ -58,12 +58,13 @@ export async function renderImport(root) {
   </div>
   <section class="card" style="margin-top:16px">
     <h2>Classement des coups</h2>
-    <label class="radio"><input type="radio" name="preset" value="chesscom"> <b>Inspiré de chess.com</b> (par défaut) — imprécision dès 5 % de
-      chances de gain perdues, erreur dès 10 %, gaffe dès 20 %, quel que soit le niveau, avec les catégories
-      Meilleur, Excellent, Bon, Très bon, Brillant et Occasion manquée.</label>
-    <label class="radio"><input type="radio" name="preset" value="lichess"> <b>Seuils Lichess (5 / 10 / 15 %)</b> — imprécision dès 5 %,
-      erreur dès 10 %, gaffe dès 15 % de chances de gain perdues, quel que soit l'Elo.</label>
-    <p class="small muted" id="presetTxt">Changer de réglage reclasse toutes les parties déjà analysées, sans les recalculer (quelques secondes).</p>
+    <label class="radio"><input type="radio" name="method" value="lichess"> <b>Lichess</b> (par défaut) — les règles exactes de Lichess :
+      imprécision dès 5 points de chances de gain perdus, erreur dès 10, gaffe dès 15, quel que soit le niveau.</label>
+    <label class="radio"><input type="radio" name="method" value="chesscom"> <b>Style chess.com</b> — une approximation (la méthode
+      de chess.com n'est pas publique) : points attendus selon le niveau du joueur, erreur dès 10 %, gaffe dès 20 %, avec les
+      catégories Meilleur, Excellent, Bon, Très bon, Brillant et Occasion manquée.</label>
+    <p class="small muted" id="methodTxt">Changer de méthode reclasse toutes les parties déjà analysées, sans les recalculer (quelques secondes).
+      La précision affichée partout reste celle de Lichess.</p>
   </section>
   <section class="card" style="margin-top:16px">
     <h2>Sauvegardes de la base</h2>
@@ -106,10 +107,10 @@ export async function renderImport(root) {
     }
     $('pauseBtn').textContent = q.paused ? 'Reprendre' : 'Pause';
     const C = s.classification;
-    for (const r of root.querySelectorAll('input[name=preset]')) r.checked = r.value === C.preset;
+    for (const r of root.querySelectorAll('input[name=method]')) r.checked = r.value === C.method;
     const RC = C.reclassify ?? {};
-    if (RC.running) $('presetTxt').innerHTML = `<span class="spinner"></span> Reclassement des parties analysées : ${RC.done} / ${RC.total || '?'}…`;
-    else if (RC.total) $('presetTxt').textContent = `${RC.total} analyse(s) reclassée(s) avec ce réglage${RC.failed ? ` (${RC.failed} à relancer : évaluations absentes)` : ''}.`;
+    if (RC.running) $('methodTxt').innerHTML = `<span class="spinner"></span> Reclassement des parties analysées : ${RC.done} / ${RC.total || '?'}…`;
+    else if (RC.total) $('methodTxt').textContent = `${RC.total} analyse(s) reclassée(s) avec cette méthode${RC.failed ? ` (${RC.failed} à relancer : évaluations absentes)` : ''}.`;
     const H = q.history;
     $('histTxt').innerHTML = H.totalGames === 0 ? 'Importez d\'abord vos parties.'
       : H.remainingGames === 0 ? `<b>Tout votre historique est analysé</b> (${H.totalGames} parties).`
@@ -160,8 +161,8 @@ export async function renderImport(root) {
   $('pauseBtn').onclick = async () => { const s = await api('/api/status'); await api(s.queue.paused ? '/api/queue/resume' : '/api/queue/pause', {}); refresh(); };
   $('retryBtn').onclick = () => api('/api/queue/retry', {}).then(refresh);
   $('histBtn').onclick = () => api('/api/queue/history', { action: $('histBtn').dataset.action }).then(refresh).catch((e) => alert(e.message));
-  root.querySelectorAll('input[name=preset]').forEach((r) => {
-    r.onchange = () => api('/api/settings/classification', { preset: r.value }).then(refresh).catch((e) => alert(e.message));
+  root.querySelectorAll('input[name=method]').forEach((r) => {
+    r.onchange = () => api('/api/settings/classification', { method: r.value }).then(refresh).catch((e) => alert(e.message));
   });
   $('histStop').onclick = () => api('/api/queue/history', { action: 'stop' }).then(refresh).catch((e) => alert(e.message));
   $('mode').onchange = () => api('/api/queue/mode', { mode: $('mode').value }).then(refresh).catch((e) => alert(e.message));

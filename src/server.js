@@ -10,7 +10,7 @@ import { installedEngine, ensureEngine } from './engine/install.js';
 import { ensureStatsSchema } from './stats/compute.js';
 import { integrityCheck, latestHealthyBackup, maybeDailyBackup } from './backup.js';
 import {
-  evaluator, getQueue, liveEvaluator, loadClassificationPreset, reclassifyIfRulesChanged, refreshStatsInBackground, setupQueue, state,
+  evaluator, getQueue, liveEvaluator, loadClassificationMethod, reclassifyIfRulesChanged, refreshStatsInBackground, setupQueue, state,
   syncTrackedPlayers,
 } from './routes/context.js';
 import { readJson, send } from './routes/respond.js';
@@ -75,7 +75,7 @@ async function main() {
   if (!started) return;
 
   openDb();
-  loadClassificationPreset();
+  loadClassificationMethod();
   // Contrôle d'intégrité, puis sauvegarde quotidienne d'une base saine.
   state.integrity = integrityCheck();
   if (!state.integrity.ok) {

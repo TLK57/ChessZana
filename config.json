@@ -33,6 +33,7 @@
   },
 
   "classification": {
+    "method": "lichess",
     "levelCurves": true,
     "bestMaxLoss": 0.1,
     "thresholds": { "excellent": 2, "good": 5, "inaccuracy": 10, "mistake": 20 },
@@ -46,7 +47,7 @@
   },
 
   "accuracy": {
-    "uncertaintyBonus": 0
+    "uncertaintyBonus": 1
   },
 
   "elo": {

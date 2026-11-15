@@ -22,11 +22,47 @@ export function winPct(score) {
   return 50;
 }
 
-// Précision d'un coup (formule Lichess) : 103,1668 × e^(−0,04354 × perte) − 3,1669, bornée entre 0 et 100.
-export function moveAccuracy(loss, bonus = config.accuracy?.uncertaintyBonus ?? 0) {
-  if (!(loss > 0)) return 100;
-  const raw = 103.1668100711649 * Math.exp(-0.04354415386753951 * loss) - 3.166924740191411 + bonus;
-  return Math.min(100, Math.max(0, raw));
+// ---- Méthode Lichess exacte (scalachess eval.scala, lila AccuracyPercent.scala) ----
+
+/** Plafond des évaluations pour la précision Lichess (Eval.Cp.CEILING) : ±10 pions. */
+export const LICHESS_CP_CEILING = 1000;
+
+/** Chances de gain Lichess entre −1 et +1 (WinPercent.winningChances), sans plafond sur l'évaluation. */
+export function winningChances(cp) {
+  return Math.max(-1, Math.min(1, 2 / (1 + Math.exp(-WIN_K * cp)) - 1));
+}
+
+/**
+ * Centipions d'un score, comme Lichess : un mat vaut ±1000 (forceAsCp puis plafond), « déjà maté » −1000.
+ * Les tables de finales (absentes chez Lichess) : gagné +1000, nulle 0, perdu −1000.
+ */
+export function lichessCp(score) {
+  if (!score) return 0;
+  if (score.wdl) return score.wdl === 'win' ? LICHESS_CP_CEILING : score.wdl === 'loss' ? -LICHESS_CP_CEILING : 0;
+  if (score.mate != null) return score.mate > 0 ? LICHESS_CP_CEILING : -LICHESS_CP_CEILING;
+  return score.cp ?? 0;
+}
+
+/** WinPercent Lichess (0–100) utilisé par la précision : évaluation plafonnée à ±1000 centipions. */
+export function lichessWinPercent(score) {
+  const cp = Math.max(-LICHESS_CP_CEILING, Math.min(LICHESS_CP_CEILING, lichessCp(score)));
+  return 50 + 50 * winningChances(cp);
+}
+
+/**
+ * Précision d'un coup (AccuracyPercent.fromWinPercents) à partir des chances de gain du joueur avant et après :
+ * 100 si elles ne baissent pas, sinon 103,1668 × e^(−0,04354 × perte) − 3,1669, plus le bonus d'incertitude de
+ * Lichess (+1), bornée entre 0 et 100.
+ */
+export function accuracyFromWinPercents(before, after, bonus = config.accuracy?.uncertaintyBonus ?? 1) {
+  if (after >= before) return 100;
+  const raw = 103.1668100711649 * Math.exp(-0.04354415386753951 * (before - after)) - 3.166924740191411;
+  return Math.min(100, Math.max(0, raw + bonus));
+}
+
+// Précision d'un coup à partir d'une perte (points de chances de gain), même formule Lichess.
+export function moveAccuracy(loss, bonus = config.accuracy?.uncertaintyBonus ?? 1) {
+  return accuracyFromWinPercents(100, 100 - Math.max(0, loss), bonus);
 }
 
 function stdDev(xs) {

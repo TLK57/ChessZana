@@ -1,6 +1,6 @@
 // Compare notre classement des coups aux bilans « Game Review » de chess.com recopiés dans
 // test/fixtures/chesscom-reviews.json. Rien n'est modifié : les évaluations enregistrées sont reclassées en mémoire,
-// avec les courbes par niveau (réglage par défaut) puis avec la formule Lichess.
+// avec le style chess.com puis avec la méthode Lichess.
 //
 // Les analyses sont lues dans votre base (lecture seule) ; à défaut, dans le fichier de test indiqué par « fixture ».
 // Indicateur principal : fautes sérieuses (erreurs + occasions manquées + gaffes) par joueur, objectif ±1.
@@ -12,8 +12,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { Chess } from 'chess.js';
 import { config } from '../src/config.js';
-import { CURVES_FILE, classifyMoves, loadCurves, scoreFromWin } from '../src/analysis/classify.js';
-import { gameAccuracy } from '../src/analysis/formulas.js';
+import { classifyGame, judgeLichess, scoreFromWin } from '../src/analysis/classify.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURES = path.join(ROOT, 'test', 'fixtures');
@@ -65,25 +64,22 @@ function fromFixture(review) {
     players: { w: { elo: Number(header.WhiteElo) || null }, b: { elo: Number(header.BlackElo) || null }, timeClass: review.timeClass ?? null } };
 }
 
-/** Compte des catégories par couleur, avec ou sans les courbes par niveau. */
-export function ourCounts(analysis, levelCurves) {
-  loadCurves(levelCurves ? CURVES_FILE : '');
-  const list = analysis.rows.map((r) => ({
+const toList = (analysis) => analysis.rows.map((r) => ({
     color: r.color, uci: r.uci, san: r.san, fenBefore: r.fen_before, book: r.classification === 'book', bestUci: r.best_uci,
     evalBest: parse(r.eval_best), evalPlayed: parse(r.eval_played), evalSecond: parse(r.eval_second) ?? scoreFromWin(r.win_second),
-  }));
-  const judged = classifyMoves(list, analysis.players);
+}));
+
+/** Compte des catégories par couleur, avec une méthode (« chesscom » ou « lichess »). */
+export function ourCounts(analysis, method) {
+  const list = toList(analysis);
+  const judged = classifyGame(list, analysis.players, method);
   const counts = { w: {}, b: {} };
   judged.forEach((j, i) => { counts[list[i].color][j.classification] = (counts[list[i].color][j.classification] ?? 0) + 1; });
   return counts;
 }
 
-/** Précision de la partie (méthode Lichess), à partir des précisions par coup enregistrées. */
-function ourAccuracy(rows) {
-  if (rows.some((r) => r.accuracy == null || r.win_best == null || r.win_white_after == null)) return null;
-  const series = [rows[0].color === 'w' ? rows[0].win_best : 100 - rows[0].win_best, ...rows.map((r) => r.win_white_after)];
-  return gameAccuracy(series, rows.map((r) => ({ color: r.color, accuracy: r.accuracy })));
-}
+/** Précision de la partie (méthode Lichess), recalculée à partir des évaluations enregistrées. */
+const ourAccuracy = (analysis) => judgeLichess(toList(analysis)).accuracy;
 
 export const serious = (c) => SERIOUS.reduce((s, k) => s + (c[k] ?? 0), 0);
 
@@ -94,19 +90,19 @@ const fr = (x) => (x == null ? '–' : x.toFixed(1).replace('.', ','));
 function main() {
   const reviews = JSON.parse(fs.readFileSync(REVIEWS, 'utf8')).games;
   const db = fs.existsSync(config.dbPath) ? new DatabaseSync(config.dbPath, { readOnly: true }) : null;
-  const score = { curves: { ok: 0, n: 0, diff: 0 }, lichess: { ok: 0, n: 0, diff: 0 } };
+  const score = { chesscom: { ok: 0, n: 0, diff: 0 }, lichess: { ok: 0, n: 0, diff: 0 } };
   for (const review of reviews) {
     const analysis = (db && fromDb(db, review)) ?? fromFixture(review);
     console.log(`\n=== ${review.note ?? review.url}`);
     if (!analysis) { console.log('  pas d\'analyse trouvée (analysez la partie dans l\'application, ou indiquez « fixture »)'); continue; }
     console.log(`  analyse : ${analysis.source}`);
-    const withCurves = ourCounts(analysis, true);
-    const lichess = ourCounts(analysis, false);
-    const acc = ourAccuracy(analysis.rows);
+    const withCurves = ourCounts(analysis, 'chesscom');
+    const lichess = ourCounts(analysis, 'lichess');
+    const acc = ourAccuracy(analysis);
     for (const [color, side] of [['w', 'white'], ['b', 'black']]) {
       const cc = review[side];
       console.log(`\n  ${color === 'w' ? 'Blancs' : 'Noirs'}${analysis.players[color].elo ? ` (${analysis.players[color].elo})` : ''}`);
-      console.log(`    ${pad('', 18)}${'chess.com'.padStart(9)}${'courbes'.padStart(9)}${'Lichess'.padStart(9)}`);
+      console.log(`    ${pad('', 18)}${'chess.com'.padStart(9)}${'style cc'.padStart(9)}${'Lichess'.padStart(9)}`);
       for (const k of CATEGORIES) {
         if (cc[k] == null && !withCurves[color][k] && !lichess[color][k]) continue;
         console.log(`    ${pad(LABEL[k], 18)}${num(cc[k])}${num(withCurves[color][k] ?? 0)}${num(lichess[color][k] ?? 0)}`);
@@ -115,14 +111,14 @@ function main() {
       const line = (c) => { const v = serious(c); return `${num(v)}`; };
       console.log(`    ${pad('Fautes sérieuses', 18)}${num(ref)}${line(withCurves[color])}${line(lichess[color])}`);
       console.log(`    ${pad('Précision', 18)}${fr(cc.accuracy).padStart(9)}${fr(acc?.[side]).padStart(9)}${''.padStart(9)}   (non comparables, voir README)`);
-      for (const [key, c] of [['curves', withCurves[color]], ['lichess', lichess[color]]]) {
+      for (const [key, c] of [['chesscom', withCurves[color]], ['lichess', lichess[color]]]) {
         const d = Math.abs(serious(c) - ref);
         score[key].n++; score[key].diff += d; if (d <= TOLERANCE) score[key].ok++;
       }
     }
   }
   console.log('\n=== Bilan : fautes sérieuses (erreurs + occasions manquées + gaffes) à ±1 de chess.com');
-  for (const [key, label] of [['curves', 'courbes par niveau (défaut)'], ['lichess', 'formule Lichess']]) {
+  for (const [key, label] of [['chesscom', 'style chess.com'], ['lichess', 'méthode Lichess']]) {
     const s = score[key];
     if (s.n) console.log(`  ${pad(label, 28)} ${s.ok}/${s.n} joueurs dans la tolérance, écart moyen ${fr(s.diff / s.n)}`);
   }

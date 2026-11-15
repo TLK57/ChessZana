@@ -1,12 +1,21 @@
-// Classement des coups, inspiré de chess.com (ce n'est pas l'algorithme de chess.com, qui n'est pas public).
-// Réglage possible : seuils Lichess (imprécision dès 5 %, erreur dès 10 %, gaffe dès 15 % de chances de gain perdues).
+// Classement des coups. Les deux méthodes sont toutes ici, avec la même entrée (les évaluations enregistrées) :
+//  - « lichess » : règles exactes de Lichess (lila, Advice.scala) : imprécision, erreur, gaffe d'après les chances
+//    de gain de la position avant et après le coup ;
+//  - « chesscom » : style chess.com (leur algorithme n'est pas public) : points attendus selon le niveau, seuils
+//    publiés par chess.com, et les catégories Brillant, Très bon, Occasion manquée.
+// classifyGame() choisit la méthode réglée ; la précision enregistrée est toujours celle de Lichess (judgeLichess).
 import fs from 'node:fs';
 import path from 'node:path';
 import { Chess } from 'chess.js';
 import { ROOT, config } from '../config.js';
 import { materialBalance, playUci } from '../chessutil.js';
-import { WIN_K, winPct } from './formulas.js';
+import { WIN_K, accuracyFromWinPercents, gameAccuracy, lichessCp, lichessWinPercent, winPct, winningChances } from './formulas.js';
 import { pieceSacrifice } from './patterns.js';
+
+export const METHODS = ['lichess', 'chesscom'];
+export const METHOD_LABELS = { lichess: 'Lichess', chesscom: 'Style chess.com' };
+/** Méthode réglée (config.json, ou choix fait dans l'application) : Lichess par défaut. */
+export const currentMethod = () => (config.classification.method === 'chesscom' ? 'chesscom' : 'lichess');
 
 export const LABELS = {
   book: 'Théorie',
@@ -26,18 +35,17 @@ export const SYMBOLS = {
   inaccuracy: '?!', mistake: '?', miss: '✗', blunder: '??',
 };
 
-export const PRESETS = ['chesscom', 'lichess'];
-// Seuils Lichess : perte de chances de gain d'au moins 5 % (imprécision), 10 % (erreur), 15 % (gaffe).
+// Seuils Lichess : perte de chances de gain d'au moins 5 % (imprécision), 10 % (erreur), 15 % (gaffe), soit 0,1 / 0,2 /
+// 0,3 en « winning chances » (−1 à +1). En dessous, « excellent » ou « bon » (2,5 %) ne sert qu'à l'affichage.
 export const LICHESS_THRESHOLDS = { excellent: 2.5, good: 5, inaccuracy: 10, mistake: 15 };
 
 // Version des règles de classement : quand elle change, les parties déjà analysées sont reclassées
 // au lancement suivant (sans moteur, après une sauvegarde de la base).
-export const CLASSIFICATION_VERSION = 5;
+export const CLASSIFICATION_VERSION = 6;
 
-// Seuils de perte (en % de chances de gain) selon le réglage. Comme chess.com, ils ne dépendent pas du niveau.
-export function thresholdsFor() {
-  const c = config.classification;
-  return c.preset === 'lichess' ? LICHESS_THRESHOLDS : c.thresholds;
+// Seuils de perte (en % de chances de gain) de la méthode. Comme chez chess.com, ils ne dépendent pas du niveau.
+export function thresholdsFor(method = currentMethod()) {
+  return method === 'lichess' ? LICHESS_THRESHOLDS : config.classification.thresholds;
 }
 
 export function lossCategory(loss, th) {
@@ -132,13 +140,13 @@ export function curveFor(elo, timeClass, data = curves()) {
 
 /**
  * Points espérés (0–100) du joueur concerné, pour un score vu de son côté.
- * - Mode « inspiré de chess.com » : courbe ajustée sur les parties Lichess de son niveau et de sa cadence
+ * - Style chess.com : courbe ajustée sur les parties Lichess de son niveau et de sa cadence
  *   (un +3 ne vaut pas la même chose à 1100 et à 2500 Elo) ; les mats prennent le score moyen observé.
- * - Mode « Seuils Lichess », ou sans fichier de courbes : formule Lichess (chances de gain).
+ * - Sans fichier de courbes (ou levelCurves à false) : formule Lichess (chances de gain).
  * - Table de finales : résultat exact (100, 50 ou 0).
  */
 export function expectedPoints(score, who = {}) {
-  const data = config.classification.preset === 'lichess' || config.classification.levelCurves === false ? null : curves();
+  const data = config.classification.levelCurves === false ? null : curves();
   if (!data || !score || score.wdl) return winPct(score);
   const c = curveFor(who.elo, who.timeClass, data);
   if (score.mate != null) return score.mate > 0 ? 100 * c.mateWin : score.mate < 0 ? 100 * c.mateLoss : 0;
@@ -148,16 +156,16 @@ export function expectedPoints(score, who = {}) {
 }
 
 /**
- * Classe les coups d'une partie à partir des évaluations, sans moteur.
+ * Classement « style chess.com » des coups d'une partie, à partir des évaluations, sans moteur.
  * moves[i] : { color, uci, san, fenBefore, book, bestUci, evalBest, evalPlayed, evalSecond }
  *   evalBest / evalPlayed / evalSecond : { cp, mate, wdl } du point de vue du joueur qui joue le coup.
  *   Le sacrifice éventuel est mesuré sur la position (échange statique), sans moteur.
  * players : { w: { elo }, b: { elo }, timeClass }.
  * Renvoie pour chaque coup { classification, loss, xpBest, xpPlayed, xpSecond, gain }.
  */
-export function classifyMoves(moves, players = {}) {
+export function classifyChesscom(moves, players = {}) {
   const c = config.classification;
-  const th = thresholdsFor();
+  const th = thresholdsFor('chesscom');
   return moves.map((m, i) => {
     const who = { elo: players[m.color]?.elo ?? null, timeClass: players.timeClass ?? null };
     const xp = (s) => expectedPoints(s, who);
@@ -197,6 +205,77 @@ export function classifyMoves(moves, players = {}) {
     if (playedIsBest || loss <= c.bestMaxLoss) return out('best');
     return out(lossCategory(loss, th));
   });
+}
+
+// ---- Méthode Lichess exacte ----
+
+const isCp = (s) => s != null && s.mate == null; // centipions, ou table de finales (traitée en centipions)
+const adviceCp = (s) => (s.cp != null ? s.cp : lichessCp(s));
+
+/**
+ * Jugement Lichess d'un coup (lila, Advice.scala) à partir des évaluations de la position avant et après le coup,
+ * vues du joueur qui vient de jouer. null : pas d'imprécision.
+ * - Deux évaluations en centipions : perte de « winning chances » (−1 à +1, sans plafond) d'au moins 0,1
+ *   (imprécision), 0,2 (erreur) ou 0,3 (gaffe), soit 5, 10 et 15 points de chances de gain.
+ * - Sinon, règles des mats (MateAdvice) : « mat créé » (on se fait mater) ou « mat perdu » (on avait un mat).
+ *   Imprécision si l'évaluation en centipions (0 pour un mat) passe ±999, erreur au-delà de ±700, gaffe sinon.
+ */
+export function lichessJudgement(before, after) {
+  if (!before || !after) return null;
+  if (isCp(before) && isCp(after)) {
+    const delta = winningChances(adviceCp(before)) - winningChances(adviceCp(after));
+    return delta >= 0.3 ? 'blunder' : delta >= 0.2 ? 'mistake' : delta >= 0.1 ? 'inaccuracy' : null;
+  }
+  const beforeCp = isCp(before) ? adviceCp(before) : 0;
+  const afterCp = isCp(after) ? adviceCp(after) : 0;
+  const matedAfter = after.mate != null && after.mate <= 0;
+  if (isCp(before) && matedAfter) return beforeCp < -999 ? 'inaccuracy' : beforeCp < -700 ? 'mistake' : 'blunder';
+  if (before.mate != null && before.mate > 0 && (isCp(after) || matedAfter)) {
+    return afterCp > 999 ? 'inaccuracy' : afterCp > 700 ? 'mistake' : 'blunder';
+  }
+  return null; // mat retardé, ou mat qui se précise : rien à signaler
+}
+
+/** Perte Lichess (points de chances de gain) entre la position avant et après, vues du joueur qui vient de jouer. */
+export function lichessLoss(before, after) {
+  if (!before || !after) return 0;
+  return Math.max(0, 50 * (winningChances(adviceCp(before)) - winningChances(adviceCp(after))));
+}
+
+/**
+ * Méthode Lichess complète d'une partie (classement et précision), sans moteur.
+ * Comme Lichess, chaque coup est jugé sur l'évaluation de la position avant lui (son meilleur coup) et de la position
+ * après lui (le meilleur coup du coup suivant, vu de l'autre côté ; pour le dernier coup, l'évaluation du coup joué).
+ * Lichess ne juge pas le coup qu'aurait joué le moteur. moves : même forme que classifyChesscom.
+ * Renvoie { moves: [{ classification, loss, accuracy }], accuracy: { white, black } }.
+ */
+export function judgeLichess(moves) {
+  const white = (s, color) => (s == null ? null : color === 'w' ? s : negate(s));
+  const pos = moves.map((m) => white(m.evalBest, m.color)); // positions P0…Pn-1, vues des Blancs
+  const last = moves.at(-1);
+  pos.push(last ? white(last.evalPlayed, last.color) : null);
+  const pov = (s, color) => (color === 'w' ? s : negate(s));
+  const judged = moves.map((m, i) => {
+    const before = pos[i] ? pov(pos[i], m.color) : null;
+    const after = pos[i + 1] ? pov(pos[i + 1], m.color) : null;
+    const loss = lichessLoss(before, after);
+    const accuracy = before && after ? accuracyFromWinPercents(lichessWinPercent(before), lichessWinPercent(after)) : null;
+    let classification;
+    if (m.book) classification = 'book';
+    else if (m.bestUci === m.uci) classification = 'best';
+    else classification = lichessJudgement(before, after) ?? (loss < LICHESS_THRESHOLDS.excellent ? 'excellent' : 'good');
+    return { classification, loss, accuracy };
+  });
+  const complete = pos.every((p) => p != null);
+  const accuracy = complete
+    ? gameAccuracy(pos.map(lichessWinPercent), moves.map((m, i) => ({ color: m.color, accuracy: judged[i].accuracy })))
+    : { white: null, black: null };
+  return { moves: judged, accuracy };
+}
+
+/** Classement d'une partie avec la méthode réglée (ou celle demandée) : [{ classification, loss, … }]. */
+export function classifyGame(moves, players = {}, method = currentMethod()) {
+  return method === 'chesscom' ? classifyChesscom(moves, players) : judgeLichess(moves).moves;
 }
 
 /**

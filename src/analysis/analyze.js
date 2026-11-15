@@ -6,8 +6,8 @@ import { getGame, getGameMoves } from '../games.js';
 import { normalizeChessFen, terminalState, uciToSan, START_FEN } from '../chessutil.js';
 import { AbortError } from '../engine/stockfish.js';
 import { isBookPosition } from './openings.js';
-import { MISS_MIN_GAIN, classifyMoves } from './classify.js';
-import { estimateElo, gameAccuracy, moveAccuracy, winPct } from './formulas.js';
+import { MISS_MIN_GAIN, classifyChesscom, currentMethod, judgeLichess } from './classify.js';
+import { estimateElo, winPct } from './formulas.js';
 
 export const PASSES = {
   quick: () => ({ depth: config.engine.quickDepth, nodes: null, allowCloud: config.lichess.cloudEvalInQuickPass, skipDecided: false }),
@@ -154,9 +154,10 @@ export async function analyzeMoveList(moves, opts) {
   };
 
   // 4) Chances de gain, perte, classement.
-  // Le classement lui-même (src/analysis/classify.js) ne lit que les évaluations : c'est la même fonction qui
-  // reclasse les parties déjà analysées, sans moteur.
+  // Le classement lui-même (src/analysis/classify.js) ne lit que les évaluations : ce sont les mêmes fonctions qui
+  // reclassent les parties déjà analysées, sans moteur. Classement : méthode réglée ; précision : toujours Lichess.
   const players = { w: { elo: opts.whiteElo ?? null }, b: { elo: opts.blackElo ?? null }, timeClass: opts.timeClass ?? null };
+  let lichessAccuracy = { white: null, black: null };
   const classifyAll = () => {
     const list = moves.map((m, i) => {
       const { before, played } = evals[i];
@@ -167,12 +168,15 @@ export async function analyzeMoveList(moves, opts) {
         bestUci: best?.move ?? null, evalBest: scoreOf(best), evalPlayed: scoreOf(played), evalSecond: second ? scoreOf(second) : null,
       };
     });
-    const judged = classifyMoves(list, players);
+    const lichess = judgeLichess(list);
+    const chesscom = classifyChesscom(list, players);
+    const judged = currentMethod() === 'chesscom' ? chesscom : lichess.moves;
+    lichessAccuracy = lichess.accuracy;
     return moves.map((m, i) => {
       const { before } = evals[i];
       const best = before.lines[0];
       const x = list[i];
-      // Chances de gain (formule Lichess) : graphe, précision et Elo estimé restent calculés comme Lichess.
+      // Chances de gain (formule Lichess) : graphe et barre d'évaluation.
       const winBest = winPct(x.evalBest);
       const winPlayed = winPct(x.evalPlayed);
       return {
@@ -182,8 +186,10 @@ export async function analyzeMoveList(moves, opts) {
         evalBest: x.evalBest, evalPlayed: x.evalPlayed, evalSecond: x.evalSecond,
         winBest, winPlayed, winSecond: x.evalSecond ? winPct(x.evalSecond) : null,
         loss: judged[i].loss, gain: judged[i].gain,
-        accuracy: moveAccuracy(Math.max(0, winBest - winPlayed)),
+        accuracy: lichess.moves[i].accuracy,
         classification: judged[i].classification,
+        // L'autre méthode compte aussi pour la vérification (on peut changer de méthode sans recalculer).
+        other: currentMethod() === 'chesscom' ? lichess.moves[i] : chesscom[i],
         source: before.source,
         depth: moveDepth(evals[i]),
         verified: !!evals[i].verified,
@@ -202,7 +208,8 @@ export async function analyzeMoveList(moves, opts) {
       const todo = [];
       results.forEach((r, i) => {
         const e = evals[i];
-        if (needsVerification(r, opts.quick?.get(r.ply)) && !e.verified && e.before.source !== 'tablebase' && moveDepth(e) < opts.verifyDepth) todo.push(i);
+        const doubtful = needsVerification(r, opts.quick?.get(r.ply)) || needsVerification(r.other);
+        if (doubtful && !e.verified && e.before.source !== 'tablebase' && moveDepth(e) < opts.verifyDepth) todo.push(i);
       });
       if (!todo.length) break;
       for (const [k, i] of todo.entries()) {
@@ -218,11 +225,11 @@ export async function analyzeMoveList(moves, opts) {
     }
   }
 
-  // 5) Série des chances de gain des Blancs P0…Pn, précision de la partie et Elo estimé.
+  // 5) Série des chances de gain des Blancs P0…Pn (graphe), précision de la partie (Lichess) et Elo estimé.
   const series = results.map((r) => (r.color === 'w' ? r.winBest : 100 - r.winBest));
   series.push(finalWhite);
-  results.forEach((r, i) => { r.winWhiteAfter = series[i + 1]; });
-  const acc = gameAccuracy(series, results.map((r) => ({ color: r.color, accuracy: r.accuracy })));
+  results.forEach((r, i) => { r.winWhiteAfter = series[i + 1]; delete r.other; });
+  const acc = lichessAccuracy;
   const counts = { w: {}, b: {} };
   for (const r of results) counts[r.color][r.classification] = (counts[r.color][r.classification] ?? 0) + 1;
   const nonBook = (color) => results.filter((r) => r.color === color && r.classification !== 'book').length;
