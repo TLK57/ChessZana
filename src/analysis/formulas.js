@@ -65,6 +65,55 @@ export function moveAccuracy(loss, bonus = config.accuracy?.uncertaintyBonus ?? 
   return accuracyFromWinPercents(100, 100 - Math.max(0, loss), bonus);
 }
 
+// ---- Style chess.com (approximation : chess.com ne publie ni sa courbe ni sa formule de précision) ----
+// Paramètres : config.classification.curve et config.accuracy.chesscom (valeurs ajustées sur vos bilans chess.com :
+// data/style-chesscom.json, npm run ajuster-chesscom).
+
+/** Elo retenu pour la courbe : celui de la partie, borné ; 1500 s'il est inconnu. */
+export function curveElo(elo, curve = config.classification.curve) {
+  return Math.min(curve.eloMax, Math.max(curve.eloMin, Number.isFinite(elo) && elo > 0 ? elo : 1500));
+}
+
+/** Pente de la courbe (par pion) pour un Elo : k = k1500 × e^(eloSlope × (Elo − 1500) / 1000). */
+export function curveSlope(elo, curve = config.classification.curve) {
+  return curve.k1500 * Math.exp(curve.eloSlope * ((curveElo(elo, curve) - 1500) / 1000));
+}
+
+/**
+ * Points attendus (0–100) du joueur, style chess.com, pour un score vu de son côté :
+ * 100 / (1 + e^(−k × évaluation en pions)), k dépendant de son Elo (un même avantage vaut moins à faible niveau).
+ * Mat pour lui 100, contre lui (ou déjà maté) 0 ; tables de finales : 100, 50 ou 0.
+ */
+export function chesscomXp(score, elo, curve = config.classification.curve) {
+  if (!score) return 50;
+  if (score.wdl) return score.wdl === 'win' ? 100 : score.wdl === 'loss' ? 0 : 50;
+  if (score.mate != null) return score.mate > 0 ? 100 : 0;
+  if (score.cp == null) return 50;
+  return 100 / (1 + Math.exp(-curveSlope(elo, curve) * (score.cp / 100)));
+}
+
+/** Précision d'un coup style chess.com : scale × e^(−decay × perte) − (scale − 100), bornée entre 0 et 100. */
+export function chesscomMoveAccuracy(loss, p = config.accuracy.chesscom) {
+  if (!(loss > 0)) return 100;
+  return Math.min(100, Math.max(0, p.scale * Math.exp(-p.decay * loss) - (p.scale - 100)));
+}
+
+/**
+ * Précision de la partie style chess.com : (1 − h) × moyenne + h × moyenne harmonique des précisions par coup
+ * (h = harmonicWeight : plus il est grand, plus une gaffe pèse). moves : [{ color, accuracy }].
+ */
+export function chesscomGameAccuracy(moves, p = config.accuracy.chesscom) {
+  const out = { white: null, black: null };
+  for (const color of ['w', 'b']) {
+    const accs = moves.filter((m) => m.color === color && m.accuracy != null).map((m) => m.accuracy);
+    if (!accs.length) continue;
+    const mean = accs.reduce((a, b) => a + b, 0) / accs.length;
+    const harmonic = accs.length / accs.reduce((a, b) => a + 1 / Math.max(1, b), 0);
+    out[color === 'w' ? 'white' : 'black'] = (1 - p.harmonicWeight) * mean + p.harmonicWeight * harmonic;
+  }
+  return out;
+}
+
 function stdDev(xs) {
   const n = xs.length;
   if (!n) return 0;

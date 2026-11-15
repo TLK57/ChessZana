@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { openDb } from '../src/db.js';
 import { reclassifyStored } from '../src/analysis/reclassify.js';
-import { overrideConfig } from '../src/config.js';
+import { DEFAULTS, config, overrideConfig } from '../src/config.js';
 import { classOf, loadPartie620, ply } from './_partie620.js';
 
 openDb();
@@ -31,31 +31,30 @@ test('les gaffes restent des gaffes : 15...Nxf3+ et 19.Qd2', () => {
   assert.equal(classOf(id, '19.'), 'blunder');
 });
 
-test('courbes par niveau : les pertes de joueurs vers 1100 Elo en blitz sont plus faibles qu\'avec la formule Lichess', async () => {
-  const { getDb } = await import('../src/db.js');
-  const { CURVES_FILE, loadCurves } = await import('../src/analysis/classify.js');
-  const loss = (label) => getDb().prepare("SELECT loss FROM move_analysis WHERE game_id = ? AND pass = 'deep' AND ply = ?").get(id, ply(label)).loss;
-  const before = loss('19.');
-  loadCurves(CURVES_FILE);
+// Courbe des tests : la formule Lichess (test/_setup.js) ; courbe par niveau : celle de config.json.
+const withLevelCurve = (fn) => {
+  const lichessLike = structuredClone(config.classification.curve);
+  overrideConfig({ classification: { curve: DEFAULTS.classification.curve } });
   try {
     reclassifyStored(id, 'deep');
-    assert.ok(loss('19.') < before, `${loss('19.')} < ${before}`);
-    assert.ok(loss('19.') > 5, '19.Qd2 reste une faute');
+    fn();
   } finally {
-    loadCurves('');
+    overrideConfig({ classification: { curve: lichessLike } });
     reclassifyStored(id, 'deep');
   }
+};
+
+test('courbe par niveau : les pertes de joueurs vers 1100 Elo en blitz sont plus faibles qu\'avec la formule Lichess', async () => {
+  const { getDb } = await import('../src/db.js');
+  const loss = (label) => getDb().prepare("SELECT loss FROM move_analysis WHERE game_id = ? AND pass = 'deep' AND ply = ?").get(id, ply(label)).loss;
+  const before = loss('19.');
+  withLevelCurve(() => {
+    assert.ok(loss('19.') < before, `${loss('19.')} < ${before}`);
+    assert.ok(loss('19.') > 5, '19.Qd2 reste une faute');
+  });
 });
 
 test('brillant : 21.Rg4 offre la tour (prise par 21...Bxg4), reste le meilleur coup et garde la partie équilibrée', async () => {
   assert.equal(classOf(id, '21.'), 'brilliant');
-  const { CURVES_FILE, loadCurves } = await import('../src/analysis/classify.js');
-  loadCurves(CURVES_FILE);
-  try {
-    reclassifyStored(id, 'deep');
-    assert.equal(classOf(id, '21.'), 'brilliant', 'aussi avec les courbes par niveau');
-  } finally {
-    loadCurves('');
-    reclassifyStored(id, 'deep');
-  }
+  withLevelCurve(() => assert.equal(classOf(id, '21.'), 'brilliant', 'aussi avec la courbe par niveau'));
 });

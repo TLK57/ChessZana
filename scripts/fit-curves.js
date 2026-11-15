@@ -103,6 +103,24 @@ export function addGame(acc, set, { whiteElo, blackElo, result, tc, evals }) {
 }
 
 /**
+ * Courbe à deux paramètres du style chess.com (config.classification.curve) tirée des courbes par tranche :
+ * pente k = k1500 × e^(eloSlope × (Elo − 1500) / 1000), ajustée par moindres carrés sur ln(b) (blitz et rapide,
+ * centres des tranches, poids = racine du nombre de positions). Ce sont les valeurs de départ de config.json.
+ */
+export function curveParamsFromTable(data) {
+  let sw = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const bins of Object.values(data.curves)) {
+    for (const c of bins) {
+      const x = (c.elo + 50 - 1500) / 1000, y = Math.log(c.b), w = Math.sqrt(c.positions);
+      sw += w; sx += w * x; sy += w * y; sxx += w * x * x; sxy += w * x * y;
+    }
+  }
+  const eloSlope = (sw * sxy - sx * sy) / (sw * sxx - sx * sx);
+  const k1500 = Math.exp((sy - eloSlope * sx) / sw);
+  return { k1500: Math.round(k1500 * 1e4) / 1e4, eloSlope: Math.round(eloSlope * 1e4) / 1e4 };
+}
+
+/**
  * Régression logistique sur des données regroupées (x en pions), par la méthode de Newton avec pas contrôlé
  * (chaque pas doit réduire l'écart) et un léger rappel vers la courbe Lichess (a = 0, b = 0,368 par pion),
  * équivalent à quelques dizaines de positions : sans effet quand une tranche a beaucoup de données, il évite
@@ -387,6 +405,8 @@ async function main() {
   console.log(`  perte logarithmique : nouvelle ${v.logLoss.nouvelle.toFixed(4)}, Lichess ${v.logLoss.lichess.toFixed(4)}`);
   console.log(`  écart d'étalonnage  : nouvelle ${(100 * v.ecartEtalonnage.nouvelle).toFixed(2)} points, Lichess ${(100 * v.ecartEtalonnage.lichess).toFixed(2)} points`);
   console.log(`Écrit : ${OUT}\n       ${CHART}`);
+  const p = curveParamsFromTable(data);
+  console.log(`Courbe du style chess.com (config.json, classification.curve) : k1500 = ${p.k1500}, eloSlope = ${p.eloSlope}`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

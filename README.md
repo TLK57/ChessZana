@@ -331,12 +331,14 @@ Après une modification, fermez et relancez l'application.
 | `lichess.pauseAfterRateLimitSec` | `60` | Pause de la source Lichess après un « trop de requêtes » (429) |
 | `lichess.pauseAfterErrorSec` | `120` | Pause de la source Lichess après une panne |
 | `classification.method` | `"lichess"` | Méthode de classement : `"lichess"` (règles exactes de Lichess) ou `"chesscom"` (style chess.com) ; se change aussi dans l'application, qui retient le choix |
-| `classification.levelCurves` | `true` | Points espérés selon le niveau et la cadence (voir « Chances de gain selon le niveau ») ; `false` = formule Lichess |
-| `classification.thresholds` | `2 / 5 / 10 / 20` | Seuils de perte (voir ci-dessous), les mêmes pour tous les niveaux |
-| `classification.brilliant` | `2 / 2 / 45 / 90` | Brillant : sacrifice minimal (points), perte maximale, points espérés minimaux après le coup, meilleure autre possibilité maximale |
+| `classification.curve` | `0,2211 / 0,4667 / 100 / 3000` | Style chess.com : courbe des points attendus (`k1500`, `eloSlope`, Elo minimal et maximal) ; remplacée par `data/style-chesscom.json` après un ajustement |
+| `classification.thresholds` | `2 / 5 / 10 / 20` | Style chess.com : seuils de perte publiés par chess.com, les mêmes pour tous les niveaux |
+| `classification.miss` | `70 / 10 / 5 / 10` | Style chess.com, occasion manquée : seuil gagnant, gain minimal offert par l'adversaire, perte minimale, perte suffisante en restant gagnant |
+| `classification.brilliant` | `2 / 2 / 45 / 90` | Brillant : sacrifice minimal (points), perte maximale, points attendus minimaux après le coup, meilleure autre possibilité maximale |
 | `classification.great` | `1 / 15` | Très bon : perte maximale, écart minimal pour « seul bon coup » (et `ignoreRecaptures`) |
 | `classification.lowElo` | sous 1400 : `5 / 40 / 95`, `2 / 10` | Valeurs plus généreuses pour les joueurs de moins de 1400 Elo |
 | `accuracy.uncertaintyBonus` | `1` | Lichess ajoute +1 à la précision de chaque coup imparfait (« bonus d'incertitude ») ; `0` pour s'en passer |
+| `accuracy.chesscom` | `0,04354 / 103,1668 / 0,5` | Précision style chess.com (`decay`, `scale`, `harmonicWeight`) ; remplacée par `data/style-chesscom.json` après un ajustement |
 | `elo.minMoves` | `8` | Nombre minimum de coups hors théorie pour estimer un Elo |
 | `elo.table` | voir §5.4 | Table précision → Elo (générique, avant calibrage) |
 | `elo.calibrate` | `true` | Recentre l'Elo estimé sur votre niveau réel (voir §5.4) |
@@ -406,13 +408,21 @@ proches d'un seuil peuvent changer de catégorie, et la précision peut différe
 
 #### Style chess.com
 
-Les catégories sont celles de chess.com ; chess.com ne publie pas son algorithme. La **perte** est :
+C'est une **approximation** : chess.com publie ses catégories et ses seuils, mais pas sa courbe de points attendus ni
+sa formule de précision. Ses deux réglages principaux s'ajustent sur vos propres bilans chess.com (voir « Ajuster le
+style chess.com sur vos parties » plus bas). La **perte** est :
 
-    perte = points espérés(meilleur coup) − points espérés(coup joué), du point de vue du joueur qui vient de jouer.
+    perte = points attendus(meilleur coup) − points attendus(coup joué), du point de vue du joueur qui vient de jouer.
 
-Les **points espérés** (0 à 100 %) traduisent l'évaluation de Stockfish en score moyen attendu. Comme chez chess.com,
-ils dépendent du **niveau** du joueur et de la **cadence** : un +3 ne vaut pas la même chose à 1100 et à 2500 Elo
-(voir « Chances de gain selon le niveau » plus bas).
+Les **points attendus** (0 à 100 %) traduisent l'évaluation de Stockfish en score moyen attendu. Comme chez chess.com,
+ils dépendent du **classement** (Elo) du joueur : à faible niveau, un même avantage vaut moins.
+
+    points attendus = 100 / (1 + e^(−k × évaluation en pions)),   k = k1500 × e^(eloSlope × (Elo − 1500) / 1000)
+
+Valeurs de départ (`classification.curve`) : `k1500 = 0,2211`, `eloSlope = 0,4667`, tirées des courbes mesurées
+sur la base ouverte de Lichess (voir « Chances de gain selon le niveau » plus bas) : un +3 vaut 59 % des points à
+261 Elo, 63 % à 1000, 66 % à 1500, 70 % à 2000 (75 % avec la formule Lichess). L'Elo est borné entre 100 et 3000 ;
+sans Elo connu, 1500. Un mat vaut 100 % (0 % contre soi), une position des tables de finales 100, 50 ou 0 %.
 
 | Catégorie | Règle |
 |---|---|
@@ -420,12 +430,12 @@ ils dépendent du **niveau** du joueur et de la **cadence** : un +3 ne vaut pas 
 | **Brillant** | Bon sacrifice de pièce : coup meilleur ou presque, position pas mauvaise après, et vous n'étiez pas déjà complètement gagnant sans lui (détails ci-dessous) |
 | **Très bon** | Coup décisif pour l'issue : il fait passer de perdant à égal, ou d'égal à gagnant, ou c'est le seul bon coup (détails ci-dessous) |
 | **Meilleur** | Le coup du moteur (ou une perte ≤ 0,1 %) |
-| **Excellent** | perte < 2 % |
-| **Bon** | perte < 5 % |
-| **Imprécision** | perte < 10 % |
-| **Erreur** | perte < 20 % |
-| **Gaffe** | perte ≥ 20 % |
-| **Occasion manquée** | Le coup adverse précédent vous a fait gagner au moins 10 points, le meilleur coup vous donnait une position gagnante (≥ 70 %), et votre coup vous fait repasser sous 70 % ou perd au moins 10 points (détails ci-dessous) |
+| **Excellent** | perte ≤ 2 % (seuils publiés par chess.com) |
+| **Bon** | perte ≤ 5 % |
+| **Imprécision** | perte ≤ 10 % |
+| **Erreur** | perte ≤ 20 % |
+| **Gaffe** | perte > 20 % |
+| **Occasion manquée** | Vous ne profitez pas d'une erreur adverse, ou vous ratez un gain net qui vient d'apparaître : le meilleur coup vous donnait une position gagnante (≥ 70 %) et votre coup perd au moins 5 points en vous faisant repasser sous 70 % (détails ci-dessous) |
 
 Comme chess.com, ces seuils sont **les mêmes pour tous les niveaux** : le niveau des joueurs n'intervient que dans le
 calcul des chances de gain. Quand les règles de classement changent (nouvelle version de l'application), la base est
@@ -439,7 +449,7 @@ Précisions :
   | Condition | Réglage | 1400 Elo et plus | Moins de 1400 Elo |
   |---|---|---|---|
   | le coup est le meilleur ou presque : perte au plus | `brilliant.maxLoss` | 2 points | 5 points |
-  | la position n'est pas mauvaise après le coup : points espérés au moins | `brilliant.minAfter` | 45 % | 40 % |
+  | la position n'est pas mauvaise après le coup : points attendus au moins | `brilliant.minAfter` | 45 % | 40 % |
   | vous n'étiez pas déjà complètement gagnant sans ce coup : meilleure autre possibilité sous | `brilliant.maxAlternative` | 90 % | 95 % |
 
   Un sacrifice pour parer un échec compte aussi. Les pions ne comptent pas.
@@ -448,24 +458,27 @@ Précisions :
   d'**égale** (30 à 70 %) à **gagnante** (70 % et plus), ou c'est le **seul bon coup** (au moins 15 points d'écart ;
   10 sous 1400 Elo). Une simple reprise de pièce (prendre sur la case où l'adversaire vient de prendre) n'est pas
   comptée, sinon presque chaque échange produirait un « Très bon » (réglage `great.ignoreRecaptures`).
-- **Occasion manquée** (définition de chess.com : ne pas profiter d'une erreur adverse, et perdre ainsi la chance
-  d'atteindre une position gagnante). Un coup est une occasion manquée si les trois conditions sont réunies :
-  1. avant votre coup, le meilleur coup vous donnait une **position gagnante** : au moins **70 %** de chances de gain
+- **Occasion manquée** (définition de chess.com : ne pas profiter d'une erreur adverse, ou rater un gain net).
+  Un coup est une occasion manquée si :
+  1. avant votre coup, le meilleur coup vous donnait une **position gagnante** : au moins **70 %** de points attendus
      (seuil choisi car, au-delà, la partie se gagne la plupart du temps ; il est le même pour tous les niveaux) ;
-  2. le coup adverse précédent vous a fait gagner **au moins 10 points** de chances de gain (comparé à son meilleur
-     coup), quelle que soit son étiquette (imprécision, erreur ou gaffe) ;
-  3. votre coup vous fait **repasser sous 70 %**, ou **perd au moins 10 points**.
+  2. **et** l'occasion vient de l'adversaire : son coup précédent vous a fait gagner **au moins 10 points** (comparé à
+     son meilleur coup), quelle que soit son étiquette, **ou** le gain vient d'apparaître (vous n'étiez pas gagnant
+     s'il avait joué son meilleur coup) ;
+  3. **et** votre coup perd **au moins 5 points** et vous fait **repasser sous 70 %** ; après une erreur adverse d'au
+     moins 10 points, perdre **10 points ou plus** suffit, même en restant gagnant.
 
   Si vous étiez déjà gagnant avant l'erreur adverse, un coup qui vous laisse gagnant en perdant moins de 10 points
-  reste une simple imprécision ; s'il perd 10 points ou plus, c'est une occasion manquée. Une occasion manquée est
-  comptée à part, même si le coup est très mauvais.
+  reste une simple imprécision. Une occasion manquée est comptée à part, même si le coup est très mauvais. Ces seuils
+  se règlent dans `classification.miss` (`winning`, `minGain`, `minLoss`, `winningLoss`).
 
 Un coup qui devient douteux après un changement de méthode, sans avoir été vérifié à la profondeur 22, rend la partie
 « à revérifier » (la vérification tient compte des deux méthodes).
 
 ### Chances de gain selon le niveau
 
-`npm run fit-curves` ajuste ces courbes sur la **base ouverte de Lichess** (<https://database.lichess.org>, CC0). Le
+Les valeurs de départ de la courbe du style chess.com viennent de mesures faites sur de vraies parties.
+`npm run fit-curves` ajuste des courbes par niveau sur la **base ouverte de Lichess** (<https://database.lichess.org>, CC0). Le
 fichier mensuel (2026-09, environ 29 Go compressés) est lu **en flux** : rien n'est enregistré sur le disque, la
 lecture s'arrête dès que l'échantillon est atteint. Sur 2 812 681 parties lues, on garde les
 **220 000 parties blitz et rapides qui ont des évaluations** `[%eval]` (blitz
@@ -481,7 +494,8 @@ Les mats sont traités à part : score moyen observé quand le joueur au trait a
 1000 Elo) ou en subit un. Entre deux tranches, les coefficients sont interpolés ; en dessous de 600 ou au-dessus de
 2400 Elo, on prend la tranche extrême ; le bullet utilise la courbe blitz, le classique et la partie par
 correspondance la courbe rapide ; sans Elo connu, 1500. Les coefficients, la source, le mois, la taille de
-l'échantillon et la date sont dans `resources/expected-points.json`.
+l'échantillon et la date sont dans `resources/expected-points.json`. La courbe à deux paramètres du style chess.com
+(`k1500`, `eloSlope`) est ensuite ajustée sur les pentes `b` de toutes ces tranches (`npm run fit-curves` l'affiche).
 
 **Validation** sur une partie sur cinq, mise de côté avant l'ajustement (2 692 472 positions) :
 
@@ -515,17 +529,17 @@ de 1000 à 1199 Elo) donne 59,6 % pour un +3.
 
 **Conséquence à connaître** : avec ces courbes, une même chute d'évaluation coûte moins de points à un joueur de
 faible niveau qu'avec la formule Lichess. Il y a donc moins d'erreurs, de gaffes et d'occasions manquées dans ses
-parties, ce qui peut l'éloigner des bilans de chess.com, dont la formule est secrète. Le réglage
-`classification.levelCurves` (`config.json`) permet de revenir à la formule Lichess tout en gardant les seuils
-2 / 5 / 10 / 20 % ; `npm run compare-chesscom` compare les deux.
+parties. Ce sont des mesures sur Lichess, pas la courbe de chess.com (secrète) : c'est pourquoi la courbe s'ajuste
+ensuite sur vos bilans chess.com.
 
 Limite : les classements Lichess et chess.com ne sont pas sur la même échelle (à niveau égal, l'Elo Lichess est en
 général plus élevé aux niveaux modestes). Les courbes sont utilisées avec l'Elo de la partie tel quel.
 
 ### 5.3 Précision
 
-La précision enregistrée suit exactement Lichess (lila `AccuracyPercent.scala`), quelle que soit la méthode de
-classement.
+La précision enregistrée (liste des parties, progression, Elo estimé) suit exactement Lichess (lila
+`AccuracyPercent.scala`), quelle que soit la méthode de classement. L'écran d'une partie montre en plus une
+précision « style chess.com » (plus bas).
 
 - **Par coup** : à partir des chances de gain du joueur dans la position avant et après son coup (évaluations
   plafonnées à ±10 pions, mat = ±10 pions) : 100 % si elles ne baissent pas, sinon
@@ -535,8 +549,16 @@ classement.
   gain sur une fenêtre glissante (taille = nombre de coups / 10, entre 2 et 8), borné entre 0,5 et 12 — et
   (b) la **moyenne harmonique** des précisions par coup (qui punit fortement les gaffes).
 
-**Notre précision et celle de chess.com ne sont pas comparables.** chess.com calcule la sienne avec sa formule CAPS2,
-qui n'est pas publiée ; la nôtre suit la méthode Lichess, documentée ci-dessus. Les deux chiffres ne sont pas sur la
+**Précision style chess.com** (approximation : la formule CAPS2 de chess.com n'est pas publiée). Elle part des
+**points attendus perdus** du style chess.com (donc du niveau des joueurs), avec trois réglages
+(`accuracy.chesscom`) qui s'ajustent sur vos bilans chess.com :
+
+- par coup : `scale × e^(−decay × perte) − (scale − 100)`, bornée entre 0 et 100 (départ : `scale = 103,1668`,
+  `decay = 0,04354`, la courbe de Lichess) ;
+- par partie : `(1 − harmonicWeight) × moyenne + harmonicWeight × moyenne harmonique` (départ : 0,5).
+
+**La précision Lichess et celle de chess.com ne sont pas comparables.** chess.com calcule la sienne avec sa formule
+CAPS2, qui n'est pas publiée ; la précision Lichess est documentée ci-dessus. Les deux chiffres ne sont pas sur la
 même échelle : un 85 % ici n'est ni meilleur ni moins bon qu'un 80 % sur chess.com (sur la partie 620, par exemple :
 87,9 % et 83,0 % ici, 79,0 % et 75,7 % chez chess.com). Pour suivre vos progrès, comparez nos précisions entre elles.
 
@@ -576,7 +598,7 @@ Premier résultat, partie 620 (profondeur 22 sur les coups douteux) — fautes s
 | Noirs (1106) | 6 | 2 | 5 |
 
 Sur cette partie, la formule Lichess est plus proche de chess.com que les courbes par niveau. Une seule partie ne
-suffit pas à trancher : ajoutez-en d'autres avant de changer `classification.levelCurves`.
+suffit pas à trancher : ajoutez-en d'autres avant d'en tirer des conclusions.
 
 ### 5.4 Elo de performance et Elo estimé
 

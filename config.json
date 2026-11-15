@@ -34,9 +34,10 @@
 
   "classification": {
     "method": "lichess",
-    "levelCurves": true,
+    "curve": { "k1500": 0.2211, "eloSlope": 0.4667, "eloMin": 100, "eloMax": 3000 },
     "bestMaxLoss": 0.1,
     "thresholds": { "excellent": 2, "good": 5, "inaccuracy": 10, "mistake": 20 },
+    "miss": { "winning": 70, "minGain": 10, "minLoss": 5, "winningLoss": 10 },
     "brilliant": { "minSacrifice": 2, "maxLoss": 2, "minAfter": 45, "maxAlternative": 90 },
     "great": { "maxLoss": 1, "minGap": 15, "ignoreRecaptures": true },
     "lowElo": {
@@ -47,7 +48,8 @@
   },
 
   "accuracy": {
-    "uncertaintyBonus": 1
+    "uncertaintyBonus": 1,
+    "chesscom": { "decay": 0.04354, "scale": 103.1668, "harmonicWeight": 0.5 }
   },
 
   "elo": {

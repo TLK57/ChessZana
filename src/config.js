@@ -47,13 +47,19 @@ export const DEFAULTS = {
     // Méthode de classement des coups : lichess = règles exactes de Lichess ; chesscom = style chess.com (réglages
     // ci-dessous). Se change aussi dans l'application, qui retient le choix.
     method: 'lichess',
-    // Style chess.com : chances de gain selon le niveau et la cadence (resources/expected-points.json).
-    // false = formule Lichess, la même pour tous les niveaux.
-    levelCurves: true,
+    // ---- Style chess.com (les réglages ajustés sur vos bilans chess.com sont dans data/style-chesscom.json) ----
+    // Points attendus = 100 / (1 + e^(−k × évaluation en pions)), k = k1500 × e^(eloSlope × (Elo − 1500) / 1000) :
+    // à faible niveau, un même avantage vaut moins. Valeurs de départ ajustées sur la base ouverte de Lichess
+    // (resources/expected-points.json) ; Elo borné entre eloMin et eloMax.
+    curve: { k1500: 0.2211, eloSlope: 0.4667, eloMin: 100, eloMax: 3000 },
     bestMaxLoss: 0.1,
-    // Style chess.com. Seuils de perte (points de chances de gain) : < 2 excellent, < 5 bon, < 10 imprécision, < 20 erreur, sinon gaffe.
-    // Les mêmes pour tous les niveaux : le niveau du joueur compte seulement dans le calcul des chances de gain.
+    // Seuils publiés par chess.com (points attendus perdus) : ≤ 2 excellent, ≤ 5 bon, ≤ 10 imprécision, ≤ 20 erreur,
+    // au-delà gaffe. Les mêmes pour tous les niveaux : le niveau compte seulement dans les points attendus.
     thresholds: { excellent: 2, good: 5, inaccuracy: 10, mistake: 20 },
+    // Occasion manquée : position gagnante dès « winning » points attendus ; le coup adverse m'a fait gagner au moins
+    // minGain points (ou le gain vient d'apparaître) ; mon coup perd au moins minLoss points et me fait repasser sous
+    // le seuil gagnant (ou perd au moins winningLoss points après une erreur adverse).
+    miss: { winning: 70, minGain: 10, minLoss: 5, winningLoss: 10 },
     // Brillant : bon sacrifice de pièce (matériel net donné selon l'échange statique, en points).
     brilliant: { minSacrifice: 2, maxLoss: 2, minAfter: 45, maxAlternative: 90 },
     // Très bon : coup décisif (change l'issue : perdant → égal, égal → gagnant) ou seul bon coup.
@@ -64,6 +70,10 @@ export const DEFAULTS = {
   accuracy: {
     // Précision Lichess : +1 à la précision de chaque coup imparfait (« bonus d'incertitude » de Lichess).
     uncertaintyBonus: 1,
+    // Précision style chess.com (approximation, leur formule n'est pas publiée), à partir des points attendus perdus :
+    // par coup scale × e^(−decay × perte) − (scale − 100) ; partie (1 − harmonicWeight) × moyenne + harmonicWeight ×
+    // moyenne harmonique. Valeurs de départ : la formule de Lichess.
+    chesscom: { decay: 0.04354, scale: 103.1668, harmonicWeight: 0.5 },
   },
   elo: {
     minMoves: 8,
@@ -128,10 +138,22 @@ export function localConfigPath() {
   return process.env.CHESS_CONFIG ? null : path.join(ROOT, 'config.local.json');
 }
 
+// Réglages du style chess.com ajustés sur vos parties (npm run ajuster-chesscom) : data/style-chesscom.json.
+// Seuls la courbe (classification.curve) et la précision (accuracy.chesscom) sont lus dans ce fichier.
+export const styleFilePath = (dataDir) => path.join(dataDir, 'style-chesscom.json');
+export function readStyleFile(dataDir) {
+  const f = readJson(styleFilePath(dataDir));
+  const out = {};
+  if (isPlainObject(f.curve)) out.classification = { curve: f.curve };
+  if (isPlainObject(f.accuracy)) out.accuracy = { chesscom: f.accuracy };
+  return out;
+}
+
 export function loadConfig(file = process.env.CHESS_CONFIG || path.join(ROOT, 'config.json')) {
   const shared = readJson(file);
   const personal = readJson(localConfigPath());
-  return resolve(deepMerge(deepMerge(DEFAULTS, shared), personal));
+  const merged = resolve(deepMerge(deepMerge(DEFAULTS, shared), personal));
+  return resolve(deepMerge(merged, readStyleFile(merged.dataDir)));
 }
 
 // Configuration partagée (modifiable par les tests via overrideConfig).

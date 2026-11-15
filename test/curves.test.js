@@ -1,14 +1,19 @@
-// Chances de gain selon le niveau : courbes ajustées sur la base Lichess (npm run fit-curves).
+// Chances de gain selon le niveau : courbes ajustées sur la base Lichess (npm run fit-curves), et courbe à deux
+// paramètres du style chess.com qui en est tirée.
 import './_unit.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { CURVES_FILE, curveFor, expectedPoints, loadCurves } from '../src/analysis/classify.js';
-import { winPct } from '../src/analysis/formulas.js';
-import { addGame, fitLogistic, parseEvals, speedOf, stripSkippableFrames } from '../scripts/fit-curves.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { DEFAULTS, config, overrideConfig } from '../src/config.js';
+import { chesscomXp, curveSlope, winPct } from '../src/analysis/formulas.js';
+import { addGame, curveParamsFromTable, fitLogistic, parseEvals, speedOf, stripSkippableFrames } from '../scripts/fit-curves.js';
 
+const CURVES_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'resources', 'expected-points.json');
 const real = JSON.parse(fs.readFileSync(CURVES_FILE, 'utf8'));
-test.after(() => { loadCurves(''); });
+const testCurve = structuredClone(config.classification.curve);
+test.after(() => overrideConfig({ classification: { curve: testCurve } }));
 
 test('fichier des courbes : source, mois, échantillon d\'au moins 200 000 parties, 18 tranches par cadence', () => {
   assert.match(real.source, /^https:\/\/database\.lichess\.org\/standard\/lichess_db_standard_rated_\d{4}-\d{2}\.pgn\.zst$/);
@@ -23,29 +28,31 @@ test('fichier des courbes : source, mois, échantillon d\'au moins 200 000 parti
   assert.ok(real.validation.logLoss.nouvelle < real.validation.logLoss.lichess, 'meilleure que la courbe Lichess sur les parties mises de côté');
 });
 
-test('courbe d\'un joueur : interpolation entre les tranches, bornes, cadences sans courbe propre', () => {
-  const data = { curves: { blitz: [{ elo: 1000, a: 0, b: 0.2, mateWin: 0.9, mateLoss: 0.1 }, { elo: 1100, a: 0.2, b: 0.4, mateWin: 1, mateLoss: 0 }], rapid: [{ elo: 1000, a: 1, b: 1, mateWin: 1, mateLoss: 0 }, { elo: 1100, a: 1, b: 1, mateWin: 1, mateLoss: 0 }] } };
-  assert.deepEqual(curveFor(1050, 'blitz', data), { a: 0, b: 0.2, mateWin: 0.9, mateLoss: 0.1 }, 'centre de la tranche 1000');
-  const mid = curveFor(1100, 'blitz', data);
-  assert.ok(Math.abs(mid.a - 0.1) < 1e-9 && Math.abs(mid.b - 0.3) < 1e-9, 'à mi-chemin entre deux centres');
-  assert.equal(curveFor(400, 'blitz', data).b, 0.2, 'sous la première tranche : première courbe');
-  assert.equal(curveFor(3000, 'blitz', data).b, 0.4, 'au-dessus : dernière courbe');
-  assert.equal(curveFor(1050, 'bullet', data).b, 0.2, 'bullet → blitz');
-  assert.equal(curveFor(1050, 'daily', data).a, 1, 'correspondance → rapide');
-  assert.equal(curveFor(null, 'blitz', data).b, 0.4, 'Elo inconnu : 1500 (borné à la dernière tranche ici)');
+test('style chess.com : la courbe de départ (config.json) est tirée des courbes de la base Lichess', () => {
+  const p = curveParamsFromTable(real);
+  assert.deepEqual({ k1500: DEFAULTS.classification.curve.k1500, eloSlope: DEFAULTS.classification.curve.eloSlope }, p);
+  const shared = JSON.parse(fs.readFileSync(path.join(path.dirname(CURVES_FILE), '..', 'config.json'), 'utf8'));
+  assert.equal(shared.classification.curve.k1500, p.k1500);
+  assert.equal(shared.classification.curve.eloSlope, p.eloSlope);
 });
 
-test('points espérés : courbe du niveau (style chess.com), formule Lichess sans fichier de courbes', () => {
-  loadCurves(CURVES_FILE);
-  const at = (cp, elo) => expectedPoints({ cp }, { elo, timeClass: 'blitz' });
-  assert.ok(Math.abs(at(0, 1500) - 50) < 10, 'position égale : environ 50 %');
+test('style chess.com : points attendus selon l\'Elo, mats et tables exacts', () => {
+  overrideConfig({ classification: { curve: DEFAULTS.classification.curve } });
+  const at = (cp, elo) => chesscomXp({ cp }, elo);
+  assert.equal(at(0, 1500), 50, 'position égale : 50 %');
   assert.ok(at(300, 1500) > at(100, 1500) && at(100, 1500) > at(-100, 1500), 'croissante');
+  assert.ok(Math.abs(at(300, 1000) + at(-300, 1000) - 100) < 1e-9, 'symétrique');
   assert.ok(at(300, 2200) > at(300, 800), 'le même +3 vaut plus pour un joueur fort');
-  assert.ok(expectedPoints({ mate: 3 }, { elo: 1100, timeClass: 'blitz' }) > 80, 'mat en faveur');
-  assert.equal(expectedPoints({ mate: 0 }, { elo: 1100 }), 0, 'déjà maté');
-  assert.equal(expectedPoints({ wdl: 'win' }, { elo: 1100 }), 100, 'table de finales : exact');
-  loadCurves('');
-  assert.equal(expectedPoints({ cp: 300 }, { elo: 1100 }), winPct({ cp: 300 }), 'sans fichier de courbes : formule Lichess');
+  assert.ok(at(300, 1000) < winPct({ cp: 300 }), 'à 1000 Elo, un +3 vaut moins qu\'avec la formule Lichess');
+  assert.equal(curveSlope(50), curveSlope(100), 'Elo borné en bas (eloMin)');
+  assert.equal(curveSlope(5000), curveSlope(3000), 'Elo borné en haut (eloMax)');
+  assert.equal(curveSlope(null), curveSlope(1500), 'Elo inconnu : 1500');
+  assert.equal(chesscomXp({ mate: 3 }, 800), 100);
+  assert.equal(chesscomXp({ mate: 0 }, 800), 0, 'déjà maté');
+  assert.equal(chesscomXp({ wdl: 'draw' }, 800), 50, 'table de finales : exact');
+  // Avec k1500 = 0,368208 et sans effet de l'Elo, c'est exactement la formule Lichess.
+  overrideConfig({ classification: { curve: { k1500: 0.368208, eloSlope: 0 } } });
+  assert.ok(Math.abs(chesscomXp({ cp: 300 }, 900) - winPct({ cp: 300 })) < 1e-9);
 });
 
 test('ajustement : la régression retrouve une courbe connue', () => {

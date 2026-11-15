@@ -6,7 +6,7 @@ import { AnalysisQueue } from '../queue.js';
 import { syncChessCom } from '../importers/chesscom.js';
 import { syncLichess } from '../importers/lichess.js';
 import { listPlayers } from '../games.js';
-import { CLASSIFICATION_VERSION, METHODS } from '../analysis/classify.js';
+import { CLASSIFICATION_VERSION, METHODS, classificationSignature } from '../analysis/classify.js';
 import { reclassifyAll } from '../analysis/reclassify.js';
 import { backfillOpenings } from '../library.js';
 import { ensureStatsSchema, refreshAllStats, refreshGameStats, resetStatsSchema } from '../stats/compute.js';
@@ -101,14 +101,23 @@ export function loadClassificationMethod() {
 }
 
 // Nouvelles règles de classement (nouvelle version de l'application) : sauvegarde de la base, puis reclassement
-// de toutes les parties déjà analysées, sans moteur. Rien à faire si la base est déjà à jour.
+// de toutes les parties déjà analysées, sans moteur. Réglages du classement modifiés depuis le dernier lancement
+// (méthode dans config.json, réglages du style chess.com ajustés par npm run ajuster-chesscom) : reclassement aussi,
+// sans sauvegarde (les évaluations ne changent pas). Rien à faire si la base est déjà à jour.
 export function reclassifyIfRulesChanged() {
   const done = Number(getMeta('classification_version', '1'));
-  if (done >= CLASSIFICATION_VERSION) return false;
+  const sameSettings = getMeta('classification_signature', '') === classificationSignature();
+  if (done >= CLASSIFICATION_VERSION && sameSettings) return false;
   const analysed = getDb().prepare('SELECT COUNT(*) AS n FROM game_analysis').get().n;
-  if (!analysed) { setMeta('classification_version', String(CLASSIFICATION_VERSION)); return false; }
-  const b = backupDatabase(getDb(), `avant-reclassement-v${CLASSIFICATION_VERSION}`);
-  console.log(`  Nouvelles règles de classement : sauvegarde ${b.name}, puis reclassement de ${analysed} analyses.`);
+  if (!analysed) {
+    setMeta('classification_version', String(CLASSIFICATION_VERSION));
+    setMeta('classification_signature', classificationSignature());
+    return false;
+  }
+  if (done < CLASSIFICATION_VERSION) {
+    const b = backupDatabase(getDb(), `avant-reclassement-v${CLASSIFICATION_VERSION}`);
+    console.log(`  Nouvelles règles de classement : sauvegarde ${b.name}, puis reclassement de ${analysed} analyses.`);
+  } else console.log(`  Réglages du classement modifiés : reclassement de ${analysed} analyses.`);
   reclassifyInBackground(() => setMeta('classification_version', String(CLASSIFICATION_VERSION)));
   return true;
 }
@@ -124,7 +133,7 @@ function reclassifyInBackground(onDone = null) {
     const again = state.reclassify.again;
     state.reclassify = { running: false, done: r.total, total: r.total, failed: r.failed.length, method: config.classification.method };
     if (r.failed.length) console.error(`  Reclassement : ${r.failed.length} analyse(s) à relancer (${r.failed[0].error})`);
-    else onDone?.();
+    else { onDone?.(); if (!again) setMeta('classification_signature', classificationSignature()); }
     if (again) reclassifyInBackground();
   }).catch((e) => { state.reclassify = { running: false, error: e.message }; });
 }

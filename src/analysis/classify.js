@@ -4,12 +4,13 @@
 //  - « chesscom » : style chess.com (leur algorithme n'est pas public) : points attendus selon le niveau, seuils
 //    publiés par chess.com, et les catégories Brillant, Très bon, Occasion manquée.
 // classifyGame() choisit la méthode réglée ; la précision enregistrée est toujours celle de Lichess (judgeLichess).
-import fs from 'node:fs';
-import path from 'node:path';
 import { Chess } from 'chess.js';
-import { ROOT, config } from '../config.js';
+import { config } from '../config.js';
 import { materialBalance, playUci } from '../chessutil.js';
-import { WIN_K, accuracyFromWinPercents, gameAccuracy, lichessCp, lichessWinPercent, winPct, winningChances } from './formulas.js';
+import {
+  WIN_K, accuracyFromWinPercents, chesscomGameAccuracy, chesscomMoveAccuracy, chesscomXp, gameAccuracy, lichessCp, lichessWinPercent,
+  winningChances,
+} from './formulas.js';
 import { pieceSacrifice } from './patterns.js';
 
 export const METHODS = ['lichess', 'chesscom'];
@@ -43,16 +44,34 @@ export const LICHESS_THRESHOLDS = { excellent: 2.5, good: 5, inaccuracy: 10, mis
 // au lancement suivant (sans moteur, après une sauvegarde de la base).
 export const CLASSIFICATION_VERSION = 6;
 
+/**
+ * Empreinte des réglages qui changent le classement ou la précision enregistrés : si elle change d'un lancement à
+ * l'autre, les parties déjà analysées sont reclassées (src/routes/context.js).
+ */
+export function classificationSignature() {
+  const c = config.classification;
+  const parts = { version: CLASSIFICATION_VERSION, method: currentMethod(), bonus: config.accuracy.uncertaintyBonus };
+  if (currentMethod() === 'chesscom') {
+    Object.assign(parts, { curve: c.curve, thresholds: c.thresholds, miss: c.miss, bestMaxLoss: c.bestMaxLoss, brilliant: c.brilliant, great: c.great, lowElo: c.lowElo });
+  }
+  return JSON.stringify(parts);
+}
+
 // Seuils de perte (en % de chances de gain) de la méthode. Comme chez chess.com, ils ne dépendent pas du niveau.
 export function thresholdsFor(method = currentMethod()) {
   return method === 'lichess' ? LICHESS_THRESHOLDS : config.classification.thresholds;
 }
 
-export function lossCategory(loss, th) {
-  if (loss < th.excellent) return 'excellent';
-  if (loss < th.good) return 'good';
-  if (loss < th.inaccuracy) return 'inaccuracy';
-  if (loss < th.mistake) return 'mistake';
+/**
+ * Catégorie d'après la perte. Lichess : une perte égale au seuil passe dans la catégorie suivante (imprécision dès 5).
+ * chess.com (inclusive) : « Excellent ≤ 0,02, Bon 0,02–0,05… » : une perte égale au seuil reste dans la catégorie.
+ */
+export function lossCategory(loss, th, inclusive = false) {
+  const under = (x) => (inclusive ? loss <= x : loss < x);
+  if (under(th.excellent)) return 'excellent';
+  if (under(th.good)) return 'good';
+  if (under(th.inaccuracy)) return 'inaccuracy';
+  if (under(th.mistake)) return 'mistake';
   return 'blunder';
 }
 
@@ -82,20 +101,13 @@ function holdsDeficit(deltas, minSac) {
 }
 
 
-/**
- * Classe un coup. ctx :
- *  book, legalMoves, inCheck, playedIsBest, winBest, winPlayed, winSecond (chances de gain du joueur qui joue),
- *  elo, fenBefore, playedPv, altPv, isRecapture,
- *  prev : { classification, winBest } du coup adverse précédent (ou null)
- * Renvoie { classification, loss }.
- */
-// ---- Règle « occasion manquée » (définition de chess.com : ne pas profiter d'une erreur adverse,
-//      et perdre ainsi la chance d'atteindre une position gagnante) ----
-export const WINNING = 70; // position gagnante : au moins 70 % de chances de gain (points espérés)
-export const MISS_MIN_GAIN = 10; // le coup adverse précédent m'a fait gagner au moins 10 points
-export const MISS_MIN_LOSS = 10; // ou mon coup perd au moins 10 points (même si je reste gagnant)
-export const LOSING = 30; // position perdante : moins de 30 % (égale entre 30 et 70 %, gagnante au-delà)
-const outcome = (x) => (x < LOSING ? 0 : x < WINNING ? 1 : 2);
+// ---- Style chess.com : règles particulières ----
+// Position perdante sous 30 points attendus, gagnante à partir de config.classification.miss.winning (70).
+export const LOSING = 30;
+// Valeurs par défaut de l'occasion manquée (config.classification.miss) ; MISS_MIN_GAIN sert aussi à la vérification.
+export const WINNING = 70;
+export const MISS_MIN_GAIN = 10;
+const outcome = (x, winning) => (x < LOSING ? 0 : x < winning ? 1 : 2);
 
 /** Réglages « brillant » et « très bon » selon l'Elo du joueur (plus généreux sous 1400 Elo). */
 export function generosity(elo) {
@@ -113,46 +125,19 @@ export function negate(s) {
   return { cp: s.cp != null ? -s.cp : null, mate: s.mate != null ? -s.mate : null, wdl: s.wdl === 'win' ? 'loss' : s.wdl === 'loss' ? 'win' : (s.wdl ?? null) };
 }
 
-// ---- Points espérés selon le niveau (resources/expected-points.json, npm run fit-curves) ----
-let CURVES;
-export const CURVES_FILE = path.join(ROOT, 'resources', 'expected-points.json');
-// CHESS_CURVES : autre fichier de courbes, ou chaîne vide pour s'en passer (formule Lichess partout).
-export function loadCurves(file = process.env.CHESS_CURVES ?? CURVES_FILE) {
-  try { CURVES = file ? JSON.parse(fs.readFileSync(file, 'utf8')) : null; } catch { CURVES = null; }
-  return CURVES;
-}
-const curves = () => (CURVES === undefined ? loadCurves() : CURVES);
-// Cadences sans courbe propre : bullet → blitz ; classique et partie par correspondance → rapide.
-const CURVE_TC = { bullet: 'blitz', blitz: 'blitz', rapid: 'rapid', classical: 'rapid', daily: 'rapid' };
-export const DEFAULT_ELO = 1500;
-
-/** Courbe pour un Elo et une cadence : interpolation linéaire entre les centres des tranches de 100 Elo. */
-export function curveFor(elo, timeClass, data = curves()) {
-  const bins = data.curves[CURVE_TC[timeClass] ?? 'blitz'];
-  const centers = bins.map((b) => b.elo + 50);
-  const e = Math.min(centers.at(-1), Math.max(centers[0], Number.isFinite(elo) && elo > 0 ? elo : DEFAULT_ELO));
-  let i = 0;
-  while (i < bins.length - 2 && e > centers[i + 1]) i++;
-  const t = (e - centers[i]) / (centers[i + 1] - centers[i]);
-  const mix = (k) => bins[i][k] + t * (bins[i + 1][k] - bins[i][k]);
-  return { a: mix('a'), b: mix('b'), mateWin: mix('mateWin'), mateLoss: mix('mateLoss') };
-}
-
-/**
- * Points espérés (0–100) du joueur concerné, pour un score vu de son côté.
- * - Style chess.com : courbe ajustée sur les parties Lichess de son niveau et de sa cadence
- *   (un +3 ne vaut pas la même chose à 1100 et à 2500 Elo) ; les mats prennent le score moyen observé.
- * - Sans fichier de courbes (ou levelCurves à false) : formule Lichess (chances de gain).
- * - Table de finales : résultat exact (100, 50 ou 0).
- */
-export function expectedPoints(score, who = {}) {
-  const data = config.classification.levelCurves === false ? null : curves();
-  if (!data || !score || score.wdl) return winPct(score);
-  const c = curveFor(who.elo, who.timeClass, data);
-  if (score.mate != null) return score.mate > 0 ? 100 * c.mateWin : score.mate < 0 ? 100 * c.mateLoss : 0;
-  if (score.cp == null) return 50;
-  const cp = Math.max(-data.model.cpClamp, Math.min(data.model.cpClamp, score.cp));
-  return 100 / (1 + Math.exp(-(c.a + (c.b * cp) / 100)));
+// Ce qui ne dépend que de la position et du coup (nombre de coups légaux, sacrifice), gardé en mémoire : l'ajustement
+// sur les bilans chess.com reclasse les mêmes parties des milliers de fois.
+const FEATURES = new Map();
+function featuresOf(fen, uci) {
+  const key = `${fen}|${uci}`;
+  let f = FEATURES.get(key);
+  if (!f) {
+    if (FEATURES.size > 50000) FEATURES.clear();
+    f = { legal: new Chess(fen).moves().length, sacrificeValue: null };
+    f.sacrifice = () => (f.sacrificeValue ??= pieceSacrifice(fen, uci).value);
+    FEATURES.set(key, f);
+  }
+  return f;
 }
 
 /**
@@ -160,51 +145,65 @@ export function expectedPoints(score, who = {}) {
  * moves[i] : { color, uci, san, fenBefore, book, bestUci, evalBest, evalPlayed, evalSecond }
  *   evalBest / evalPlayed / evalSecond : { cp, mate, wdl } du point de vue du joueur qui joue le coup.
  *   Le sacrifice éventuel est mesuré sur la position (échange statique), sans moteur.
- * players : { w: { elo }, b: { elo }, timeClass }.
+ * players : { w: { elo }, b: { elo } } (Elo de la partie, pour les points attendus).
  * Renvoie pour chaque coup { classification, loss, xpBest, xpPlayed, xpSecond, gain }.
  */
 export function classifyChesscom(moves, players = {}) {
   const c = config.classification;
   const th = thresholdsFor('chesscom');
+  const ms = c.miss;
   return moves.map((m, i) => {
-    const who = { elo: players[m.color]?.elo ?? null, timeClass: players.timeClass ?? null };
-    const xp = (s) => expectedPoints(s, who);
+    const elo = players[m.color]?.elo ?? null;
+    const xp = (s) => chesscomXp(s, elo);
     const xpBest = xp(m.evalBest);
     const xpPlayed = xp(m.evalPlayed);
     const xpSecond = m.evalSecond ? xp(m.evalSecond) : null;
     const loss = Math.max(0, xpBest - xpPlayed);
     const prev = i > 0 ? moves[i - 1] : null;
+    const prevOpp = prev && prev.color !== m.color && prev.evalBest && prev.evalPlayed ? prev : null;
     // Ce que le coup adverse précédent m'a fait gagner, mesuré avec ma propre courbe.
-    const gain = prev && prev.color !== m.color && prev.evalBest && prev.evalPlayed
-      ? xp(negate(prev.evalPlayed)) - xp(negate(prev.evalBest)) : 0;
+    const gain = prevOpp ? xp(negate(prevOpp.evalPlayed)) - xp(negate(prevOpp.evalBest)) : 0;
     const out = (classification) => ({ classification, loss, xpBest, xpPlayed, xpSecond, gain });
     if (m.book) return out('book');
-    const chess = new Chess(m.fenBefore);
-    const legal = chess.moves().length;
+    const f = featuresOf(m.fenBefore, m.uci);
     const playedIsBest = m.bestUci === m.uci;
-    const g = generosity(who.elo);
+    const g = generosity(elo);
     // Meilleure autre possibilité que le coup joué : le 2e coup du moteur si j'ai joué le 1er, sinon le 1er.
     const xpAlt = playedIsBest ? xpSecond : xpBest;
 
     // Brillant : bon sacrifice de pièce (cavalier, fou, tour ou dame laissé en prise ou donné, perte nette selon
     // l'échange statique), coup meilleur ou presque, position pas mauvaise après le coup, et je n'étais pas déjà
     // complètement gagnant sans ce coup.
-    if (legal > 1 && loss <= g.brilliant.maxLoss && xpPlayed >= g.brilliant.minAfter && xpAlt != null && xpAlt < g.brilliant.maxAlternative
-        && pieceSacrifice(m.fenBefore, m.uci).value >= g.brilliant.minSacrifice) return out('brilliant');
+    if (f.legal > 1 && loss <= g.brilliant.maxLoss && xpPlayed >= g.brilliant.minAfter && xpAlt != null && xpAlt < g.brilliant.maxAlternative
+        && f.sacrifice() >= g.brilliant.minSacrifice) return out('brilliant');
 
     // Très bon : coup décisif pour l'issue (perdant → égal, égal → gagnant) ou seul bon coup (écart avec la meilleure
     // autre possibilité). Une simple reprise de pièce n'est pas comptée.
     const isRecapture = !!prev && /x/.test(prev.san ?? '') && /x/.test(m.san ?? '') && prev.uci?.slice(2, 4) === m.uci.slice(2, 4);
-    if (legal > 1 && loss <= g.great.maxLoss && xpAlt != null && !(g.great.ignoreRecaptures && isRecapture)
-        && (outcome(xpPlayed) > outcome(xpAlt) || xpPlayed - xpAlt >= g.great.minGap)) return out('great');
+    if (f.legal > 1 && loss <= g.great.maxLoss && xpAlt != null && !(g.great.ignoreRecaptures && isRecapture)
+        && (outcome(xpPlayed, ms.winning) > outcome(xpAlt, ms.winning) || xpPlayed - xpAlt >= g.great.minGap)) return out('great');
 
-    // Occasion manquée : l'erreur adverse m'a fait gagner au moins 10 points, le meilleur coup me donnait une
-    // position gagnante, et mon coup me fait repasser sous le seuil gagnant ou perd au moins 10 points.
-    if (xpBest >= WINNING && gain >= MISS_MIN_GAIN && (xpPlayed < WINNING || loss >= MISS_MIN_LOSS)) return out('miss');
+    // Occasion manquée (« Miss » de chess.com : ne pas profiter d'une erreur adverse, ou rater un gain net).
+    // Le meilleur coup me donnait une position gagnante, mon coup perd au moins minLoss points, et :
+    //  - soit l'adversaire venait de me faire gagner au moins minGain points (erreur ou gaffe) ;
+    //  - soit ce gain venait d'apparaître (je n'étais pas gagnant si l'adversaire avait bien joué).
+    // Je repasse alors sous le seuil gagnant ; après une erreur adverse, perdre winningLoss points suffit.
+    const gift = gain >= ms.minGain;
+    const newWin = prevOpp != null && xp(negate(prevOpp.evalBest)) < ms.winning;
+    if (xpBest >= ms.winning && loss >= ms.minLoss && (gift || newWin)
+        && (xpPlayed < ms.winning || (gift && loss >= ms.winningLoss))) return out('miss');
 
     if (playedIsBest || loss <= c.bestMaxLoss) return out('best');
-    return out(lossCategory(loss, th));
+    return out(lossCategory(loss, th, true));
   });
+}
+
+/**
+ * Précision style chess.com d'une partie, à partir des pertes de points attendus du classement style chess.com.
+ * Renvoie { white, black }.
+ */
+export function chesscomAccuracy(moves, players = {}, judged = classifyChesscom(moves, players), p = config.accuracy.chesscom) {
+  return chesscomGameAccuracy(moves.map((m, i) => ({ color: m.color, accuracy: chesscomMoveAccuracy(judged[i].loss, p) })), p);
 }
 
 // ---- Méthode Lichess exacte ----
