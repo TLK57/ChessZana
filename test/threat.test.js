@@ -6,6 +6,7 @@ import { Chess } from 'chess.js';
 import { liveThreat, materialWon, nullMoveFen, threatSignificance, THREAT_MIN_GAIN } from '../src/analysis/gameview.js';
 import { winPct } from '../src/analysis/formulas.js';
 import { gameRoutes } from '../src/routes/games.js';
+import { liveActive, state } from '../src/routes/context.js';
 import { RESTART_MESSAGE, threatError, threatInfo } from '../public/app/threat-info.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -90,6 +91,20 @@ test('la route de la menace existe : le serveur répond (503 tant que le moteur 
   assert.equal(handled, true);
   assert.equal(res.status, 503);
   assert.match(res.body.error, /moteur démarre/);
+});
+
+test("la menace ne met pas l'analyse de fond en pause (seul le mode libre le fait)", async () => {
+  const before = state.engine.status;
+  state.engine.status = 'ready';
+  try {
+    const res = { status: null, body: null, writableFinished: false, writeHead(st) { this.status = st; }, end(b) { this.body = JSON.parse(b); this.writableFinished = true; }, on() {} };
+    // Camp au trait en échec : la réponse vient sans calcul du moteur.
+    await gameRoutes({ method: 'POST' }, res, { p: '/api/live/threat', body: { fen: 'rnbqkbnr/ppppp1pp/8/5p1Q/4P3/8/PPPP1PPP/RNB1KBNR b KQkq - 1 2' } });
+    assert.deepEqual([res.status, res.body.reason], [200, 'check']);
+    assert.equal(liveActive(), false, 'la file d\'analyse continue');
+  } finally {
+    state.engine.status = before;
+  }
 });
 
 test("serveur lancé avant la mise à jour (404) : message clair « Relancez l'appli pour activer la menace »", () => {

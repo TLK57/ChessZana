@@ -80,7 +80,9 @@ export async function gameRoutes(req, res, { p, url, body }) {
     if (um) { queue.unrequest(Number(um[1])); send(res, 200, { ok: true }); return true; }
     if (p === '/api/live/threat') {
       if (state.engine.status !== 'ready') { send(res, 503, { error: 'Le moteur démarre encore, réessayez dans un instant.' }); return true; }
-      markLiveActive();
+      // Pas de pause de la file d'analyse (contrairement au mode libre) : le calcul est court et revient à chaque
+      // changement de coup, il bloquerait sinon l'analyse de fond tant que l'aide est allumée. La file tourne en
+      // priorité basse : la menace garde la main sur le processeur.
       // L'écran a changé de position (requête abandonnée) : on arrête le calcul de Stockfish.
       const ctl = new AbortController();
       res.on('close', () => { if (!res.writableFinished) ctl.abort(); });

@@ -180,7 +180,8 @@ défile. Sur tablette ou téléphone, la page défile, mais les deux joueurs et 
     pion ne change presque plus les chances de gain, mais la menace est bien réelle. Une ligne sous la barre la
     décrit (« Menace : ♕xf3, mat en 4 pour les Noirs… », « Menace : ♖xc4, les Noirs gagneraient un pion… »). Rien
     n'est calculé si le camp au trait est en échec (inverser le trait serait illégal). Le calcul se fait en
-    arrière-plan, il est gardé par position et il est abandonné si vous changez de coup avant la fin. Si la ligne
+    arrière-plan, il est gardé par position et il est abandonné si vous changez de coup avant la fin ; l'analyse de
+    vos parties continue pendant ce temps (seul le mode libre la met en pause). Si la ligne
     dit « Relancez l'appli pour activer la menace », l'application tourne encore avec une version d'avant cette aide :
     fermez la fenêtre noire et rouvrez-la avec le fichier `Lancer-…`.
   - **Faiblesses** (touche `F`), sans moteur ; le survol d'une case marquée l'explique. Option : les pièces
