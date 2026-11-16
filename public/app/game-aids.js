@@ -1,6 +1,6 @@
 // Écran d'une partie — aides visuelles sur l'échiquier (comme Lichess et chess.com) : flèche du meilleur coup,
-// et leur barre de boutons. Les couleurs de toutes les aides sont définies ici, et seulement ici.
-import { esc, store, BAD } from './util.js';
+// flèche de la menace, et leur barre de boutons. Les couleurs de toutes les aides sont définies ici, et seulement ici.
+import { esc, fig, fmtPct, store, BAD } from './util.js';
 
 /**
  * Code couleur des aides. Les flèches du moteur sont semi-transparentes et plus fines que les vôtres ;
@@ -66,24 +66,64 @@ export function createAids(ctx, onChange) {
   const prefs = loadAidPrefs();
   const save = () => store('boardAids', prefs);
 
+  // ---- Menace : calculée à la volée par le serveur (Stockfish, trait inversé), gardée en mémoire par position,
+  //      et annulée si la position affichée change avant la fin du calcul. ----
+  const threats = new Map(); // FEN → réponse du serveur
+  let pending = null; // { fen, ctl } : calcul en cours
+  function cancelThreat() { pending?.ctl.abort(); pending = null; }
+  function threatFor(fen) {
+    if (threats.has(fen)) return threats.get(fen);
+    if (pending?.fen === fen) return undefined;
+    cancelThreat();
+    const ctl = new AbortController();
+    pending = { fen, ctl };
+    fetch('/api/live/threat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fen }), signal: ctl.signal })
+      .then(async (r) => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.statusText); return j; })
+      .then((j) => threats.set(fen, j))
+      .catch((e) => { if (e.name !== 'AbortError') threats.set(fen, { fen, threat: null, error: e.message }); })
+      .finally(() => { if (pending?.ctl === ctl) { pending = null; onChange(); } });
+    return undefined;
+  }
+
   function toggle(key) {
     prefs[key] = !prefs[key];
     save();
+    if (key === 'threat') { cancelThreat(); for (const [k, v] of threats) if (v.error) threats.delete(k); }
     onChange();
   }
 
-  /** Flèches automatiques pour la position affichée. */
-  const shapes = (nd) => bestShapes(nd, prefs);
+  /** Flèches automatiques pour la position affichée : meilleur coup (vert) et menace (rouge). */
+  function shapes(nd) {
+    const out = bestShapes(nd, prefs);
+    if (!prefs.threat) { cancelThreat(); return out; }
+    const t = threatFor(nd.fen)?.threat;
+    if (t?.uci) out.push({ orig: t.uci.slice(0, 2), dest: t.uci.slice(2, 4), brush: 'aidThreat' });
+    return out;
+  }
+
+  /** Ligne d'information sous la barre : ce que montre la flèche de menace. */
+  function threatInfo(nd) {
+    if (!prefs.threat) return '';
+    const t = threats.get(nd.fen);
+    if (!t) return '<span class="spinner"></span> Calcul de la menace…';
+    if (t.error) return `Menace indisponible : ${esc(t.error)}`;
+    if (t.reason === 'check') return 'Pas de menace calculée : le camp au trait est en échec.';
+    if (!t.threat) return 'Pas de menace sérieuse.';
+    const who = t.threat.color === 'w' ? 'les Blancs' : 'les Noirs';
+    const what = t.threat.mate ? `mat en ${t.threat.mate}` : `+${fmtPct(t.threat.gain, 0)} points de chances de gain`;
+    return `<b class="aid-threat-txt">Menace</b> : ${esc(fig(t.threat.san ?? t.threat.uci))} (${what} pour ${who} s'ils jouaient maintenant).`;
+  }
 
   const BUTTONS = [
     ['best', 'Meilleur', 'Flèche verte du meilleur coup (touche B)'],
+    ['threat', 'Menace', 'Flèche rouge de la menace : le meilleur coup de l\'adversaire s\'il pouvait jouer maintenant (touche X)'],
   ];
   const OPTIONS = [
     ['bestAll', 'Meilleur coup aussi sur les bons coups (pas seulement sur les fautes)'],
     ['bestLine', 'Afficher aussi la suite du meilleur coup (2 ou 3 coups, plus pâles)'],
   ];
 
-  function renderBar() {
+  function renderBar(nd) {
     const bar = ctx.$('#aids');
     bar.innerHTML = `<div class="aids-row" role="group" aria-label="Aides sur l'échiquier">
         ${BUTTONS.map(([k, label, title]) => `<button class="aid" data-aid="${k}" aria-pressed="${prefs[k]}" title="${esc(title)}"><i class="aid-dot ${k}"></i>${esc(label)}</button>`).join('')}
@@ -91,13 +131,14 @@ export function createAids(ctx, onChange) {
       </div>
       <div class="aid-options" id="aidOptions"${ctx.S.aidOptions ? '' : ' hidden'}>
         ${OPTIONS.map(([k, label]) => `<label><input type="checkbox" data-opt="${k}"${prefs[k] ? ' checked' : ''}> ${esc(label)}</label>`).join('')}
-      </div>`;
+      </div>
+      <div class="aids-info" aria-live="polite">${nd ? threatInfo(nd) : ''}</div>`;
   }
 
   function onClick(e) {
     const b = e.target.closest('[data-aid]');
     if (b) { toggle(b.dataset.aid); return true; }
-    if (e.target.closest('#aidOpt')) { ctx.S.aidOptions = !ctx.S.aidOptions; renderBar(); return true; }
+    if (e.target.closest('#aidOpt')) { ctx.S.aidOptions = !ctx.S.aidOptions; renderBar(ctx.node()); return true; }
     return false;
   }
   function onInput(e) {
@@ -109,5 +150,5 @@ export function createAids(ctx, onChange) {
     return true;
   }
 
-  return { prefs, toggle, shapes, renderBar, onClick, onInput, destroy: () => {} };
+  return { prefs, toggle, shapes, renderBar, onClick, onInput, destroy: cancelThreat };
 }

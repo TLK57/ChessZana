@@ -31,6 +31,7 @@ export const DEFAULTS = {
     verifyDepth: 22,
     maxSecondsPerPosition: 300,
     liveDepth: 18, // mode libre : profondeur de l'analyse en direct
+    threatDepth: 16, // aide « Menace » sur l'échiquier : profondeur du calcul (rapide, la position change souvent)
     backgroundLowPriority: true, // la file d'analyse laisse la priorité au mode libre et aux autres logiciels
   },
   lichess: {
@@ -117,6 +118,7 @@ function resolve(cfg) {
   cfg.engine.multiPV = Math.max(2, Math.floor(Number(cfg.engine.multiPV) || 2));
   cfg.engine.verifyDepth = Math.max(0, Math.min(40, Math.floor(Number(cfg.engine.verifyDepth) || 0)));
   cfg.engine.liveDepth = Math.max(8, Math.floor(Number(cfg.engine.liveDepth) || 18));
+  cfg.engine.threatDepth = Math.max(8, Math.min(30, Math.floor(Number(cfg.engine.threatDepth) || 16)));
   cfg.dataDir = process.env.CHESS_DATA_DIR || cfg.dataDir || path.join(ROOT, 'data');
   cfg.engineDir = process.env.CHESS_ENGINE_DIR || cfg.engineDir || path.join(ROOT, 'data', 'engine');
   cfg.dbPath = process.env.CHESS_DB || path.join(cfg.dataDir, 'echecs.sqlite');

@@ -2,7 +2,7 @@
 import { getDb } from '../db.js';
 import { LABELS } from '../analysis/classify.js';
 import { listMyGames, openingFamilies } from '../library.js';
-import { buildGameView, liveMove } from '../analysis/gameview.js';
+import { buildGameView, liveMove, liveThreat } from '../analysis/gameview.js';
 import { saveReview } from '../analysis/reviews.js';
 import { getQueue, liveEvaluator, markLiveActive, state } from './context.js';
 import { send } from './respond.js';
@@ -78,6 +78,20 @@ export async function gameRoutes(req, res, { p, url, body }) {
     if (rv) { send(res, 200, { review: saveReview(Number(rv[1]), body) }); return true; }
     const um = /^\/api\/games\/(\d+)\/unrequest$/.exec(p);
     if (um) { queue.unrequest(Number(um[1])); send(res, 200, { ok: true }); return true; }
+    if (p === '/api/live/threat') {
+      if (state.engine.status !== 'ready') { send(res, 503, { error: 'Le moteur démarre encore, réessayez dans un instant.' }); return true; }
+      markLiveActive();
+      // L'écran a changé de position (requête abandonnée) : on arrête le calcul de Stockfish.
+      const ctl = new AbortController();
+      res.on('close', () => { if (!res.writableFinished) ctl.abort(); });
+      try {
+        send(res, 200, await liveThreat(liveEvaluator, body, { signal: ctl.signal }));
+      } catch (e) {
+        if (e.name !== 'AbortError') throw e;
+        if (!res.writableEnded) res.end();
+      }
+      return true;
+    }
     if (p === '/api/live/move') {
       if (state.engine.status !== 'ready') { send(res, 503, { error: 'Le moteur démarre encore, réessayez dans un instant.' }); return true; }
       markLiveActive();

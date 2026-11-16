@@ -5,7 +5,7 @@
 //   game-free.js   : mode libre (coups joués sur l'échiquier, variantes de Stockfish) ;
 //   game-prompt.js : question prête à copier pour « Demander à Claude » ;
 //   game-review.js : saisie du bilan chess.com de la partie ;
-//   game-aids.js   : aides sur l'échiquier (meilleur coup…) et leur barre de boutons ;
+//   game-aids.js   : aides sur l'échiquier (meilleur coup, menace…) et leur barre de boutons ;
 //   review.js      : bilan guidé (les moments clés, un par un).
 import { api, esc, fig, fmtDate, toast, TIME_CLASS, LABELS, SYMBOLS, moveNo, fmtTimeControl } from './util.js';
 import { createGraph } from './graph.js';
@@ -316,6 +316,7 @@ export async function renderGame(root, id, startPly = 0) {
     else if (e.ctrlKey || e.metaKey || e.altKey) { /* raccourcis du navigateur (Ctrl+F…) : rien */ }
     else if (e.key === 'f') { S.orientation = S.orientation === 'white' ? 'black' : 'white'; render(); }
     else if (e.key.toLowerCase() === 'b') aids.toggle('best');
+    else if (e.key.toLowerCase() === 'x') aids.toggle('threat');
   };
   window.addEventListener('keydown', onKey);
 

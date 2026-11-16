@@ -228,3 +228,60 @@ export async function liveMove(evaluator, body) {
 export function liveDepth() {
   return config.engine.liveDepth;
 }
+
+// ------------------------------------------------------------------------------------------
+// Aide « Menace » (comme Lichess) : on donne le trait à l'autre camp et on demande son meilleur coup à Stockfish.
+
+/**
+ * Seuil d'une menace sérieuse : si l'adversaire pouvait jouer deux fois, il gagnerait au moins 10 points de chances
+ * de gain (le seuil d'une « erreur » chez Lichess), ou il aurait un mat. En dessous, on n'affiche rien : la plupart
+ * des positions ont un « meilleur coup » adverse sans que ce soit une vraie menace.
+ */
+export const THREAT_MIN_GAIN = 10;
+
+/** FEN avec le trait à l'autre camp (« coup nul »), ou null si c'est illégal : le camp au trait est en échec. */
+export function nullMoveFen(fen) {
+  const c = new Chess(fen);
+  if (c.inCheck()) return null;
+  const p = c.fen().split(' ');
+  p[1] = p[1] === 'w' ? 'b' : 'w';
+  p[3] = '-'; // la prise en passant n'est plus possible
+  if (p[1] === 'w') p[5] = String(Number(p[5]) + 1);
+  return p.join(' ');
+}
+
+/**
+ * La menace est-elle sérieuse ? current : évaluation de la position réelle (vue du camp au trait) ;
+ * threat : meilleure ligne du camp adverse quand on lui donne le trait (vue de ce camp).
+ * Renvoie { gain, mate, significant } : gain en points de chances de gain pour le camp qui menace.
+ */
+export function threatSignificance(current, threat) {
+  const now = 100 - winPct(current);
+  const after = winPct(threat);
+  const gain = after - now;
+  const mate = threat?.mate != null && threat.mate > 0;
+  return { gain, mate, significant: mate || gain >= THREAT_MIN_GAIN };
+}
+
+/**
+ * Menace dans une position : { fen, threat: { uci, san, gain, mate, color } | null, reason }.
+ * reason : 'check' (le camp au trait est en échec : inverser le trait serait illégal), 'none' (pas de coup),
+ * 'small' (rien de sérieux). signal : annulation (l'écran a changé de position).
+ */
+export async function liveThreat(evaluator, body, { signal } = {}) {
+  const fen = String(body.fen ?? '');
+  try { new Chess(fen); } catch { throw Object.assign(new Error('Position invalide'), { status: 400 }); }
+  const flipped = nullMoveFen(fen);
+  if (!flipped) return { fen, threat: null, reason: 'check' };
+  const depth = config.engine.threatDepth;
+  const now = await evaluator.evaluatePosition(fen, { depth, allowCloud: true, signal });
+  const after = await evaluator.evaluatePosition(flipped, { depth, allowCloud: false, signal });
+  const best = after.lines[0];
+  if (!best?.move || !now.lines[0]) return { fen, threat: null, reason: 'none', depth: after.depth };
+  const s = threatSignificance(scoreOf(now.lines[0]), scoreOf(best));
+  const threat = {
+    uci: best.move, san: pvDetails(flipped, [best.move])[0]?.san ?? null,
+    gain: s.gain, mate: s.mate ? best.mate : null, color: new Chess(flipped).turn(),
+  };
+  return { fen, threat: s.significant ? threat : null, reason: s.significant ? null : 'small', candidate: threat, depth: after.depth };
+}
