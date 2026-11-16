@@ -175,14 +175,27 @@ défile. Sur tablette ou téléphone, la page défile, mais les deux joueurs et 
   - **Menace** (touche `X`, comme sur Lichess) : on donne le trait à l'autre camp et Stockfish cherche son meilleur
     coup (profondeur `engine.threatDepth`, 16) : c'est ce que l'adversaire ferait s'il pouvait rejouer. La flèche
     rouge n'apparaît que si la menace est **sérieuse** : elle lui ferait gagner au moins **10 points de chances de
-    gain** (le seuil d'une erreur chez Lichess) ou lui donnerait un mat ; une ligne sous la barre la décrit
-    (« Menace : ♕xf3, mat en 4 pour les Noirs… »). Rien n'est calculé si le camp au trait est en échec (inverser le
-    trait serait illégal). Le calcul se fait en arrière-plan, il est gardé par position et il est abandonné si vous
-    changez de coup avant la fin.
-  - **Faiblesses** (touche `F`), sans moteur : vos pièces **en prise** (coins orange : attaquées et pas assez
-    défendues, ou attaquées par une pièce de moindre valeur) et **non défendues** (petit point orange). Le survol
-    d'une case marquée l'explique (« Fou en prise : attaqué 2 fois, non défendu »). Option : les pièces adverses
-    aussi. Calcul simple, comme un coup d'œil : les clouages ne sont pas pris en compte.
+    gain** (le seuil d'une erreur chez Lichess), lui donnerait un mat, ou **gagnerait du matériel** (une prise
+    gagnante d'après l'échange sur la case). Le matériel compte même dans une partie déjà jouée : à +9, prendre un
+    pion ne change presque plus les chances de gain, mais la menace est bien réelle. Une ligne sous la barre la
+    décrit (« Menace : ♕xf3, mat en 4 pour les Noirs… », « Menace : ♖xc4, les Noirs gagneraient un pion… »). Rien
+    n'est calculé si le camp au trait est en échec (inverser le trait serait illégal). Le calcul se fait en
+    arrière-plan, il est gardé par position et il est abandonné si vous changez de coup avant la fin. Si la ligne
+    dit « Relancez l'appli pour activer la menace », l'application tourne encore avec une version d'avant cette aide :
+    fermez la fenêtre noire et rouvrez-la avec le fichier `Lancer-…`.
+  - **Faiblesses** (touche `F`), sans moteur ; le survol d'une case marquée l'explique. Option : les pièces
+    adverses aussi.
+    - **En prise** (coins orange) : l'adversaire gagne du matériel en prenant la pièce, d'après un **calcul
+      d'échange** sur sa case, comme dans les moteurs. Chaque camp prend et reprend avec sa pièce la moins chère
+      (pion 1, cavalier 3, fou 3, tour 5, dame 9) et s'arrête quand continuer lui ferait perdre ; les pièces
+      alignées derrière celle qui prend entrent dans l'échange (tours doublées, dame derrière un fou ou un pion…) ;
+      une pièce clouée sur son roi ne prend que le long du clouage ; le roi ne reprend que si la case n'est plus
+      attaquée. Exemples : « Pion en prise : Txc4 gagne un pion », « Cavalier en prise : échange perdant (−2) ». Une
+      pièce simplement non défendue mais pas attaquée n'est pas marquée.
+    - **Clouée** (petite épingle en bas à gauche de la case) : la pièce cache son roi (clouage absolu), ou sa dame ou
+      une tour non défendue (clouage relatif), à une tour, un fou ou une dame adverse : « Cavalier cloué sur le roi
+      par le fou b5 », « Fou cloué sur la dame par la tour e1 ». Une case peut avoir les deux marques ; l'info-bulle
+      donne alors les deux lignes.
   - **Vos flèches** : clic droit glissé pour une flèche, clic droit sur une case pour un cercle, clic gauche pour tout
     effacer. Vert par défaut, **rouge** avec `Maj`, **bleu** avec `Alt`, **orange** avec `Ctrl`. Elles sont gardées
     pour chaque position pendant la session : elles disparaissent quand vous changez de coup et reviennent si vous y
@@ -800,6 +813,7 @@ message apparaissent en annotation sur la page de la CI (`test/reporter-github.j
 | L'ordinateur chauffe / ventile | Mettez **Pause**, ou baissez `engine.threads` (par exemple 2). |
 | Une partie est « en erreur » | Bouton « Relancer les parties en erreur ». Un PGN illisible reste signalé dans la liste. |
 | L'échiquier ne s'affiche pas | Fermez l'application et relancez le fichier `Lancer-…` : il installe les composants manquants. |
+| « Relancez l'appli pour activer la menace » | L'application a été mise à jour pendant qu'elle tournait : fermez la fenêtre noire et relancez le fichier `Lancer-…`. |
 | « Demander à Claude » ne copie rien | Le navigateur bloque le presse-papiers : le texte s'affiche alors dans une fenêtre, sélectionnez-le et faites Ctrl+C. |
 | Le mode libre est lent | Baissez `engine.liveDepth` (par exemple 16) dans `config.json`. |
 | Mac : « fichier endommagé » ou non ouvrable | Clic droit → Ouvrir, ou dans le Terminal : `npm start`. |
