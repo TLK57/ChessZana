@@ -1,4 +1,4 @@
-// Aide « Faiblesses » (public/app/weaknesses.js) : pièces en prise et pièces non défendues, sur des positions connues.
+// Aide « Faiblesses » (public/app/weaknesses.js) : pièces en prise, sur des positions connues.
 import './_unit.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -7,11 +7,8 @@ import { findWeaknesses, weaknessText } from '../public/app/weaknesses.js';
 
 const at = (list, sq) => list.find((w) => w.square === sq) ?? null;
 
-test('position de départ : aucune pièce en prise, et seules les tours ne sont pas défendues', () => {
-  const list = findWeaknesses(new Chess(), ['w', 'b']);
-  assert.ok(list.every((w) => w.kind === 'undefended'), JSON.stringify(list));
-  assert.deepEqual(list.map((w) => w.square).sort(), ['a1', 'a8', 'h1', 'h8']);
-  assert.equal(at(list, 'a1').text, 'Tour non défendue');
+test('position de départ : rien à signaler (une pièce simplement non défendue n\'est plus marquée)', () => {
+  assert.deepEqual(findWeaknesses(new Chess(), ['w', 'b']), []);
 });
 
 test('pièce attaquée par une pièce de moindre valeur : en prise même si elle est défendue', () => {
@@ -34,14 +31,13 @@ test('attaquée plus souvent que défendue : en prise ; autant défendue qu\'att
   assert.equal(at(findWeaknesses(b, ['w']), 'd4'), null);
 });
 
-test('pièce attaquée et non défendue ; pièce non défendue mais pas attaquée (marquage plus discret)', () => {
-  // Dame noire en d5 attaquée par le fou b3 et sans défense ; cavalier noir en h6 tranquille mais non défendu.
+test('pièce attaquée et non défendue : en prise ; pièce non défendue mais pas attaquée : rien', () => {
+  // Dame noire en d5 attaquée par le fou b3 et sans défense ; cavalier noir en h6 tranquille, non défendu.
   const c = new Chess('4k3/8/7n/3q4/8/1B6/8/4K3 b - - 0 1');
   const list = findWeaknesses(c, ['b']);
   assert.equal(at(list, 'd5').kind, 'hanging');
   assert.equal(at(list, 'd5').text, 'Dame en prise : attaquée 1 fois, non défendue, dont par un fou, de moindre valeur');
-  assert.equal(at(list, 'h6').kind, 'undefended');
-  assert.equal(at(list, 'h6').text, 'Cavalier non défendu');
+  assert.equal(at(list, 'h6'), null);
   assert.equal(at(list, 'e8'), null, 'jamais le roi');
 });
 
@@ -50,5 +46,5 @@ test('seulement les camps demandés', () => {
   assert.ok(findWeaknesses(c, ['b']).every((w) => w.color === 'b'));
   // Le fou b3 est lui-même attaqué par la dame d5 (attaque mutuelle) et n'est pas défendu.
   assert.deepEqual(findWeaknesses(c, ['w']).map((w) => [w.square, w.kind, w.text]), [['b3', 'hanging', 'Fou en prise : attaqué 1 fois, non défendu']]);
-  assert.equal(weaknessText({ type: 'b', kind: 'undefended' }), 'Fou non défendu');
+  assert.equal(weaknessText({ type: 'b', attackers: 1, defenders: 0 }), 'Fou en prise : attaqué 1 fois, non défendu');
 });

@@ -113,7 +113,7 @@ export function createBoard(ctx, onMove, aids) {
     return { col: white ? file : 7 - file, row: white ? 7 - rank : rank };
   };
 
-  // Faiblesses : coins orange (pièce en prise) ou point orange (pièce non défendue), couleur --aid-weakness.
+  // Faiblesses : coins orange (pièce en prise), couleur --aid-weakness.
   function renderWeak(list) {
     const key = `${ctx.S.orientation}|${list.map((w) => w.square + w.kind).join(',')}`;
     if (key === weakKey) return;

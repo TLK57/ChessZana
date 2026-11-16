@@ -110,7 +110,7 @@ export function createAids(ctx, onChange) {
     return out;
   }
 
-  // ---- Faiblesses : pièces en prise et non défendues (sans moteur), de mon camp, ou des deux en option. ----
+  // ---- Faiblesses : pièces en prise (sans moteur), de mon camp, ou des deux en option. ----
   let weakCache = { key: '', list: [] };
   function weaknesses(nd) {
     if (!prefs.weak) return [];
@@ -131,7 +131,7 @@ export function createAids(ctx, onChange) {
   const BUTTONS = [
     ['best', 'Meilleur', 'Flèche verte du meilleur coup (touche B)'],
     ['threat', 'Menace', 'Flèche rouge de la menace : le meilleur coup de l\'adversaire s\'il pouvait jouer maintenant (touche X)'],
-    ['weak', 'Faiblesses', 'Vos pièces en prise (coins orange) et non défendues (point orange) ; survolez une case pour le détail (touche F)'],
+    ['weak', 'Faiblesses', 'Vos pièces en prise (coins orange) ; survolez une case pour le détail (touche F)'],
   ];
   const OPTIONS = [
     ['bestAll', 'Meilleur coup aussi sur les bons coups (pas seulement sur les fautes)'],
