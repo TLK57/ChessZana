@@ -1,4 +1,6 @@
-# Analyse d'échecs locale
+# ChessZana
+
+*Zana* veut dire « savant » en kurde : ChessZana analyse vos parties d'échecs et vous les explique.
 
 Analysez vos parties d'échecs **sur votre propre ordinateur**, gratuitement et sans créer de compte. L'application
 récupère vos parties chess.com et Lichess (ou un fichier PGN), les fait analyser par **Stockfish 19**, classe chaque

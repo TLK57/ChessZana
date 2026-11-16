@@ -10,7 +10,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = path.join(ROOT, 'resources', 'openings');
 const REPO = 'lichess-org/chess-openings';
 const FILES = ['a.tsv', 'b.tsv', 'c.tsv', 'd.tsv', 'e.tsv'];
-const HEADERS = { 'User-Agent': 'analyse-echecs-local (mise à jour du livre d\'ouvertures)' };
+const HEADERS = { 'User-Agent': 'ChessZana (mise à jour du livre d\'ouvertures)' };
 
 /**
  * Vérifie un fichier TSV : en-tête eco/name/pgn, 3 colonnes, code ECO, et (legal) coups légaux.

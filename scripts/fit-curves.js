@@ -210,7 +210,7 @@ async function readLichess(month, target, acc) {
   const url = `https://database.lichess.org/standard/lichess_db_standard_rated_${month}.pgn.zst`;
   console.log(`Lecture en flux de ${url}\n(arrêt dès ${target} parties blitz et rapides avec évaluations)`);
   const ctrl = new AbortController();
-  const res = await fetch(url, { headers: { 'User-Agent': 'analyse-echecs-local (ajustement des courbes)' }, signal: ctrl.signal });
+  const res = await fetch(url, { headers: { 'User-Agent': 'ChessZana (ajustement des courbes)' }, signal: ctrl.signal });
   if (!res.ok) throw new Error(`HTTP ${res.status} pour ${url}`);
   const source = Readable.fromWeb(res.body);
   const stream = source.pipe(stripSkippableFrames()).pipe(zlib.createZstdDecompress());

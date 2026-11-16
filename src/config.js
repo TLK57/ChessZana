@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const APP_NAME = 'AnalyseEchecsLocal';
+export const APP_NAME = 'ChessZana';
 export const APP_VERSION = '0.1.0';
 
 export const DEFAULTS = {

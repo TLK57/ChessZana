@@ -96,7 +96,7 @@ async function main() {
     if (n) console.log(`  Bilans chess.com repris du fichier : ${n}`);
   } catch (e) { console.error(`  Bilans chess.com : ${e.message}`); }
   if (!state.integrity.ok || !reclassifyIfRulesChanged()) refreshStatsInBackground();
-  console.log(`\n  Analyse d'échecs — prête sur ${url}\n  (laissez cette fenêtre ouverte ; Ctrl+C pour quitter)\n`);
+  console.log(`\n  ChessZana — prête sur ${url}\n  (laissez cette fenêtre ouverte ; Ctrl+C pour quitter)\n`);
   if (config.openBrowser) openBrowser(url);
 
   // Moteur : téléchargement au premier lancement, puis démarrage de la file d'analyse.

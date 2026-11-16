@@ -178,7 +178,7 @@ export async function renderGame(root, id, startPly = 0) {
     const result = mine ? `<span class="outcome ${mine}">${MY_RESULT[mine]}</span>` : esc(RESULT_TXT[g.result] ?? g.result);
     const cadence = [(TIME_CLASS[g.timeClass] ?? g.timeClass ?? '').toLowerCase(), fmtTimeControl(g.timeControl)].filter(Boolean).join(' ');
     $('#sub').innerHTML = `${result}, ${esc(cadence)}, le ${fmtDate(g.playedAt)}${g.url ? `, <a href="${esc(g.url)}" target="_blank" rel="noopener">voir en ligne</a>` : ''}`;
-    document.title = `${g.white.name} contre ${g.black.name} : Analyse d'échecs`;
+    document.title = `${g.white.name} contre ${g.black.name} : ChessZana`;
   }
   function myOutcome() {
     if (g.result === '1/2-1/2') return 'draw';

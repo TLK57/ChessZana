@@ -56,7 +56,7 @@ test('chess.com : parties terminées seulement, User-Agent, retry sur 429, synch
   assert.equal(s1.skipped, 2); // Chess960 + partie non terminée
   assert.equal(calls.filter((c) => c.url === OLD).length, 2, '429 puis nouvelle tentative');
   assert.equal(maxInFlight, 1, 'jamais deux requêtes en parallèle');
-  assert.match(calls[0].headers['User-Agent'], /AnalyseEchecsLocal/);
+  assert.match(calls[0].headers['User-Agent'], /ChessZana/);
   const games = getDb().prepare("SELECT source_id FROM games WHERE source = 'chesscom' ORDER BY source_id").all().map((g) => g.source_id);
   assert.deepEqual(games, ['a1', 'a3']);
   const link = getDb().prepare("SELECT color, outcome FROM player_games pg JOIN games g ON g.id = pg.game_id WHERE g.source_id = 'a1'").get();

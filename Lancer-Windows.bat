@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title Analyse d'echecs
+title ChessZana
 cd /d "%~dp0"
 set "TEST_MODE="
 if /i "%~1"=="--test" set "TEST_MODE=1"
