@@ -111,7 +111,8 @@ async function main() {
     });
     await evaluator.init();
     state.engine = { status: 'ready', message: 'Prêt', pct: 100, name: evaluator.engine.name };
-    console.log(`  Moteur : ${evaluator.engine.name} — ${config.engine.threadsResolved} threads, hash ${config.engine.hashMB} Mo`);
+    console.log(`  Moteur : ${evaluator.engine.name} — ${config.engine.threadsResolved} threads (passe profonde), `
+      + `${config.engine.quickThreadsResolved} (passe rapide, mode libre), hash ${config.engine.hashMB} Mo`);
   } catch (e) {
     state.engine = { status: 'error', message: e.message, pct: 0 };
     console.error(`  Erreur moteur : ${e.message}`);

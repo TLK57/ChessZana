@@ -36,7 +36,7 @@ export async function statusRoutes(req, res, { p, body }) {
   if (req.method === 'GET' && p === '/api/status') {
     send(res, 200, {
       engine: {
-        ...state.engine, threads: config.engine.threadsResolved, hashMB: config.engine.hashMB, quickDepth: config.engine.quickDepth,
+        ...state.engine, threads: config.engine.threadsResolved, quickThreads: config.engine.quickThreadsResolved, hashMB: config.engine.hashMB, quickDepth: config.engine.quickDepth,
         deepDepth: config.engine.deepDepth, deepNodes: config.engine.deepNodes, verifyDepth: config.engine.verifyDepth,
         multiPV: config.engine.multiPV, evalStats: evaluator.stats, reached: depthReached(),
       },

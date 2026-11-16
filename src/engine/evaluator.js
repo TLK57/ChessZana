@@ -12,9 +12,10 @@ const TB_DEPTH = 99; // une réponse de la table de finales est exacte
 const WDL_RANK = { win: 2, draw: 1, loss: 0 };
 
 export class Evaluator {
-  constructor({ lowPriority = false, hashMB = null } = {}) {
+  constructor({ lowPriority = false, hashMB = null, threads = null } = {}) {
     this.lowPriority = lowPriority;
     this.hashMB = hashMB;
+    this.threads = threads;
     this.gate = null;
     this.engine = null;
     this.engineInfo = null;
@@ -33,11 +34,17 @@ export class Evaluator {
     this.engine = new StockfishEngine({
       binary: this.engineInfo.binary,
       args: this.engineInfo.args ?? [],
-      threads: config.engine.threadsResolved,
+      threads: this.threads ?? config.engine.threadsResolved,
       hashMB: this.hashMB ?? config.engine.hashMB,
       lowPriority: this.lowPriority,
     });
     await this.engine.start();
+  }
+
+  // Nombre de threads des prochaines recherches (ex. 2 pour la passe rapide, tous les cœurs pour la passe profonde).
+  async setThreads(n) {
+    this.threads = n;
+    if (this.engine) await this.engine.setThreads(n);
   }
 
   async close() {
@@ -102,6 +109,15 @@ export class Evaluator {
     return { source: 'stockfish', depth: r.depth, lines: r.lines, cached: false, cloudMiss };
   }
 
+  // Enregistre l'évaluation d'un coup déduite de la position suivante (sans recherche) : l'écran d'analyse y lit la
+  // suite du coup joué pour les explications. Profondeur réelle, sans budget de nœuds : elle ne remplace jamais une
+  // évaluation plus profonde et ne dispense pas d'une recherche plus profonde demandée plus tard.
+  recordMove(fen, uci, line, { source = 'stockfish' } = {}) {
+    const posId = positionId(normalizeChessFen(new Chess(fen)), pieceCount(fen));
+    const depth = Number.isFinite(line.depth) ? line.depth : 0;
+    putEval(posId, `move:${uci}`, { depth, targetDepth: depth, multipv: 1, source, lines: [line], engine: this.engine?.name });
+  }
+
   // Évalue un coup précis à la profondeur demandée (Stockfish « go depth N searchmoves <coup> »).
   async evaluateMove(fen, uci, { depth, nodes = null, signal } = {}) {
     const chess = new Chess(fen);
@@ -127,8 +143,9 @@ export function getEvaluator() {
 }
 
 let live = null;
-// Évaluateur du mode libre : un second Stockfish, prioritaire, pour répondre vite.
+// Évaluateur du mode libre : un second Stockfish, prioritaire, pour répondre vite. Ses recherches sont à profondeur
+// fixe (mode libre, menace) : peu de threads, plus rapides (engine.quickThreads).
 export function getLiveEvaluator() {
-  if (!live) live = new Evaluator({ hashMB: Math.min(256, config.engine.hashMB) });
+  if (!live) live = new Evaluator({ hashMB: Math.min(256, config.engine.hashMB), threads: config.engine.quickThreadsResolved });
   return live;
 }

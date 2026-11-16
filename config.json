@@ -9,6 +9,7 @@
 
   "engine": {
     "threads": "auto",
+    "quickThreads": "auto",
     "hashMB": "auto",
     "multiPV": 2,
     "quickDepth": 12,
@@ -27,6 +28,7 @@
     "cloudEvalInQuickPass": false,
     "tablebase": true,
     "tablebaseMaxPieces": 7,
+    "tablebaseInQuickPass": false,
     "timeoutMs": 6000,
     "pauseAfterRateLimitSec": 60,
     "pauseAfterErrorSec": 120

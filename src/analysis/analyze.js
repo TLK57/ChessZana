@@ -6,18 +6,26 @@ import { getGame, getGameMoves } from '../games.js';
 import { normalizeChessFen, terminalState, uciToSan, START_FEN } from '../chessutil.js';
 import { AbortError } from '../engine/stockfish.js';
 import { isBookPosition } from './openings.js';
-import { MISS_MIN_GAIN, classifyChesscom, currentMethod, judgeLichess } from './classify.js';
+import { MISS_MIN_GAIN, classifyChesscom, currentMethod, judgeLichess, negate } from './classify.js';
 import { estimateElo, winPct } from './formulas.js';
 
 export const PASSES = {
-  quick: () => ({ depth: config.engine.quickDepth, nodes: null, allowCloud: config.lichess.cloudEvalInQuickPass, skipDecided: false }),
+  // Passe rapide : profondeur fixe, peu de threads (plus rapide que tous les cœurs à faible profondeur), et pas de
+  // requête réseau aux tables de finales (Stockfish règle ces positions en quelques millisecondes).
+  quick: () => ({
+    depth: config.engine.quickDepth, nodes: null, threads: config.engine.quickThreadsResolved,
+    allowCloud: config.lichess.cloudEvalInQuickPass, allowTablebase: config.lichess.tablebaseInQuickPass === true, skipDecided: false,
+  }),
   // Passe profonde : budget de nœuds par position (comme Lichess). Une évaluation en cache à la profondeur
-  // deepDepth (ou plus) reste acceptée, ainsi que l'analyse cloud de Lichess à cette profondeur.
+  // deepDepth (ou plus) reste acceptée, ainsi que l'analyse cloud de Lichess à cette profondeur. Tous les cœurs :
+  // avec un budget de nœuds, plus de threads l'atteignent plus vite.
   deep: () => ({
     depth: config.engine.deepDepth,
     nodes: config.engine.deepNodes > 0 ? config.engine.deepNodes : null,
     criticalNodes: config.engine.deepNodes > 0 ? config.engine.deepNodesCritical : null,
+    threads: config.engine.threadsResolved,
     allowCloud: true,
+    allowTablebase: true,
     skipDecided: config.engine.deepSkipDecided < 100,
     verifyDepth: config.engine.verifyDepth,
   }),
@@ -56,6 +64,23 @@ export function needsVerification(r, quick = null) {
 const scoreOf = (l) => (l ? { cp: l.cp ?? null, mate: l.mate ?? null, wdl: l.wdl ?? null } : null);
 
 /**
+ * Évaluation du coup joué tirée de la position suivante, déjà calculée puisqu'on analyse de la fin vers le début.
+ * C'est ce que fait Lichess (et ce que la méthode Lichess lisait déjà) : plus besoin d'une recherche « searchmoves »
+ * pour chaque coup hors des lignes MultiPV, qui prenait 40 à 55 % du temps du moteur (mesuré). La suite du coup
+ * joué (pour les explications) est ce coup suivi de la meilleure suite de la position suivante.
+ * Renvoie null si la position suivante n'est pas disponible (dernier coup de la partie) ou sans score.
+ */
+export function playedFromNext(uci, next) {
+  const top = next?.before?.lines?.[0];
+  if (!top?.move) return null;
+  const s = negate(scoreOf(top));
+  if (s.cp == null && s.mate == null && !s.wdl) return null;
+  const line = { move: uci, cp: s.cp, mate: s.mate, pv: [uci, ...(top.pv?.length ? top.pv : [top.move])], depth: next.before.depth ?? top.depth ?? null };
+  if (s.wdl) line.wdl = s.wdl;
+  return line;
+}
+
+/**
  * Analyse une suite de coups.
  * moves : [{ ply, color, san, uci, fenBefore }]
  * opts  : { depth, nodes, verifyDepth, allowCloud, whiteElo, blackElo, standardStart, finalFen, evaluator, signal, onProgress }
@@ -63,11 +88,22 @@ const scoreOf = (l) => (l ? { cp: l.cp ?? null, mate: l.mate ?? null, wdl: l.wdl
 export async function analyzeMoveList(moves, opts) {
   const { evaluator, depth, signal } = opts;
   const nodes = opts.nodes ?? null;
-  const search = { depth, nodes, signal };
+  const search = { depth, nodes, signal, allowTablebase: opts.allowTablebase !== false };
   const n = moves.length;
   const evals = new Array(n);
   let done = 0;
   const progress = () => opts.onProgress?.(++done, n);
+  // Coup joué hors des lignes MultiPV : évaluation de la position suivante, enregistrée comme évaluation du coup
+  // (l'écran d'analyse y lit la suite jouée). Sinon (dernier coup), recherche « searchmoves ».
+  const playedOf = async (i, s) => {
+    const m = moves[i];
+    const derived = playedFromNext(m.uci, evals[i + 1]);
+    if (derived) {
+      evaluator.recordMove?.(m.fenBefore, m.uci, derived, { source: evals[i + 1].before.source });
+      return derived;
+    }
+    return evaluator.evaluateMove(m.fenBefore, m.uci, s);
+  };
 
   // 1) Théorie : tant que chaque position atteinte figure dans la base d'ouvertures.
   const book = new Array(n).fill(false);
@@ -106,7 +142,7 @@ export async function analyzeMoveList(moves, opts) {
       // Théorie ou partie déjà jouée (≥ 97 % ou ≤ 3 % avant ET après le coup) : l'analyse rapide suffit,
       // le classement ne peut pas changer.
       const q = await evaluator.evaluatePosition(m.fenBefore, { depth: quickDepth, signal });
-      const qp = q.lines.find((l) => l.move === m.uci) ?? await evaluator.evaluateMove(m.fenBefore, m.uci, { depth: quickDepth, signal });
+      const qp = q.lines.find((l) => l.move === m.uci) ?? await playedOf(i, { depth: quickDepth, signal });
       const wb = winPct(scoreOf(q.lines[0]));
       const wp = winPct(scoreOf(qp));
       const decided = (wb >= skip && wp >= skip) || (wb <= 100 - skip && wp <= 100 - skip);
@@ -114,7 +150,7 @@ export async function analyzeMoveList(moves, opts) {
     }
     if (!before) before = await evaluator.evaluatePosition(m.fenBefore, { ...search, allowCloud: false });
     let played = before.lines.find((l) => l.move === m.uci);
-    if (!played) played = await evaluator.evaluateMove(m.fenBefore, m.uci, search);
+    if (!played) played = await playedOf(i, search);
     // Approfondissement ciblé : un coup qui n'est pas clairement bon (perte ≥ 2 %), ou un meilleur coup
     // presque « seul coup qui tient », est recalculé avec un budget plus gros avant d'être classé.
     if (opts.criticalNodes && before.source === 'stockfish' && opts.criticalNodes > (nodes ?? 0)) {
@@ -261,6 +297,8 @@ export async function analyzeGame(gameId, pass, { evaluator, signal, onProgress 
   const rows = getGameMoves(gameId);
   if (!rows.length) throw new Error('Partie sans coups');
   const p = PASSES[pass]();
+  // Une fois par passe (Stockfish vide sa mémoire quand le nombre de threads change).
+  await evaluator?.setThreads?.(p.threads);
   const startedAt = Date.now();
   // Passe profonde : la passe rapide sert à repérer les coups sur lesquels les deux passes ne sont pas d'accord.
   const quick = pass === 'deep'
@@ -276,7 +314,8 @@ export async function analyzeGame(gameId, pass, { evaluator, signal, onProgress 
     rows.map((r) => ({ ply: r.ply, color: r.color, san: r.san, uci: r.uci, fenBefore: r.fen_before })),
     {
       evaluator, signal, onProgress,
-      depth: p.depth, nodes: p.nodes, criticalNodes: p.criticalNodes, allowCloud: p.allowCloud, skipDecided: p.skipDecided,
+      depth: p.depth, nodes: p.nodes, criticalNodes: p.criticalNodes, allowCloud: p.allowCloud, allowTablebase: p.allowTablebase,
+      skipDecided: p.skipDecided,
       verifyDepth: p.verifyDepth ?? 0, quick,
       whiteElo: game.white_elo, blackElo: game.black_elo, timeClass: game.time_class,
       standardStart: !game.start_fen || game.start_fen === START_FEN,

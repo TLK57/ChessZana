@@ -111,6 +111,21 @@ export class StockfishEngine {
     await this._waitFor((l) => l === 'readyok', 60000);
   }
 
+  // Change le nombre de threads entre deux recherches (jamais pendant une recherche). Stockfish vide alors sa
+  // mémoire (hash) : à faire une fois par passe, pas à chaque position.
+  setThreads(n) {
+    const run = this.chain.then(async () => {
+      if (!Number.isFinite(n) || n < 1 || n === this.threads) return;
+      this.threads = n;
+      if (!this.alive) return; // appliqué au prochain démarrage
+      this.send(`setoption name Threads value ${n}`);
+      this.send('isready');
+      await this._waitFor((l) => l === 'readyok', 60000);
+    });
+    this.chain = run.catch(() => {});
+    return run;
+  }
+
   // Les recherches sont exécutées l'une après l'autre.
   analyse(fen, opts) {
     const run = this.chain.then(() => this._analyse(fen, opts));

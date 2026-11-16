@@ -107,12 +107,13 @@ Réglage : `engine.verifyDepth` (0 = pas de vérification).
 
 ### Combien de temps ça prend ?
 
-Mesuré sur un portable AMD Ryzen 5 7520U (4 cœurs / 8 threads), sur une vraie partie blitz de 114 demi-coups :
+Mesuré sur un portable AMD Ryzen 5 7520U (4 cœurs / 8 threads), sur une vraie partie blitz de 114 demi-coups
+(passe rapide : partie 629, 147 demi-coups) :
 
 | Analyse | Réglage | Durée de la partie |
 |---|---|---|
-| Passe rapide | profondeur 12 | environ 30 secondes |
-| **Passe profonde (réglage actuel)** | **1,5 million de positions calculées par coup** (profondeur ≈ 15 à 20), puis vérification à 22 des coups douteux | **3 min 30 s**, plus quelques secondes à une minute par coup douteux |
+| **Passe rapide** | **profondeur 12, 2 threads** | **environ 12 secondes** (avant : 37 s de calcul avec 8 threads et `searchmoves` ; 2 min 30 s mesurées dans l'appli, avec en plus les tables de finales en ligne) |
+| **Passe profonde (réglage actuel)** | **1,5 million de positions calculées par coup** (profondeur ≈ 15 à 20), puis vérification à 22 des coups douteux | **3 min 30 s**, plus quelques secondes à une minute par coup douteux (partie 629, 147 demi-coups, vérification comprise : 3 min 35 s, contre 4 min 56 s avec les recherches `searchmoves`) |
 | Passe profonde, budget doublé sur les coups douteux | `deepNodesCritical: 8000000` | 11 min 20 s |
 | Passe profonde « maximale » (réglage d'origine) | profondeur 22 fixe (`deepNodes: 0`) | environ 45 minutes |
 
@@ -121,9 +122,20 @@ Pourquoi c'est plus rapide qu'avant :
    position compliquée.
 2. **Théorie et parties déjà jouées** (≥ 97 % ou ≤ 3 % de chances de gain avant et après le coup) : on garde l'analyse
    rapide, le classement ne peut pas changer.
-3. **Analyse de la fin vers le début** : la mémoire du moteur garde les positions suivantes, ce qui accélère les précédentes.
-4. **Tous les cœurs et 1 Go de mémoire** : la file tourne en priorité basse, elle laisse donc la main à vos autres
-   logiciels et au mode libre.
+3. **Analyse de la fin vers le début** : la mémoire du moteur garde les positions suivantes, ce qui accélère les
+   précédentes. Et un coup joué hors des 2 meilleures lignes est évalué par la position suivante, déjà calculée,
+   comme chez Lichess : plus de recherche `searchmoves` en plus, qui prenait 40 à 55 % du temps du moteur.
+4. **Le bon nombre de threads** : à profondeur fixe (passe rapide, mode libre, menace), 2 threads vont plus vite que
+   tous les cœurs. Mesuré : profondeur 12 → 3,5 fois plus rapide qu'avec 8 threads, profondeur 16 → 1,3 fois,
+   profondeur 18 → 1,7 fois, profondeur 22 → égalité. Seule la passe profonde, limitée en nœuds, atteint son budget
+   plus vite avec tous les cœurs (`engine.threads`). Réglage : `engine.quickThreads`. La file tourne en priorité
+   basse : elle laisse la main à vos autres logiciels et au mode libre.
+5. **Pas de réseau pendant la passe rapide** : les tables de finales Lichess (une requête par position, l'une après
+   l'autre) ne servent qu'à la passe profonde et au mode libre.
+
+Qualité : sur la partie 629, la passe rapide à 2 threads classe les coups aussi bien qu'à 8 threads (71 à 73 % des
+coups dans la même catégorie que la passe profonde vérifiée, dans les deux cas, et les mêmes fautes trouvées).
+Avec la méthode Lichess, l'évaluation par la position suivante ne change aucun classement : c'était déjà celle utilisée.
 
 Ce que ça change : sur la partie mesurée, le classement est identique à celui de la profondeur 22 pour environ deux
 coups sur trois ; les écarts sont surtout entre catégories voisines (meilleur / excellent, bon / imprécision), et
@@ -287,8 +299,8 @@ presse-papiers, le texte s'affiche dans une fenêtre pour le copier à la main.
 ### Progression et entraînement
 
 Ces écrans utilisent **vos parties analysées** (passe rapide ou profonde). Pour avoir des statistiques sur toutes
-vos parties, choisissez « Passe rapide sur toutes mes parties » dans *Importer* (environ 30 s à
-1 min par partie sur un portable) : la passe profonde reste réservée aux parties que vous choisissez.
+vos parties, choisissez « Passe rapide sur toutes mes parties » dans *Importer* (environ 10 à 20 s
+par partie sur un portable) : la passe profonde reste réservée aux parties que vous choisissez.
 
 **Les statistiques se mettent à jour toutes seules** : chaque partie est calculée une fois, puis recalculée seulement
 quand elle est (ré)analysée. Rien n'est refait inutilement.
@@ -353,7 +365,8 @@ Après une modification, fermez et relancez l'application.
 | `openBrowser` | `true` | Ouvre le navigateur au lancement |
 | `autoSyncOnStart` | `true` | Synchronise les comptes au lancement |
 | `analysisMode` | `"manual"` | Parties à analyser : `"manual"` (celles que vous choisissez), `"quick"` (passe rapide sur toutes, profonde à la demande), `"auto"` (tout). Le menu de l'application a la priorité sur ce réglage. |
-| `engine.threads` | `"auto"` | Nombre de cœurs pour Stockfish (`"auto"` = tous, car la file tourne en priorité basse) |
+| `engine.threads` | `"auto"` | Threads de Stockfish pour la passe profonde (`"auto"` = tous les cœurs, car la file tourne en priorité basse) |
+| `engine.quickThreads` | `"auto"` | Threads pour les recherches à profondeur fixe : passe rapide, mode libre, menace (`"auto"` = 2 ; plus de threads les ralentit, voir « Combien de temps ça prend ? ») |
 | `engine.hashMB` | `"auto"` | Mémoire de Stockfish en Mo (`"auto"` = 1024 si l'ordinateur a au moins 12 Go, 512 si 6 Go, sinon 256) |
 | `engine.multiPV` | `2` | Nombre de meilleures lignes calculées par position |
 | `engine.quickDepth` | `12` | Profondeur de la passe rapide |
@@ -371,6 +384,7 @@ Après une modification, fermez et relancez l'application.
 | `lichess.cloudEvalInQuickPass` | `false` | Utiliser aussi le cloud pendant la passe rapide |
 | `lichess.tablebase` | `true` | Utiliser les tables de finales Lichess |
 | `lichess.tablebaseMaxPieces` | `7` | Nombre maximum de pièces (rois compris) pour les tables |
+| `lichess.tablebaseInQuickPass` | `false` | Interroger aussi les tables pendant la passe rapide (une requête réseau par position de finale : plus lent) |
 | `lichess.timeoutMs` | `6000` | Délai d'attente d'une réponse Lichess |
 | `lichess.pauseAfterRateLimitSec` | `60` | Pause de la source Lichess après un « trop de requêtes » (429) |
 | `lichess.pauseAfterErrorSec` | `120` | Pause de la source Lichess après une panne |
@@ -419,7 +433,9 @@ Les statistiques et les puzzles suivent. La **précision** affichée partout (li
 celle de Lichess, quelle que soit la méthode.
 
 Pour chaque position, Stockfish calcule les **2 meilleurs coups** (MultiPV 2). Si le coup joué n'est pas parmi eux,
-il est évalué à la même profondeur avec `searchmoves`.
+il est évalué par **la position suivante**, déjà calculée puisque l'analyse va de la fin vers le début (comme
+Lichess) : sa suite, utilisée par les explications, est le coup joué suivi de la meilleure suite de l'adversaire.
+Seul le dernier coup de la partie (et les coups revérifiés à la profondeur 22) est évalué à part avec `searchmoves`.
 
 #### Méthode Lichess
 
@@ -710,6 +726,8 @@ Pour chaque position, dans cet ordre :
 1. **Cache local** : une position (FEN normalisée : pièces, trait, roques, prise en passant) déjà évaluée à une
    profondeur suffisante n'est jamais recalculée.
 2. **Tables de finales Lichess** (`tablebase.lichess.ovh`) si 7 pièces ou moins, sans droit de roque : résultat exact.
+   Pas pendant la passe rapide (réglage `lichess.tablebaseInQuickPass`) : une requête par position, l'une après
+   l'autre, quand Stockfish règle ces positions en quelques millisecondes. La passe profonde et le mode libre les utilisent.
 3. **Analyse cloud Lichess** (`lichess.org/api/cloud-eval`) pour les positions connues (passe profonde, 30 premiers
    demi-coups, arrêt après 2 positions inconnues de suite), si sa profondeur est au moins celle demandée.
 4. **Stockfish 19** en local.
@@ -811,7 +829,7 @@ message apparaissent en annotation sur la page de la CI (`test/reporter-github.j
 | « Pseudo introuvable » | Vérifiez l'orthographe du pseudo (sans @). |
 | Lichess « en pause » en haut de la page | Lichess limite le débit : l'analyse continue avec Stockfish, Lichess revient tout seul. |
 | L'analyse profonde est très lente | Voir « Combien de temps ça prend ? » ; vérifiez que `deepNodes` n'est pas à 0, ou baissez-le (par exemple 1000000). |
-| L'ordinateur chauffe / ventile | Mettez **Pause**, ou baissez `engine.threads` (par exemple 2). |
+| L'ordinateur chauffe / ventile | Mettez **Pause**, ou baissez `engine.threads` (par exemple 2) : seule la passe profonde utilise tous les cœurs. |
 | Une partie est « en erreur » | Bouton « Relancer les parties en erreur ». Un PGN illisible reste signalé dans la liste. |
 | L'échiquier ne s'affiche pas | Fermez l'application et relancez le fichier `Lancer-…` : il installe les composants manquants. |
 | « Relancez l'appli pour activer la menace » | L'application a été mise à jour pendant qu'elle tournait : fermez la fenêtre noire et relancez le fichier `Lancer-…`. |

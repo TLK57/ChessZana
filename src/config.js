@@ -18,7 +18,10 @@ export const DEFAULTS = {
   // manual = seulement les parties choisies ; quick = passe rapide sur toutes ; auto = tout analyser.
   analysisMode: 'manual',
   engine: {
-    threads: 'auto', // "auto" = tous les cœurs (la file tourne en priorité basse), sinon cœurs - 2
+    threads: 'auto', // passe profonde : "auto" = tous les cœurs (la file tourne en priorité basse), sinon cœurs - 2
+    // Recherches à profondeur fixe (passe rapide, mode libre, menace) : "auto" = 2. Plus de threads les ralentit
+    // (mesuré sur un Ryzen 5 7520U : profondeur 12 → 3,5 fois plus lent avec 8 threads qu'avec 2 ; profondeur 18 → 1,7 fois).
+    quickThreads: 'auto',
     hashMB: 'auto', // "auto" = 1024 Mo si l'ordinateur a au moins 12 Go de mémoire, 512 si 6 Go, sinon 256
     deepNodes: 1500000, // passe profonde : budget de positions calculées par coup (comme Lichess) ; 0 = profondeur fixe deepDepth
     deepNodesCritical: 0, // > 0 : budget des coups douteux (perte ≥ 2 %), recalculés plus profondément (désactivé : peu utile mesuré)
@@ -40,6 +43,9 @@ export const DEFAULTS = {
     cloudEvalInQuickPass: false,
     tablebase: true,
     tablebaseMaxPieces: 7,
+    // Passe rapide : pas de requête aux tables de finales (une requête réseau par position, l'une après l'autre ;
+    // Stockfish règle ces positions en quelques millisecondes). La passe profonde les utilise toujours.
+    tablebaseInQuickPass: false,
     timeoutMs: 6000,
     pauseAfterRateLimitSec: 60,
     pauseAfterErrorSec: 120,
@@ -108,6 +114,10 @@ function resolve(cfg) {
   cfg.engine.threadsResolved = t === 'auto' || !Number.isFinite(Number(t))
     ? (cfg.engine.backgroundLowPriority !== false ? cores : Math.max(1, cores - 2))
     : Math.max(1, Math.min(cores, Math.floor(Number(t))));
+  const qt = cfg.engine.quickThreads;
+  cfg.engine.quickThreadsResolved = qt === 'auto' || !Number.isFinite(Number(qt))
+    ? Math.min(2, cores)
+    : Math.max(1, Math.min(cores, Math.floor(Number(qt))));
   const ramGB = os.totalmem() / 1024 ** 3;
   cfg.engine.hashMB = cfg.engine.hashMB === 'auto' || !Number.isFinite(Number(cfg.engine.hashMB))
     ? (ramGB >= 12 ? 1024 : ramGB >= 6 ? 512 : 256)
