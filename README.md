@@ -9,7 +9,7 @@ progression : Elo de performance par cadence, précision, erreurs récurrentes, 
 temps et puzzles tirés de vos propres gaffes. Tout reste chez vous ; seuls chess.com, Lichess et les sites de
 téléchargement (Node.js, Stockfish) sont contactés.
 
-![Écran d'analyse d'une partie : erreur marquée sur l'échiquier (pastille, cases teintées, flèche du meilleur coup), graphe, coups classés et explication en français](captures/2-ecran-analyse.png)
+![Écran d'analyse d'une partie : gaffe marquée sur l'échiquier (pastille, cases teintées, flèche du meilleur coup), aides Meilleur / Menace / Faiblesses, graphe, coups classés, explication en français et précisions Lichess et style chess.com](captures/2-ecran-analyse.png)
 
 | Mes parties | Progression | Mes erreurs récurrentes |
 |---|---|---|
