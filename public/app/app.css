@@ -251,6 +251,29 @@ body.game-page main { flex: 1; min-height: 0; width: 100%; max-width: none; padd
 .aids-info:empty { display: none; }
 .aid-threat-txt { color: var(--aid-threat); }
 
+/* Faiblesses sur l'échiquier (sous les pièces) : coins pour une pièce en prise, point discret pour une pièce non
+   défendue. Info-bulle au survol de la case. */
+.board-wrap { position: relative; }
+.weak-layer { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.weak-sq { position: absolute; width: 12.5%; height: 12.5%; --c: var(--aid-weakness); --l: 30%; --t: 8%; }
+.weak-sq.hanging {
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--t) var(--l) no-repeat,
+    color-mix(in srgb, var(--c) 16%, transparent);
+}
+.weak-sq.undefended::after { content: ''; position: absolute; left: 7%; bottom: 7%; width: 16%; height: 16%; border-radius: 50%;
+  background: var(--c); opacity: .85; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .7); }
+.weak-tip { position: absolute; z-index: 12; transform: translate(-50%, calc(-100% - 6px)); pointer-events: none; white-space: nowrap;
+  background: var(--sheet); color: var(--ink); border: 1px solid var(--aid-weakness); border-radius: 6px; padding: 4px 8px; font-size: 12.5px;
+  box-shadow: var(--shadow-pop); }
+
 /* Panneau de droite : le coup (héros), puis le résumé de la partie. */
 .side-col { display: flex; flex-direction: column; gap: 10px; min-height: 0; min-width: 0; }
 .detail { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; }

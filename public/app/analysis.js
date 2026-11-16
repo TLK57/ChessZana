@@ -5,7 +5,7 @@
 //   game-free.js   : mode libre (coups joués sur l'échiquier, variantes de Stockfish) ;
 //   game-prompt.js : question prête à copier pour « Demander à Claude » ;
 //   game-review.js : saisie du bilan chess.com de la partie ;
-//   game-aids.js   : aides sur l'échiquier (meilleur coup, menace…) et leur barre de boutons ;
+//   game-aids.js   : aides sur l'échiquier (meilleur coup, menace, faiblesses) et leur barre de boutons ;
 //   review.js      : bilan guidé (les moments clés, un par un).
 import { api, esc, fig, fmtDate, toast, TIME_CLASS, LABELS, SYMBOLS, moveNo, fmtTimeControl } from './util.js';
 import { createGraph } from './graph.js';
@@ -58,7 +58,7 @@ export async function renderGame(root, id, startPly = 0) {
           <button id="bPrev" title="Coup précédent (flèche gauche)" aria-label="Coup précédent">◀</button>
           <button id="bNext" title="Coup suivant (flèche droite)" aria-label="Coup suivant">▶</button>
           <button id="bEnd" title="Fin (touche Fin)" aria-label="Fin">⏭</button>
-          <button id="bFlip" title="Retourner l'échiquier (touche F)" aria-label="Retourner l'échiquier">⇅</button>
+          <button id="bFlip" title="Retourner l'échiquier (touche R)" aria-label="Retourner l'échiquier">⇅</button>
         </div>
         <div class="aids" id="aids"></div>
       </div>
@@ -314,9 +314,10 @@ export async function renderGame(root, id, startPly = 0) {
     else if (e.key === 'Home' || e.key === 'ArrowUp') { e.preventDefault(); toStart(); }
     else if (e.key === 'End' || e.key === 'ArrowDown') { e.preventDefault(); toEnd(); }
     else if (e.ctrlKey || e.metaKey || e.altKey) { /* raccourcis du navigateur (Ctrl+F…) : rien */ }
-    else if (e.key === 'f') { S.orientation = S.orientation === 'white' ? 'black' : 'white'; render(); }
+    else if (e.key.toLowerCase() === 'r') { S.orientation = S.orientation === 'white' ? 'black' : 'white'; render(); }
     else if (e.key.toLowerCase() === 'b') aids.toggle('best');
     else if (e.key.toLowerCase() === 'x') aids.toggle('threat');
+    else if (e.key.toLowerCase() === 'f') aids.toggle('weak');
   };
   window.addEventListener('keydown', onKey);
 

@@ -1,6 +1,9 @@
 // Écran d'une partie — aides visuelles sur l'échiquier (comme Lichess et chess.com) : flèche du meilleur coup,
-// flèche de la menace, et leur barre de boutons. Les couleurs de toutes les aides sont définies ici, et seulement ici.
+// flèche de la menace, faiblesses, et leur barre de boutons. Les couleurs de toutes les aides sont définies ici,
+// et seulement ici.
+import { Chess } from '/vendor/chess.js';
 import { esc, fig, fmtPct, store, BAD } from './util.js';
+import { findWeaknesses } from './weaknesses.js';
 
 /**
  * Code couleur des aides. Les flèches du moteur sont semi-transparentes et plus fines que les vôtres ;
@@ -101,6 +104,17 @@ export function createAids(ctx, onChange) {
     return out;
   }
 
+  // ---- Faiblesses : pièces en prise et non défendues (sans moteur), de mon camp, ou des deux en option. ----
+  let weakCache = { key: '', list: [] };
+  function weaknesses(nd) {
+    if (!prefs.weak) return [];
+    const mine = (ctx.g.myColor ?? ctx.S.orientation)[0];
+    const colors = prefs.weakBoth ? ['w', 'b'] : [mine];
+    const key = `${nd.fen}|${colors.join('')}`;
+    if (weakCache.key !== key) weakCache = { key, list: findWeaknesses(new Chess(nd.fen), colors) };
+    return weakCache.list;
+  }
+
   /** Ligne d'information sous la barre : ce que montre la flèche de menace. */
   function threatInfo(nd) {
     if (!prefs.threat) return '';
@@ -117,10 +131,12 @@ export function createAids(ctx, onChange) {
   const BUTTONS = [
     ['best', 'Meilleur', 'Flèche verte du meilleur coup (touche B)'],
     ['threat', 'Menace', 'Flèche rouge de la menace : le meilleur coup de l\'adversaire s\'il pouvait jouer maintenant (touche X)'],
+    ['weak', 'Faiblesses', 'Vos pièces en prise (coins orange) et non défendues (point orange) ; survolez une case pour le détail (touche F)'],
   ];
   const OPTIONS = [
     ['bestAll', 'Meilleur coup aussi sur les bons coups (pas seulement sur les fautes)'],
     ['bestLine', 'Afficher aussi la suite du meilleur coup (2 ou 3 coups, plus pâles)'],
+    ['weakBoth', 'Faiblesses des pièces adverses aussi'],
   ];
 
   function renderBar(nd) {
@@ -150,5 +166,5 @@ export function createAids(ctx, onChange) {
     return true;
   }
 
-  return { prefs, toggle, shapes, renderBar, onClick, onInput, destroy: cancelThreat };
+  return { prefs, toggle, shapes, weaknesses, renderBar, onClick, onInput, destroy: cancelThreat };
 }

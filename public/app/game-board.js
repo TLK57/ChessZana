@@ -40,6 +40,16 @@ export function createBoard(ctx, onMove, aids) {
   const badgeLayer = document.createElement('div');
   badgeLayer.className = 'cls-layer';
   let badgeKey = '';
+  // Couche des faiblesses (sous les pièces) et info-bulle au survol d'une case marquée.
+  const weakLayer = document.createElement('div');
+  weakLayer.className = 'weak-layer';
+  let weakKey = '';
+  let weakText = new Map();
+  const tip = document.createElement('div');
+  tip.className = 'weak-tip';
+  tip.hidden = true;
+  const wrapEl = ctx.$('.board-wrap');
+  wrapEl.appendChild(tip);
 
   const cg = Chessground(ctx.$('#board'), {
     coordinates: true,
@@ -52,8 +62,53 @@ export function createBoard(ctx, onMove, aids) {
     drawable: { enabled: true, visible: true, brushes: AID_BRUSHES },
     // Taille réelle du plateau dessiné (---cg-height) : la barre d'évaluation prend exactement la même hauteur.
     addDimensionsCssVarsTo: ctx.$('.board-row'),
-    events: { insert: (elements) => elements.container.appendChild(badgeLayer) },
+    events: { insert: (elements) => { elements.container.appendChild(weakLayer); elements.container.appendChild(badgeLayer); } },
   });
+
+  // Case (« e4 ») et coin haut-gauche (en fractions du plateau) sous une position de souris, selon le sens du plateau.
+  function squareAt(clientX, clientY) {
+    const r = cg.state.dom.bounds();
+    const x = (clientX - r.left) / r.width;
+    const y = (clientY - r.top) / r.height;
+    if (x < 0 || x >= 1 || y < 0 || y >= 1) return null;
+    const col = Math.floor(x * 8);
+    const row = Math.floor(y * 8);
+    const white = ctx.S.orientation === 'white';
+    const file = white ? col : 7 - col;
+    const rank = white ? 7 - row : row;
+    return { square: 'abcdefgh'[file] + (rank + 1), col, row, r };
+  }
+  const placeOf = (square) => {
+    const white = ctx.S.orientation === 'white';
+    const file = square.charCodeAt(0) - 97;
+    const rank = Number(square[1]) - 1;
+    return { col: white ? file : 7 - file, row: white ? 7 - rank : rank };
+  };
+
+  // Faiblesses : coins orange (pièce en prise) ou point orange (pièce non défendue), couleur --aid-weakness.
+  function renderWeak(list) {
+    const key = `${ctx.S.orientation}|${list.map((w) => w.square + w.kind).join(',')}`;
+    if (key === weakKey) return;
+    weakKey = key;
+    weakText = new Map(list.map((w) => [w.square, w.text]));
+    weakLayer.innerHTML = list.map((w) => {
+      const { col, row } = placeOf(w.square);
+      return `<div class="weak-sq ${w.kind}" style="left:${col * 12.5}%;top:${row * 12.5}%"></div>`;
+    }).join('');
+    tip.hidden = true;
+  }
+  wrapEl.addEventListener('mousemove', (e) => {
+    const at = weakText.size ? squareAt(e.clientX, e.clientY) : null;
+    const text = at ? weakText.get(at.square) : null;
+    if (!text) { tip.hidden = true; return; }
+    tip.textContent = text;
+    tip.hidden = false;
+    const w = wrapEl.getBoundingClientRect();
+    const sq = at.r.width / 8;
+    tip.style.left = `${at.r.left - w.left + (at.col + 0.5) * sq}px`;
+    tip.style.top = `${at.r.top - w.top + at.row * sq}px`;
+  });
+  wrapEl.addEventListener('mouseleave', () => { tip.hidden = true; });
 
   // Pastille ronde en haut à droite de la case d'arrivée (comme chess.com) : même symbole et même couleur que
   // dans la feuille de notation (symbol() et les classes .c-… de util.js / app.css). Rien sur la position de départ.
@@ -85,6 +140,7 @@ export function createBoard(ctx, onMove, aids) {
     cg.setAutoShapes(aids.shapes(nd));
     const cls = shownClassification(nd);
     renderBadge(cls, nd.lastMove?.[1]);
+    renderWeak(aids.weaknesses(nd));
     // Cases du dernier coup teintées avec la couleur de son classement (la même variable CSS que la feuille de
     // notation : --best, --blunder…). Sans classement, elles restent jaunes.
     const wrap = ctx.$('.board-wrap');
