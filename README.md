@@ -158,11 +158,14 @@ Les filtres sont mémorisés.
 
 ### Écran d'analyse
 
-L'échiquier prend la plus grande taille possible sans jamais dépasser de la fenêtre. Sur un portable (même avec le
-zoom de Windows à 125 ou 150 %) comme sur un grand écran, tout tient sans faire défiler la page : joueurs et pendules,
-échiquier, barre d'évaluation, feuille de notation, explication du coup et graphe. Seule la feuille de notation
-défile. Sur tablette ou téléphone, la page défile, mais les deux joueurs et l'échiquier tiennent toujours ensemble
-à l'écran.
+L'échiquier prend la plus grande taille possible sans jamais dépasser de la fenêtre : il a toute la hauteur de
+l'écran, car l'en-tête de la partie et le graphe sont à sa droite (au-dessus et au-dessous de la feuille de
+notation). Par exemple, sur un portable 15 pouces au zoom de Windows de 125 %, il fait 600 pixels de côté. Sur un
+portable comme sur un grand écran, tout tient sans faire défiler la page : joueurs et pendules, échiquier, barre
+d'évaluation, feuille de notation, explication du coup et graphe. Seule la feuille de notation défile. Sur
+tablette ou téléphone, la page défile, mais les deux joueurs et l'échiquier tiennent toujours ensemble à l'écran.
+Les coordonnées sont dans les cases (chiffres en haut à gauche, lettres en bas à droite), à la taille de
+l'échiquier et dans la couleur de l'autre case, pour rester lisibles.
 
 - **Le coup sélectionné** : son classement en grand, comme un **tampon de correction** dans la marge (un « Brillant »
   se voit tout de suite), puis l'explication en une phrase, le meilleur coup et la **suite de Stockfish** à rejouer

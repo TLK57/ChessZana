@@ -34,7 +34,7 @@
     color-scheme: dark;
     --paper: #11151B; --sheet: #1A2029; --sheet-2: #151A22; --ink: #E4E8EE; --graphite: #98A3B3; --pen: #86A6FF;
     --rule: #2A3240; --rule-strong: #3B4556; --hover: #232B37; --highlight: #4A4220; --on-pen: #11151B;
-    --sq-light: #B9C6D6; --sq-dark: #5F7391; --board-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%23B9C6D6'/%3E%3Cpath fill='%235F7391' d='M1 0h1v1h-1zM3 0h1v1h-1zM5 0h1v1h-1zM7 0h1v1h-1zM0 1h1v1h-1zM2 1h1v1h-1zM4 1h1v1h-1zM6 1h1v1h-1zM1 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM1 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM1 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1z'/%3E%3C/svg%3E"); --sq-last: rgba(214, 196, 60, .5); --coord: #22303F;
+    --sq-light: #B9C6D6; --sq-dark: #6E83A0; --board-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%23B9C6D6'/%3E%3Cpath fill='%236E83A0' d='M1 0h1v1h-1zM3 0h1v1h-1zM5 0h1v1h-1zM7 0h1v1h-1zM0 1h1v1h-1zM2 1h1v1h-1zM4 1h1v1h-1zM6 1h1v1h-1zM1 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM1 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM1 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1z'/%3E%3C/svg%3E"); --sq-last: rgba(214, 196, 60, .5); --coord: #22303F;
     --graph-white: #D3DAE3; --graph-black: #0B0E13; --graph-bg: #232B37;
     --brilliant: #3CC7BC; --great: #7FA8E8; --best: #6CC07A; --excellent: #86C493; --good: #A3BFA8; --book: #C9A882;
     --inaccuracy: #F0C04A; --mistake: #F29240; --miss: #F27C6C; --blunder: #FF6B5E;
@@ -48,7 +48,7 @@
   color-scheme: dark;
   --paper: #11151B; --sheet: #1A2029; --sheet-2: #151A22; --ink: #E4E8EE; --graphite: #98A3B3; --pen: #86A6FF;
   --rule: #2A3240; --rule-strong: #3B4556; --hover: #232B37; --highlight: #4A4220; --on-pen: #11151B;
-  --sq-light: #B9C6D6; --sq-dark: #5F7391; --board-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%23B9C6D6'/%3E%3Cpath fill='%235F7391' d='M1 0h1v1h-1zM3 0h1v1h-1zM5 0h1v1h-1zM7 0h1v1h-1zM0 1h1v1h-1zM2 1h1v1h-1zM4 1h1v1h-1zM6 1h1v1h-1zM1 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM1 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM1 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1z'/%3E%3C/svg%3E"); --sq-last: rgba(214, 196, 60, .5); --coord: #22303F;
+  --sq-light: #B9C6D6; --sq-dark: #6E83A0; --board-img: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect width='8' height='8' fill='%23B9C6D6'/%3E%3Cpath fill='%236E83A0' d='M1 0h1v1h-1zM3 0h1v1h-1zM5 0h1v1h-1zM7 0h1v1h-1zM0 1h1v1h-1zM2 1h1v1h-1zM4 1h1v1h-1zM6 1h1v1h-1zM1 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM1 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM1 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1z'/%3E%3C/svg%3E"); --sq-last: rgba(214, 196, 60, .5); --coord: #22303F;
   --graph-white: #D3DAE3; --graph-black: #0B0E13; --graph-bg: #232B37;
   --brilliant: #3CC7BC; --great: #7FA8E8; --best: #6CC07A; --excellent: #86C493; --good: #A3BFA8; --book: #C9A882;
   --inaccuracy: #F0C04A; --mistake: #F29240; --miss: #F27C6C; --blunder: #FF6B5E;
@@ -173,7 +173,7 @@ main { padding: 18px 20px 48px; max-width: 1360px; margin: 0 auto; }
 body.game-page { height: 100dvh; display: flex; flex-direction: column; }
 body.game-page .topbar { flex: none; }
 body.game-page main { flex: 1; min-height: 0; width: 100%; max-width: none; padding: 10px 16px; display: flex; flex-direction: column; overflow: hidden; }
-.game-head { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; min-height: 36px; margin-bottom: 8px; }
+.game-head { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; min-height: 36px; min-width: 0; }
 .game-head .back { text-decoration: none; color: var(--graphite); font-weight: 500; }
 .game-head .back:hover { color: var(--pen); }
 .game-head h1 { font-size: 19px; }
@@ -184,13 +184,22 @@ body.game-page main { flex: 1; min-height: 0; width: 100%; max-width: none; padd
 .outcome.win { color: var(--win); } .outcome.loss { color: var(--loss); }
 
 /* Taille de l'échiquier : le plus grand carré qui tient dans la place restante.
-   En hauteur : joueur du haut, échiquier, joueur du bas (2 × 28 px), puis le graphe (8 px d'écart + sa hauteur).
-   En largeur : barre d'évaluation (40 px) et les deux colonnes de droite (268 + 380 px, écarts 2 × 14 px).
-   cqh / cqw : centièmes de la hauteur / largeur de .game-layout (déjà sans le menu, l'en-tête ni les marges). */
-.game-layout { --graph-h: clamp(56px, 13cqh, 110px);
-  --bsize: clamp(240px, min(100cqh - 56px - 8px - var(--graph-h), 100cqw - 40px - 268px - 380px - 28px), 860px);
-  container-type: size; flex: 1; min-height: 0; display: grid; grid-template-columns: auto 268px minmax(380px, 1fr); gap: 14px; }
-.board-col { display: flex; flex-direction: column; min-height: 0; }
+   L'en-tête de la partie (au-dessus de la feuille de notation et du panneau) et le graphe (sous la feuille de
+   notation, qui défile de toute façon) sont à droite de l'échiquier : sa colonne a toute la hauteur de l'écran, et
+   le panneau des explications garde presque toute la sienne.
+   En hauteur : joueur du haut, échiquier, joueur du bas (2 × 28 px).
+   En largeur : barre d'évaluation (40 px) et les deux colonnes de droite (268 + 420 px, écarts 2 × 14 px) ; 420 px
+   pour que le tableau des précisions garde les noms en entier.
+   cqh / cqw : centièmes de la hauteur / largeur de .game-layout (déjà sans le menu ni les marges). */
+.game-layout { --graph-h: clamp(64px, 11vh, 96px);
+  --bsize: clamp(240px, min(100cqh - 56px, 100cqw - 40px - 268px - 420px - 28px), 860px);
+  container-type: size; flex: 1; min-height: 0; display: grid; gap: 14px;
+  grid-template-columns: auto 268px minmax(420px, 1fr); grid-template-rows: auto minmax(0, 1fr) var(--graph-h); }
+.game-layout > .game-head { grid-column: 2 / -1; grid-row: 1; }
+.board-col { grid-column: 1; grid-row: 1 / -1; display: flex; flex-direction: column; min-height: 0; }
+.sheet-col { grid-column: 2; grid-row: 2; }
+.side-col { grid-column: 3; grid-row: 2 / -1; }
+.game-layout > .graph-wrap { grid-column: 2; grid-row: 3; }
 .board-row { display: flex; gap: 8px; }
 .board-wrap { width: var(--bsize); height: var(--bsize); flex: 0 0 auto; }
 .board { width: 100%; height: 100%; }
@@ -209,8 +218,8 @@ body.game-page main { flex: 1; min-height: 0; width: 100%; max-width: none; padd
 .evalbar.flipped { transform: rotate(180deg); }
 .evalbar.flipped .txt { transform: rotate(180deg); }
 
-/* Graphe d'évaluation, sous l'échiquier. */
-.graph-wrap { margin: 8px 0 0 40px; flex: 1; min-height: var(--graph-h); max-height: 110px; display: flex; }
+/* Graphe d'évaluation, sous la feuille de notation et le panneau (toute leur largeur). */
+.graph-wrap { display: flex; min-height: 0; min-width: 0; }
 #graphBox { flex: 1; min-width: 0; display: flex; }
 .graph { position: relative; flex: 1; min-width: 0; }
 .graph svg { width: 100%; height: 100%; display: block; cursor: pointer; border-radius: 6px; }
@@ -388,15 +397,19 @@ details.more > summary::-webkit-details-marker { display: none; }
 @media (max-width: 1100px), (max-height: 540px) {
   body.game-page { height: auto; display: block; }
   body.game-page main { height: auto; overflow: visible; }
-  .game-layout { container-type: normal; --graph-h: 90px; --bsize: min(100vw - 32px - 40px, 100dvh - 72px, 620px); grid-template-columns: auto minmax(0, 1fr); }
-  .side-col { grid-column: 1 / -1; }
-  .sheet-col { min-height: 300px; max-height: var(--bsize); }
+  .game-layout { container-type: normal; --graph-h: 90px; --bsize: min(100vw - 32px - 40px, 100dvh - 72px, 620px);
+    grid-template-columns: auto minmax(0, 1fr); grid-template-rows: none; }
+  .game-layout > .game-head { grid-column: 1 / -1; grid-row: 1; }
+  .board-col { grid-row: 2; }
+  .sheet-col { grid-row: 2; min-height: 300px; max-height: var(--bsize); }
+  .game-layout > .graph-wrap { grid-column: 1 / -1; grid-row: 3; height: var(--graph-h); }
+  .side-col { grid-column: 1 / -1; grid-row: 4; }
   .detail { overflow: visible; }
-  .graph-wrap { height: 90px; flex: none; }
 }
 @media (max-width: 900px) {
   .game-layout { --bsize: min(100vw - 32px - 40px, 100dvh - 72px, 640px); grid-template-columns: minmax(0, 1fr); }
-  .sheet-col { max-height: 340px; }
+  .sheet-col { grid-column: 1; grid-row: 4; max-height: 340px; }
+  .side-col { grid-row: 5; }
 }
 
 /* ---------- Échiquier « ardoise » ---------- */
@@ -405,8 +418,18 @@ details.more > summary::-webkit-details-marker { display: none; }
 /* Écran d'analyse : cases du dernier coup à la couleur de son classement (vert meilleur / bon, bleu très bon,
    jaune imprécision, orange erreur, rouge gaffe…), mêlée de transparence pour garder les pièces lisibles. */
 .board-wrap.classified cg-board square.last-move { background-color: color-mix(in srgb, var(--cls-color) 50%, transparent); }
-.cg-wrap coords { font-size: 10px; font-weight: 600; }
-.cg-wrap coords coord { color: var(--coord) !important; opacity: .85; }
+.cg-wrap cg-container { border-radius: 4px; box-shadow: 0 1px 2px rgba(0, 0, 0, .18), 0 4px 14px rgba(0, 0, 0, .12); }
+/* Coordonnées dans les cases, comme sur Lichess : chiffres en haut à gauche de la colonne de gauche, lettres en bas
+   à droite de la rangée du bas. Taille proportionnelle à l'échiquier ; couleur de l'autre case, pour rester lisibles
+   sur les cases claires comme sur les foncées (a1 est foncée : selon le côté, les impaires ou les paires le sont). */
+.cg-wrap coords { font-family: var(--font); font-size: clamp(10px, calc(var(--bsize, 480px) * .024), 15px); font-weight: 700; opacity: 1; }
+.cg-wrap coords.ranks { left: 0; top: 0; width: 12.5%; height: 100%; }
+.cg-wrap coords.ranks coord { transform: none; padding: .2em 0 0 .3em; line-height: 1; }
+.cg-wrap coords.files { left: 0; bottom: 0; width: 100%; height: 12.5%; align-items: flex-end; }
+.cg-wrap coords.files coord { text-align: right; padding: 0 .3em .2em 0; line-height: 1; }
+.cg-wrap coords coord { color: var(--sq-dark) !important; }
+.cg-wrap coords.ranks:not(.black) coord:nth-child(odd), .cg-wrap coords.files:not(.black) coord:nth-child(odd),
+.cg-wrap coords.ranks.black coord:nth-child(even), .cg-wrap coords.files.black coord:nth-child(even) { color: var(--sq-light) !important; }
 
 /* Pastille du classement du coup affiché, en haut à droite de sa case d'arrivée (comme chess.com).
    C'est le même .sym.c-… que dans la feuille de notation ; seules sa taille (proportionnelle à la case, cqw) et sa

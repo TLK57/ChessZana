@@ -33,15 +33,16 @@ export async function renderGame(root, id, startPly = 0) {
   const S = { ply: Math.max(0, Math.min(g.moves.length, startPly)), free: null, orientation: g.myColor ?? 'white', playing: null, review: null, detailsOpen: false, sumOpen: false };
   const n = () => g.moves.length;
 
+  // En-tête et graphe dans la grille de l'écran, à droite de l'échiquier : il garde toute la hauteur (app.css).
   root.innerHTML = `
-    <div class="game-head">
-      <a class="back" href="#/">← Parties</a>
-      <h1 id="title"></h1>
-      <span class="sub" id="sub"></span>
-      <span class="spacer"></span>
-      <button id="reviewBtn" class="primary" title="Revoir uniquement les moments clés de la partie, un par un">▶ Bilan guidé</button>
-    </div>
     <div class="game-layout">
+      <div class="game-head">
+        <a class="back" href="#/">← Parties</a>
+        <h1 id="title"></h1>
+        <span class="sub" id="sub"></span>
+        <span class="spacer"></span>
+        <button id="reviewBtn" class="primary" title="Revoir uniquement les moments clés de la partie, un par un">▶ Bilan guidé</button>
+      </div>
       <div class="board-col">
         <div class="player-line" id="topPlayer"></div>
         <div class="board-row">
@@ -49,7 +50,6 @@ export async function renderGame(root, id, startPly = 0) {
           <div class="board-wrap"><div class="board" id="board"></div></div>
         </div>
         <div class="player-line" id="bottomPlayer"></div>
-        <div class="graph-wrap"><div id="graphBox"></div><div class="graph-empty" id="graphEmpty" hidden>Le graphe s'affichera après l'analyse.</div></div>
       </div>
       <div class="sheet-col">
         <div class="sheet" id="moves" aria-label="Feuille de notation"></div>
@@ -69,6 +69,7 @@ export async function renderGame(root, id, startPly = 0) {
         <div class="summary" id="summary"></div>
         <div class="opening-line" id="openingBox"></div>
       </div>
+      <div class="graph-wrap"><div id="graphBox"></div><div class="graph-empty" id="graphEmpty" hidden>Le graphe s'affichera après l'analyse.</div></div>
     </div>`;
   const $ = (sel) => root.querySelector(sel);
 
