@@ -83,8 +83,9 @@ async function refreshPills() {
     const qp = document.getElementById('queuePill');
     const waiting = s.queue.requested.waiting;
     // Texte court dans la barre ; le détail de la file est dans l'infobulle.
-    const short = s.queue.paused ? 'Analyse en pause'
-      : s.queue.current ? 'Analyse en cours'
+    // En pause, une partie demandée depuis la mise en pause est quand même analysée : « Analyse en cours » d'abord.
+    const short = s.queue.current ? 'Analyse en cours'
+      : s.queue.paused ? 'Analyse en pause'
         : waiting ? `${waiting} partie${waiting > 1 ? 's' : ''} en attente` : 'Aucune analyse en cours';
     const mode = s.queue.mode === 'manual' ? 'Analyse à la demande'
       : s.queue.mode === 'quick' ? `Passe rapide automatique (${q.quick.done} sur ${q.quick.total}), profonde à la demande`

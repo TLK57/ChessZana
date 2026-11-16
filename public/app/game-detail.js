@@ -117,15 +117,17 @@ export function renderDetail(ctx, nd) {
     box.innerHTML = moveDetailHtml(ctx, g.moves[S.ply - 1], S.ply - 1);
   }
   if (g.pass === 'deep' && g.verifyOutdated && g.status !== 'running') {
-    box.insertAdjacentHTML('beforeend', g.requested
-      ? '<p class="small">Vérification demandée : elle démarrera dès que le moteur sera libre.</p>'
+    box.insertAdjacentHTML('beforeend', g.requested && !g.held
+      ? '<p class="small">Vérification demandée : elle démarre dans un instant.</p>'
       : `<div class="actions"><button id="reverify" title="Les positions déjà calculées sont réutilisées : seuls les coups douteux sont recalculés">Revérifier les coups douteux à la profondeur ${g.verifyTarget}</button></div>`);
   }
   if (g.pass !== 'deep') {
     box.insertAdjacentHTML('beforeend', g.status === 'running'
       ? "<p class=\"small\"><span class=\"spinner\"></span> Analyse de cette partie en cours… le résultat s'affichera tout seul.</p>"
-      : g.requested
-        ? '<div class="actions"><span class="small">Analyse demandée : elle démarrera dès que le moteur sera libre.</span><button id="unprio">Annuler la demande</button></div>'
-        : `<div class="actions"><button class="primary" id="prio">${g.pass ? 'Analyser en profondeur (quelques minutes)' : 'Analyser cette partie'}</button></div>`);
+      : g.held
+        ? '<div class="actions"><span class="small">Analyse demandée avant la mise en pause : elle attend la reprise.</span><button class="primary" id="prio">Analyser maintenant</button><button id="unprio">Annuler la demande</button></div>'
+        : g.requested
+          ? '<div class="actions"><span class="small">Analyse demandée : elle démarre dans un instant.</span><button id="unprio">Annuler la demande</button></div>'
+          : `<div class="actions"><button class="primary" id="prio">${g.pass ? 'Analyser en profondeur (quelques minutes)' : 'Analyser cette partie'}</button></div>`);
   }
 }

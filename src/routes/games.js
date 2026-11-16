@@ -56,6 +56,7 @@ export async function gameRoutes(req, res, { p, url, body }) {
     const vm = /^\/api\/games\/(\d+)\/view$/.exec(p);
     if (vm) {
       const v = buildGameView(Number(vm[1]), { currentGameId: queue.current?.gameId ?? null });
+      if (v) v.held = queue.isHeld(Number(vm[1])); // demandée avant la mise en pause : retenue par la pause
       if (v) send(res, 200, v); else send(res, 404, { error: 'Partie introuvable' });
       return true;
     }

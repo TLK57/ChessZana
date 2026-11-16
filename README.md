@@ -78,7 +78,9 @@ L'application n'est accessible que depuis votre ordinateur (adresse 127.0.0.1), 
 3. Dans **Mes parties**, cliquez sur une partie pour ouvrir son écran d'analyse (voir ci-dessous). Les boutons
    **Analyser** (partie pas encore analysée) et **Approfondir** (déjà en passe rapide) sont aussi dans la liste.
 4. **Pause / Reprendre** arrête et relance l'analyse. Si vous fermez l'application, elle reprend au prochain
-   lancement là où elle en était (les positions déjà calculées sont gardées).
+   lancement là où elle en était (les positions déjà calculées sont gardées). Une partie que vous demandez
+   (**Analyser**) démarre **tout de suite, même en pause** : la pause retient seulement ce qui était déjà dans la
+   file. Une partie demandée avant la mise en pause affiche **Analyser maintenant** pour la lancer quand même.
 5. Aux lancements suivants, les comptes déjà importés sont **synchronisés automatiquement** : seuls le mois en
    cours et les nouveaux mois sont téléchargés (bouton **Synchroniser mes comptes** pour le faire à la demande).
 6. **Analyser tout mon historique** (même écran) : toutes vos parties passent par la passe rapide puis la passe

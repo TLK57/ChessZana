@@ -41,6 +41,30 @@ export class AnalysisQueue {
     return getMeta('queue_paused', '0') === '1';
   }
 
+  // Pause : elle retient ce qui était dans la file au moment de la mettre (priorité ≤ ce seuil). Une partie
+  // demandée ensuite (bouton « Analyser », priorité plus haute) démarre quand même tout de suite.
+  get pauseFloor() {
+    let floor = getMeta('queue_pause_floor', null);
+    if (floor == null) { // pause mise avant l'existence du seuil : tout ce qui est déjà dans la file reste en pause
+      floor = String(this.maxPriority());
+      setMeta('queue_pause_floor', floor);
+    }
+    return Number(floor) || 0;
+  }
+
+  maxPriority() {
+    return getDb().prepare('SELECT COALESCE(MAX(priority), 0) AS p FROM analysis_queue').get().p;
+  }
+
+  // Partie demandée avant la mise en pause et pas encore analysée : la pause la retient (l'écran propose alors
+  // « Analyser maintenant », qui la redemande et la fait démarrer tout de suite).
+  isHeld(gameId) {
+    if (!this.paused) return false;
+    const r = getDb().prepare(`SELECT MAX(priority) AS p FROM analysis_queue
+      WHERE game_id = ? AND priority > 0 AND status IN ('pending', 'running')`).get(gameId);
+    return r?.p != null && r.p <= this.pauseFloor;
+  }
+
   get mode() {
     const m = getMeta('queue_mode', config.analysisMode);
     return MODES.includes(m) ? m : 'manual';
@@ -77,7 +101,9 @@ export class AnalysisQueue {
 
   filter() {
     const base = MODE_FILTER[this.mode];
-    return this.history === 'on' ? `(${base} OR ${MINE})` : base;
+    const wanted = this.history === 'on' ? `(${base} OR ${MINE})` : base;
+    // En pause : seulement les parties demandées depuis la mise en pause.
+    return this.paused ? `(${wanted}) AND q.priority > ${Number(this.pauseFloor)}` : wanted;
   }
 
   isWanted(gameId, pass) {
@@ -112,18 +138,18 @@ export class AnalysisQueue {
     if (this.wake) { const w = this.wake; this.wake = null; w(); }
   }
 
+  // La boucle tourne aussi en pause : elle n'y prend que les parties demandées depuis la mise en pause (filter()).
   start() {
-    if (this.running || this.paused || this.stopped) return;
+    if (this.running || this.stopped) return;
     this.running = true;
     this.loop().catch((e) => { this.lastError = e.message; }).finally(() => {
       this.running = false;
-      // Une reprise demandée pendant l'arrêt de la boucle doit relancer la file.
-      if (!this.paused && !this.stopped) setTimeout(() => this.start(), 1000);
+      if (!this.stopped) setTimeout(() => this.start(), 1000);
     });
   }
 
   async loop() {
-    while (!this.paused && !this.stopped) {
+    while (!this.stopped) {
       const item = this.nextItem();
       if (!item) {
         await new Promise((r) => { this.wake = r; setTimeout(r, 5000); });
@@ -165,6 +191,7 @@ export class AnalysisQueue {
   }
 
   pause() {
+    setMeta('queue_pause_floor', String(this.maxPriority())); // ce qui est déjà demandé reste en pause
     setMeta('queue_paused', '1');
     this.ctrl?.abort();
     this.notify();
