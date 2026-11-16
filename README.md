@@ -157,13 +157,36 @@ défile. Sur tablette ou téléphone, la page défile, mais les deux joueurs et 
   manquées, erreurs et coups brillants), un par un, avec leur explication, comme une revue avec un entraîneur.
   `←` / `→` passent d'un moment à l'autre, `Échap` arrête le bilan. Les moments clés sont aussi listés en bas du
   panneau : un clic pour y aller.
-- **Échiquier** orienté de votre côté (bouton ⇅ ou touche `F` pour le retourner) et **barre d'évaluation** large,
+- **Échiquier** orienté de votre côté (bouton ⇅ ou touche `R` pour le retourner) et **barre d'évaluation** large,
   avec la valeur écrite du côté de celui qui mène.
 - **Le coup affiché, sur l'échiquier**, comme sur chess.com : une **pastille** ronde en haut à droite de sa case
   d'arrivée reprend le symbole et la couleur de son classement (les mêmes que dans la feuille de notation), et ses
   deux cases sont teintées de cette couleur (vert pour meilleur ou bon, bleu pour très bon, jaune pour imprécision,
-  orange pour erreur, rouge pour gaffe…). Sur une imprécision, une erreur, une occasion manquée ou une gaffe, une
-  **flèche verte** semi-transparente montre le meilleur coup de Stockfish.
+  orange pour erreur, rouge pour gaffe…).
+- **Aides sur l'échiquier**, comme sur Lichess et chess.com : une barre de boutons sous les flèches de navigation
+  (choix mémorisés ; ⚙ pour les options). Les couleurs sont fixes : **vert** pour le meilleur coup, **rouge** pour la
+  menace, **orange** pour les faiblesses. Les flèches du moteur sont semi-transparentes et plus fines que les vôtres,
+  pour garder les pièces et la pastille lisibles. Tout marche échiquier retourné et en mode libre.
+  - **Meilleur coup** (touche `B`, activé par défaut) : flèche verte du meilleur coup de Stockfish dans la position
+    **avant** le coup affiché (ce qu'il fallait jouer), seulement sur une imprécision, une erreur, une occasion
+    manquée ou une gaffe. Options : l'afficher aussi sur les bons coups ; montrer les 2 ou 3 coups suivants de la
+    meilleure suite, plus pâles et plus fins. Rien n'est recalculé : le meilleur coup et la suite sont enregistrés par
+    l'analyse.
+  - **Menace** (touche `X`, comme sur Lichess) : on donne le trait à l'autre camp et Stockfish cherche son meilleur
+    coup (profondeur `engine.threatDepth`, 16) : c'est ce que l'adversaire ferait s'il pouvait rejouer. La flèche
+    rouge n'apparaît que si la menace est **sérieuse** : elle lui ferait gagner au moins **10 points de chances de
+    gain** (le seuil d'une erreur chez Lichess) ou lui donnerait un mat ; une ligne sous la barre la décrit
+    (« Menace : ♕xf3, mat en 4 pour les Noirs… »). Rien n'est calculé si le camp au trait est en échec (inverser le
+    trait serait illégal). Le calcul se fait en arrière-plan, il est gardé par position et il est abandonné si vous
+    changez de coup avant la fin.
+  - **Faiblesses** (touche `F`), sans moteur : vos pièces **en prise** (coins orange : attaquées et pas assez
+    défendues, ou attaquées par une pièce de moindre valeur) et **non défendues** (petit point orange). Le survol
+    d'une case marquée l'explique (« Fou en prise : attaqué 2 fois, non défendu »). Option : les pièces adverses
+    aussi. Calcul simple, comme un coup d'œil : les clouages ne sont pas pris en compte.
+  - **Vos flèches** : clic droit glissé pour une flèche, clic droit sur une case pour un cercle, clic gauche pour tout
+    effacer. Vert par défaut, **rouge** avec `Maj`, **bleu** avec `Alt`, **orange** avec `Ctrl`. Elles sont gardées
+    pour chaque position pendant la session : elles disparaissent quand vous changez de coup et reviennent si vous y
+    revenez. Le menu du clic droit du navigateur ne s'ouvre pas sur l'échiquier.
 - **Feuille de notation** : chaque coup avec son symbole (`!!` brillant, `!` très bon, `★` meilleur, `✓` excellent /
   bon, livre = théorie, `?!` imprécision, `?` erreur, `✗` occasion manquée, `??` gaffe) et, en discret, le **temps
   passé** sur le coup (calculé à partir des pendules `%clk`).
@@ -179,7 +202,8 @@ défile. Sur tablette ou téléphone, la page défile, mais les deux joueurs et 
   les autres en arrière-plan, sans recalcul. En dessous, **« Saisir le bilan chess.com »** permet de recopier le bilan
   chess.com de la partie (voir « Ajuster le style chess.com sur vos parties »).
 - **Ouverture** (base libre lichess-org/chess-openings) et lien vers le **coup où l'on sort de la théorie**.
-- **Clavier** : `←` / `→` coup précédent / suivant, `Début` / `Fin` (ou `↑` / `↓`) début / fin de partie.
+- **Clavier** : `←` / `→` coup précédent / suivant, `Début` / `Fin` (ou `↑` / `↓`) début / fin de partie, `R` retourner
+  l'échiquier, `B` meilleur coup, `X` menace, `F` faiblesses (avec `Ctrl`, ces touches restent celles du navigateur).
 
 ### Thème clair ou sombre
 
@@ -326,6 +350,7 @@ Après une modification, fermez et relancez l'application.
 | `engine.deepSkipDecided` | `97` | Passe profonde : garder l'analyse rapide quand la partie est déjà jouée (≥ 97 % ou ≤ 3 %) ; 100 = jamais |
 | `engine.maxSecondsPerPosition` | `300` | Sécurité : temps maximum par position |
 | `engine.liveDepth` | `18` | Profondeur de l'analyse en direct du mode libre (16 = plus rapide) |
+| `engine.threatDepth` | `16` | Profondeur du calcul de l'aide « Menace » sur l'échiquier |
 | `engine.backgroundLowPriority` | `true` | La file de fond tourne en priorité basse (l'ordinateur reste fluide) |
 | `lichess.cloudEval` | `true` | Utiliser l'analyse cloud Lichess pour les positions connues |
 | `lichess.cloudEvalMaxPly` | `30` | Interroger le cloud seulement pendant les 30 premiers demi-coups |
