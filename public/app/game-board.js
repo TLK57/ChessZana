@@ -1,7 +1,8 @@
 // Écran d'une partie — échiquier (chessground), barre d'évaluation et joueurs avec leur pendule.
 import { Chessground } from '/vendor/chessground.js';
 import { Chess } from '/vendor/chess.js';
-import { esc, BAD, fmtClock, symbol } from './util.js';
+import { esc, fmtClock, symbol } from './util.js';
+import { AID_BRUSHES } from './game-aids.js';
 
 export function destsOf(chess) {
   const d = new Map();
@@ -30,8 +31,11 @@ export function askPromotion(color) {
 /** Classement du coup affiché : coup de la partie, ou coup joué en mode libre une fois analysé. */
 const shownClassification = (nd) => nd.move?.classification ?? nd.item?.result?.classification ?? null;
 
-/** Échiquier de l'écran : onMove(orig, dest) est appelé quand l'utilisateur joue un coup. */
-export function createBoard(ctx, onMove) {
+/**
+ * Échiquier de l'écran : onMove(orig, dest) est appelé quand l'utilisateur joue un coup ; aids (game-aids.js) fournit
+ * les flèches automatiques (meilleur coup…).
+ */
+export function createBoard(ctx, onMove, aids) {
   // Couche de la pastille du classement, posée sur le plateau (chessground la remet en place s'il redessine tout).
   const badgeLayer = document.createElement('div');
   badgeLayer.className = 'cls-layer';
@@ -45,7 +49,7 @@ export function createBoard(ctx, onMove) {
     movable: { free: false, showDests: true, events: { after: (o, d) => onMove(o, d) } },
     premovable: { enabled: false },
     draggable: { showGhost: true },
-    drawable: { enabled: true, visible: true },
+    drawable: { enabled: true, visible: true, brushes: AID_BRUSHES },
     // Taille réelle du plateau dessiné (---cg-height) : la barre d'évaluation prend exactement la même hauteur.
     addDimensionsCssVarsTo: ctx.$('.board-row'),
     events: { insert: (elements) => elements.container.appendChild(badgeLayer) },
@@ -66,14 +70,6 @@ export function createBoard(ctx, onMove) {
     badgeLayer.innerHTML = `<div class="cls-square" style="left:${col * 12.5}%;top:${row * 12.5}%">${symbol(cls, false)}</div>`;
   }
 
-  function boardShapes(nd) {
-    const shapes = [];
-    const show = (uci, brush = 'green') => { if (uci) shapes.push({ orig: uci.slice(0, 2), dest: uci.slice(2, 4), brush }); };
-    if (nd.move && BAD.has(nd.move.classification)) show(nd.move.bestUci);
-    if (nd.item?.result && BAD.has(nd.item.result.classification)) show(nd.item.result.bestUci);
-    return shapes;
-  }
-
   function update(nd) {
     const chess = new Chess(nd.fen);
     const turn = chess.turn() === 'w' ? 'white' : 'black';
@@ -86,7 +82,7 @@ export function createBoard(ctx, onMove) {
       movable: { color: chess.isGameOver() ? undefined : turn, dests: destsOf(chess) },
     });
     if (!nd.lastMove) cg.set({ lastMove: undefined });
-    cg.setAutoShapes(boardShapes(nd));
+    cg.setAutoShapes(aids.shapes(nd));
     const cls = shownClassification(nd);
     renderBadge(cls, nd.lastMove?.[1]);
     // Cases du dernier coup teintées avec la couleur de son classement (la même variable CSS que la feuille de

@@ -5,6 +5,7 @@
 //   game-free.js   : mode libre (coups joués sur l'échiquier, variantes de Stockfish) ;
 //   game-prompt.js : question prête à copier pour « Demander à Claude » ;
 //   game-review.js : saisie du bilan chess.com de la partie ;
+//   game-aids.js   : aides sur l'échiquier (meilleur coup…) et leur barre de boutons ;
 //   review.js      : bilan guidé (les moments clés, un par un).
 import { api, esc, fig, fmtDate, toast, TIME_CLASS, LABELS, SYMBOLS, moveNo, fmtTimeControl } from './util.js';
 import { createGraph } from './graph.js';
@@ -14,6 +15,7 @@ import { depthSummary, renderDetail } from './game-detail.js';
 import { createFreeMode, renderFree } from './game-free.js';
 import { askClaude, claudeText } from './game-prompt.js';
 import { openReviewForm } from './game-review.js';
+import { createAids } from './game-aids.js';
 import { startReview, stepReview, currentMoment, reviewProgress, KEY_CLASSES } from './review.js';
 
 const RESULT_TXT = { '1-0': 'Victoire des Blancs', '0-1': 'Victoire des Noirs', '1/2-1/2': 'Nulle' };
@@ -58,6 +60,7 @@ export async function renderGame(root, id, startPly = 0) {
           <button id="bEnd" title="Fin (touche Fin)" aria-label="Fin">⏭</button>
           <button id="bFlip" title="Retourner l'échiquier (touche F)" aria-label="Retourner l'échiquier">⇅</button>
         </div>
+        <div class="aids" id="aids"></div>
       </div>
       <div class="side-col">
         <div id="reviewBox"></div>
@@ -98,7 +101,8 @@ export async function renderGame(root, id, startPly = 0) {
 
   // ------------------------------------------------------------------ échiquier et mode libre
   const free = createFreeMode(ctx);
-  const board = createBoard(ctx, (orig, dest) => free.onBoardMove(orig, dest));
+  const aids = createAids(ctx, () => render());
+  const board = createBoard(ctx, (orig, dest) => free.onBoardMove(orig, dest), aids);
   const stopPlaying = () => free.stopPlaying();
 
   // ------------------------------------------------------------------ navigation
@@ -152,6 +156,7 @@ export async function renderGame(root, id, startPly = 0) {
   function render() {
     const nd = node();
     board.update(nd);
+    aids.renderBar(nd);
     renderEvalBar(ctx, nd);
     renderPlayers(ctx);
     renderMoves(ctx);
@@ -233,6 +238,7 @@ export async function renderGame(root, id, startPly = 0) {
   root.addEventListener('toggle', onToggle, true);
   // Méthode de classement choisie dans le résumé : cette partie est reclassée tout de suite, les autres en arrière-plan.
   const onChange = async (e) => {
+    if (aids.onInput(e)) return;
     if (!e.target.matches?.('#methodSel')) return;
     const method = e.target.value;
     e.target.disabled = true;
@@ -251,6 +257,7 @@ export async function renderGame(root, id, startPly = 0) {
   root.addEventListener('change', onChange);
   const onClick = async (e) => {
     const t = e.target;
+    if (aids.onClick(e)) return;
     const mv = t.closest('.mv[data-ply]');
     if (mv) { go(Number(mv.dataset.ply)); return; }
     const fm = t.closest('.mv[data-cursor]');
@@ -306,7 +313,9 @@ export async function renderGame(root, id, startPly = 0) {
     else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
     else if (e.key === 'Home' || e.key === 'ArrowUp') { e.preventDefault(); toStart(); }
     else if (e.key === 'End' || e.key === 'ArrowDown') { e.preventDefault(); toEnd(); }
+    else if (e.ctrlKey || e.metaKey || e.altKey) { /* raccourcis du navigateur (Ctrl+F…) : rien */ }
     else if (e.key === 'f') { S.orientation = S.orientation === 'white' ? 'black' : 'white'; render(); }
+    else if (e.key.toLowerCase() === 'b') aids.toggle('best');
   };
   window.addEventListener('keydown', onKey);
 
@@ -338,6 +347,7 @@ export async function renderGame(root, id, startPly = 0) {
     stopPlaying();
     graph.destroy();
     board.destroy();
+    aids.destroy();
     delete window.__partie;
   };
 }
