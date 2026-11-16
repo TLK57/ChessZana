@@ -51,6 +51,34 @@ export function createBoard(ctx, onMove, aids) {
   const wrapEl = ctx.$('.board-wrap');
   wrapEl.appendChild(tip);
 
+  // Vos flèches et cases (clic droit glissé : flèche ; clic droit : cercle ; clic gauche : tout effacer), gardées pour
+  // chaque position pendant la session : elles disparaissent quand on change de coup et reviennent si on y revient.
+  // Couleur : vert ; Maj : rouge ; Alt : bleu ; Ctrl : orange (chessground donne le rouge à Ctrl, on le corrige).
+  const drawings = new Map(); // FEN → formes dessinées
+  let drawFen = null;
+  let ctrlDraw = false;
+  ctx.$('#board').addEventListener('mousedown', (e) => {
+    if (e.button === 2) ctrlDraw = e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey;
+  }, true);
+  wrapEl.addEventListener('contextmenu', (e) => e.preventDefault()); // pas de menu du navigateur sur l'échiquier
+  function onDrawn(shapes) {
+    let out = shapes;
+    if (ctrlDraw) {
+      ctrlDraw = false;
+      const before = drawings.get(drawFen) ?? [];
+      out = [];
+      for (const s of shapes) {
+        const was = before.find((p) => p.orig === s.orig && p.dest === s.dest);
+        if (s.brush !== 'red' || was?.brush === 'red') { out.push(s); continue; }
+        if (was?.brush === 'orange') continue; // redessinée avec Ctrl : effacée, comme pour les autres couleurs
+        out.push({ ...s, brush: 'orange' });
+      }
+      cg.setShapes(out);
+    }
+    // Une copie : chessground modifie ensuite sa propre liste (et l'état « avant » doit rester celui d'avant).
+    drawings.set(drawFen, out.map((s) => ({ ...s })));
+  }
+
   const cg = Chessground(ctx.$('#board'), {
     coordinates: true,
     orientation: ctx.S.orientation,
@@ -59,7 +87,7 @@ export function createBoard(ctx, onMove, aids) {
     movable: { free: false, showDests: true, events: { after: (o, d) => onMove(o, d) } },
     premovable: { enabled: false },
     draggable: { showGhost: true },
-    drawable: { enabled: true, visible: true, brushes: AID_BRUSHES },
+    drawable: { enabled: true, visible: true, eraseOnClick: true, brushes: AID_BRUSHES, onChange: (shapes) => onDrawn(shapes) },
     // Taille réelle du plateau dessiné (---cg-height) : la barre d'évaluation prend exactement la même hauteur.
     addDimensionsCssVarsTo: ctx.$('.board-row'),
     events: { insert: (elements) => { elements.container.appendChild(weakLayer); elements.container.appendChild(badgeLayer); } },
@@ -137,6 +165,9 @@ export function createBoard(ctx, onMove, aids) {
       movable: { color: chess.isGameOver() ? undefined : turn, dests: destsOf(chess) },
     });
     if (!nd.lastMove) cg.set({ lastMove: undefined });
+    // cg.set({ fen }) efface toujours les dessins : on remet ceux de la position affichée.
+    drawFen = nd.fen;
+    cg.setShapes((drawings.get(nd.fen) ?? []).map((s) => ({ ...s })));
     cg.setAutoShapes(aids.shapes(nd));
     const cls = shownClassification(nd);
     renderBadge(cls, nd.lastMove?.[1]);
