@@ -28,6 +28,9 @@ export function askPromotion(color) {
   });
 }
 
+// Épingle (punaise) des pièces clouées.
+const PIN_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><g transform="rotate(35 8 8)" fill="currentColor"><path d="M5 1.2h6v1.6H10l.9 4.4 1.8 1.6v1.2H3.3V8.8l1.8-1.6L6 2.8H5z"/><path d="M7.3 10.8h1.4L8 15.6z"/></g></svg>';
+
 /** Classement du coup affiché : coup de la partie, ou coup joué en mode libre une fois analysé. */
 const shownClassification = (nd) => nd.move?.classification ?? nd.item?.result?.classification ?? null;
 
@@ -40,9 +43,12 @@ export function createBoard(ctx, onMove, aids) {
   const badgeLayer = document.createElement('div');
   badgeLayer.className = 'cls-layer';
   let badgeKey = '';
-  // Couche des faiblesses (sous les pièces) et info-bulle au survol d'une case marquée.
+  // Couches des faiblesses : pièces en prise (sous les pièces), pièces clouées (épingle, au-dessus des pièces pour
+  // rester visible) ; info-bulle au survol d'une case marquée.
   const weakLayer = document.createElement('div');
   weakLayer.className = 'weak-layer';
+  const pinLayer = document.createElement('div');
+  pinLayer.className = 'pin-layer';
   let weakKey = '';
   let weakText = new Map();
   const tip = document.createElement('div');
@@ -90,7 +96,7 @@ export function createBoard(ctx, onMove, aids) {
     drawable: { enabled: true, visible: true, eraseOnClick: true, brushes: AID_BRUSHES, onChange: (shapes) => onDrawn(shapes) },
     // Taille réelle du plateau dessiné (---cg-height) : la barre d'évaluation prend exactement la même hauteur.
     addDimensionsCssVarsTo: ctx.$('.board-row'),
-    events: { insert: (elements) => { elements.container.appendChild(weakLayer); elements.container.appendChild(badgeLayer); } },
+    events: { insert: (elements) => { elements.container.append(weakLayer, pinLayer, badgeLayer); } },
   });
 
   // Case (« e4 ») et coin haut-gauche (en fractions du plateau) sous une position de souris, selon le sens du plateau.
@@ -113,16 +119,17 @@ export function createBoard(ctx, onMove, aids) {
     return { col: white ? file : 7 - file, row: white ? 7 - rank : rank };
   };
 
-  // Faiblesses : coins orange (pièce en prise), couleur --aid-weakness.
+  // Faiblesses : coins orange (pièce en prise, couleur --aid-weakness) et épingle (pièce clouée, --aid-pin). Une case
+  // peut avoir les deux : l'info-bulle donne alors les deux lignes.
   function renderWeak(list) {
     const key = `${ctx.S.orientation}|${list.map((w) => w.square + w.kind).join(',')}`;
     if (key === weakKey) return;
     weakKey = key;
-    weakText = new Map(list.map((w) => [w.square, w.text]));
-    weakLayer.innerHTML = list.map((w) => {
-      const { col, row } = placeOf(w.square);
-      return `<div class="weak-sq ${w.kind}" style="left:${col * 12.5}%;top:${row * 12.5}%"></div>`;
-    }).join('');
+    weakText = new Map();
+    for (const w of list) weakText.set(w.square, weakText.has(w.square) ? `${weakText.get(w.square)}\n${w.text}` : w.text);
+    const at = (w) => { const { col, row } = placeOf(w.square); return `left:${col * 12.5}%;top:${row * 12.5}%`; };
+    weakLayer.innerHTML = list.filter((w) => w.kind === 'hanging').map((w) => `<div class="weak-sq hanging" style="${at(w)}"></div>`).join('');
+    pinLayer.innerHTML = list.filter((w) => w.kind === 'pinned').map((w) => `<div class="pin-sq" style="${at(w)}">${PIN_ICON}</div>`).join('');
     tip.hidden = true;
   }
   wrapEl.addEventListener('mousemove', (e) => {

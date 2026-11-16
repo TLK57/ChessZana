@@ -4,9 +4,11 @@ import './_unit.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { boardOf, exchangeOn, findWeaknesses, hangingText } from '../public/app/weaknesses.js';
+import { boardOf, exchangeOn, findWeaknesses, hangingText, pinText } from '../public/app/weaknesses.js';
 
-const at = (list, sq) => list.find((w) => w.square === sq) ?? null;
+/** Marquage d'une case : « en prise » par défaut, ou « clouée ». */
+const at = (list, sq, kind = 'hanging') => list.find((w) => w.square === sq && w.kind === kind) ?? null;
+const pinAt = (list, sq) => at(list, sq, 'pinned');
 const weak = (fen, colors = ['w', 'b']) => findWeaknesses(new Chess(fen), colors);
 const gainOn = (fen, sq, side) => exchangeOn(boardOf(new Chess(fen)), sq, side).gain;
 
@@ -111,4 +113,40 @@ test('seulement les camps demandés ; textes', () => {
   assert.deepEqual(weak(fen, ['w']).map((w) => w.square), ['b3']);
   assert.equal(hangingText('n', 3, 'Fxe3'), 'Cavalier en prise : Fxe3 gagne un cavalier');
   assert.equal(hangingText('r', 2, 'Fxd1'), 'Tour en prise : échange perdant (−2)');
+});
+
+test('clouage absolu : la pièce cache son roi', () => {
+  const list = weak('r1bqkbnr/ppp2ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', ['b']);
+  const c6 = pinAt(list, 'c6');
+  assert.deepEqual([c6.absolute, c6.by, c6.on], [true, 'b5', 'e8']);
+  assert.equal(c6.text, 'Cavalier cloué sur le roi par le fou b5');
+  assert.equal(pinAt(weak('4k3/8/4q3/8/8/8/8/4R1K1 b - - 0 1'), 'e6').text, 'Dame clouée sur le roi par la tour e1');
+  // Un pion en d7 casse la ligne : plus de clouage.
+  assert.equal(pinAt(weak('r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', ['b']), 'c6'), null);
+});
+
+test('clouage relatif : sur la dame, ou sur une tour non défendue', () => {
+  // Fou e6 entre sa dame e8 et la tour blanche e1.
+  const e6 = pinAt(weak('4q1k1/8/4b3/8/8/8/8/4R1K1 b - - 0 1'), 'e6');
+  assert.deepEqual([e6.absolute, e6.by, e6.on], [false, 'e1', 'e8']);
+  assert.equal(e6.text, 'Fou cloué sur la dame par la tour e1');
+  // Dame défendue (roi f8) face à une dame : pas un clouage (Dxe8 Rxe8 est un simple échange) ; dame non défendue : si.
+  assert.equal(pinAt(weak('4qk2/8/4b3/8/8/8/8/4Q1K1 b - - 0 1'), 'e6'), null);
+  assert.equal(pinAt(weak('4q1k1/8/4b3/8/8/8/8/4Q1K1 b - - 0 1'), 'e6').text, 'Fou cloué sur la dame par la dame e1');
+  // Cavalier d4 entre le fou a1 et la tour g7 non défendue ; il est aussi en prise (deux marquages sur la case).
+  const list = weak('1k6/6r1/8/8/3n4/8/8/B6K b - - 0 1', ['b']);
+  assert.equal(pinAt(list, 'd4').text, 'Cavalier cloué sur la tour non défendue g7 par le fou a1');
+  assert.equal(at(list, 'd4').text, 'Cavalier en prise : Fxd4 gagne un cavalier');
+  // La tour défendue par le roi h8 : pas de clouage.
+  assert.equal(pinAt(weak('7k/6r1/8/8/3n4/8/8/B6K b - - 0 1', ['b']), 'd4'), null);
+  // La pièce de devant vaut plus que celle de derrière (dame devant une tour) : pas un clouage.
+  assert.equal(pinAt(weak('4r1k1/8/4q3/8/8/8/8/4R1K1 b - - 0 1'), 'e6'), null);
+  assert.equal(pinText('r', { onType: 'q', byType: 'b', by: 'g2' }), 'Tour clouée sur la dame par le fou g2');
+});
+
+test('clouages : seulement les camps demandés, jamais dans la position 32…Txc3', () => {
+  const fen = '4q1k1/8/4b3/8/8/8/8/4R1K1 b - - 0 1';
+  assert.equal(weak(fen, ['w']).length, 0);
+  assert.equal(weak(fen, ['b']).filter((w) => w.kind === 'pinned').length, 1);
+  assert.equal(weak('5rk1/p5p1/5p2/2p1p3/2P1P3/P1r5/R6P/6K1 w - - 0 33').filter((w) => w.kind === 'pinned').length, 0);
 });

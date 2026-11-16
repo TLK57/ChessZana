@@ -1,5 +1,5 @@
-// Faiblesses d'une position, sans moteur (aide « Faiblesses » de l'échiquier) : pièces en prise. Le module ne dépend
-// de rien : il reçoit une position chess.js (navigateur ou tests).
+// Faiblesses d'une position, sans moteur (aide « Faiblesses » de l'échiquier) : pièces en prise et pièces clouées
+// (voir pinsOf). Le module ne dépend de rien : il reçoit une position chess.js (navigateur ou tests).
 //
 // « En prise » = l'adversaire gagne du matériel en prenant la pièce, d'après un calcul d'échange sur sa case (« SEE »,
 // comme dans les moteurs d'échecs) :
@@ -150,6 +150,46 @@ function captureSan(board, sq, first) {
   return `${LETTER[first.type]}${which}x${sq}`;
 }
 
+/**
+ * Pièces clouées du camp `color` : Map case de la pièce clouée → { by, byType, on, onType, absolute }, où by est la
+ * case de la pièce adverse qui cloue et on celle de la pièce cachée derrière.
+ *  - clouage absolu : la pièce cache son roi à une tour, un fou ou une dame adverse (elle ne peut bouger que le long
+ *    de la ligne) ;
+ *  - clouage relatif : elle cache sa dame, ou une tour non défendue, qui serait prise avec profit si elle bougeait
+ *    (la pièce clouée vaut moins que celle qu'elle cache ; une dame défendue n'est pas « clouée » par une dame).
+ */
+export function pinsOf(board, color) {
+  const pins = new Map();
+  for (const [on, behind] of board) {
+    if (behind.color !== color || !['k', 'q', 'r'].includes(behind.type)) continue;
+    const absolute = behind.type === 'k';
+    for (const [dx, dy] of LINES) {
+      const [a, b] = ray(board, on, dx, dy, 2);
+      if (!a || !b || a.piece.color !== color || a.piece.type === 'k') continue;
+      if (b.piece.color === color || !slides(b.piece.type, dx, dy)) continue;
+      if (!absolute) {
+        if (pins.get(a.square)?.absolute || PIECE_VALUES[a.piece.type] >= PIECE_VALUES[behind.type]) continue;
+        // Défenseurs de la pièce cachée une fois la pièce clouée partie.
+        const without = new Map(board);
+        without.delete(a.square);
+        const defended = attackersOf(without, on, color).length > 0;
+        if (defended && (behind.type === 'r' || PIECE_VALUES[b.piece.type] >= PIECE_VALUES.q)) continue;
+      }
+      pins.set(a.square, { by: b.square, byType: b.piece.type, on, onType: behind.type, absolute });
+    }
+  }
+  return pins;
+}
+
+const THE = { p: 'le pion', n: 'le cavalier', b: 'le fou', r: 'la tour', q: 'la dame', k: 'le roi' };
+
+/** « Cavalier cloué sur le roi par le fou b5 », « Fou cloué sur la dame par la tour e1 ». */
+export function pinText(type, pin) {
+  const e = type === 'r' || type === 'q' ? 'e' : '';
+  const on = pin.onType === 'r' ? `la tour non défendue ${pin.on}` : THE[pin.onType];
+  return `${NAMES[type]} cloué${e} sur ${on} par ${THE[pin.byType]} ${pin.by}`;
+}
+
 /** « Pion en prise : Txc4 gagne un pion », ou « Cavalier en prise : échange perdant (−2) ». */
 export function hangingText(type, gain, san) {
   if (gain >= PIECE_VALUES[type]) return `${NAMES[type]} en prise : ${san} gagne ${WON[type]}`;
@@ -157,9 +197,10 @@ export function hangingText(type, gain, san) {
 }
 
 /**
- * Faiblesses des pièces des camps demandés (colors : ['w'], ['b'] ou les deux).
- * Renvoie [{ square, color, type, kind: 'hanging', gain, capture, text }] : gain = matériel perdu au bout de
- * l'échange ; capture = la première prise adverse.
+ * Faiblesses des pièces des camps demandés (colors : ['w'], ['b'] ou les deux) : pièces en prise, puis pièces clouées
+ * (une même case peut avoir les deux).
+ * Renvoie [{ square, color, type, kind: 'hanging' | 'pinned', text, … }] : en prise, gain = matériel perdu au bout de
+ * l'échange et capture = la première prise adverse ; clouée, les champs de pinsOf.
  */
 export function findWeaknesses(chess, colors = ['w', 'b']) {
   const board = boardOf(chess);
@@ -170,6 +211,12 @@ export function findWeaknesses(chess, colors = ['w', 'b']) {
     if (gain <= 0) continue;
     const capture = captureSan(board, square, line[0]);
     out.push({ square, color: p.color, type: p.type, kind: 'hanging', gain, capture, text: hangingText(p.type, gain, capture) });
+  }
+  for (const color of colors) {
+    for (const [square, pin] of pinsOf(board, color)) {
+      const { type } = board.get(square);
+      out.push({ square, color, type, kind: 'pinned', ...pin, text: pinText(type, pin) });
+    }
   }
   return out;
 }

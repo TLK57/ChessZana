@@ -14,6 +14,7 @@ export const AID_COLORS = {
   best: '#1E8C3A', // meilleur coup : vert
   threat: '#D32F2F', // menace : rouge
   weakness: '#EF8A17', // faiblesses : orange
+  pin: '#B35A00', // pièce clouée : le même orange, plus sombre (l'épingle blanche reste lisible dessus)
   manual: { green: '#15781B', red: '#882020', blue: '#003088', orange: '#E68F00' }, // vos flèches et cases
 };
 
@@ -29,7 +30,7 @@ export const AID_BRUSHES = {
 };
 
 // Les mêmes couleurs pour le CSS (pastilles de la barre, marquage des faiblesses).
-for (const [k, v] of Object.entries({ best: AID_COLORS.best, threat: AID_COLORS.threat, weakness: AID_COLORS.weakness })) {
+for (const [k, v] of Object.entries({ best: AID_COLORS.best, threat: AID_COLORS.threat, weakness: AID_COLORS.weakness, pin: AID_COLORS.pin })) {
   document.documentElement.style.setProperty(`--aid-${k}`, v);
 }
 
@@ -110,7 +111,7 @@ export function createAids(ctx, onChange) {
     return out;
   }
 
-  // ---- Faiblesses : pièces en prise (sans moteur), de mon camp, ou des deux en option. ----
+  // ---- Faiblesses : pièces en prise et pièces clouées (sans moteur), de mon camp, ou des deux en option. ----
   let weakCache = { key: '', list: [] };
   function weaknesses(nd) {
     if (!prefs.weak) return [];
@@ -131,7 +132,7 @@ export function createAids(ctx, onChange) {
   const BUTTONS = [
     ['best', 'Meilleur', 'Flèche verte du meilleur coup (touche B)'],
     ['threat', 'Menace', 'Flèche rouge de la menace : le meilleur coup de l\'adversaire s\'il pouvait jouer maintenant (touche X)'],
-    ['weak', 'Faiblesses', 'Vos pièces en prise (coins orange) ; survolez une case pour le détail (touche F)'],
+    ['weak', 'Faiblesses', 'Vos pièces en prise (coins orange) et clouées (épingle) ; survolez une case pour le détail (touche F)'],
   ];
   const OPTIONS = [
     ['bestAll', 'Meilleur coup aussi sur les bons coups (pas seulement sur les fautes)'],
