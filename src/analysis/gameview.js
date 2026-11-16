@@ -12,6 +12,7 @@ import { playersOf, storedMoves } from './reclassify.js';
 import { explainMove, pvDetails } from './explain.js';
 import { isBookPosition } from './openings.js';
 import { winPct } from './formulas.js';
+import { staticExchange, VALUE } from './patterns.js';
 import { calibratedElo, calibrationInfo } from '../stats/calibration.js';
 
 const BAD = new Set(['inaccuracy', 'mistake', 'blunder', 'miss']);
@@ -234,8 +235,10 @@ export function liveDepth() {
 
 /**
  * Seuil d'une menace sérieuse : si l'adversaire pouvait jouer deux fois, il gagnerait au moins 10 points de chances
- * de gain (le seuil d'une « erreur » chez Lichess), ou il aurait un mat. En dessous, on n'affiche rien : la plupart
- * des positions ont un « meilleur coup » adverse sans que ce soit une vraie menace.
+ * de gain (le seuil d'une « erreur » chez Lichess), ou il aurait un mat, ou son coup gagnerait du matériel (une prise
+ * gagnante selon l'échange sur la case). Le matériel compte même quand la partie est déjà jouée : à +9, gagner un
+ * pion ne change presque plus les chances de gain, mais la menace reste bien réelle. En dessous, on n'affiche rien :
+ * la plupart des positions ont un « meilleur coup » adverse sans que ce soit une vraie menace.
  */
 export const THREAT_MIN_GAIN = 10;
 
@@ -251,20 +254,38 @@ export function nullMoveFen(fen) {
 }
 
 /**
- * La menace est-elle sérieuse ? current : évaluation de la position réelle (vue du camp au trait) ;
- * threat : meilleure ligne du camp adverse quand on lui donne le trait (vue de ce camp).
- * Renvoie { gain, mate, significant } : gain en points de chances de gain pour le camp qui menace.
+ * Matériel (en points) gagné par le coup uci dans la position fen : ce qu'il prend (et sa promotion), moins ce que
+ * l'adversaire regagne au mieux en reprenant sur la case (échange statique). 0 si le coup ne prend rien.
  */
-export function threatSignificance(current, threat) {
+export function materialWon(fen, uci) {
+  const c = new Chess(fen);
+  let m;
+  try { m = c.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] }); } catch { return 0; }
+  if (!m?.captured && !m?.promotion) return 0;
+  const won = (m.captured ? VALUE[m.captured] : 0) + (m.promotion ? VALUE[m.promotion] - 1 : 0);
+  let back = 0;
+  try { back = staticExchange(c.fen(), m.to); } catch { /* position sans reprise possible */ }
+  return Math.max(0, won - back);
+}
+
+/**
+ * La menace est-elle sérieuse ? current : évaluation de la position réelle (vue du camp au trait) ;
+ * threat : meilleure ligne du camp adverse quand on lui donne le trait (vue de ce camp) ; material : matériel que
+ * gagnerait son coup (materialWon).
+ * Renvoie { gain, mate, material, significant, by } : gain en points de chances de gain pour le camp qui menace ;
+ * by = ce qui rend la menace sérieuse ('mate', 'gain' ou 'material'), null sinon.
+ */
+export function threatSignificance(current, threat, material = 0) {
   const now = 100 - winPct(current);
   const after = winPct(threat);
   const gain = after - now;
   const mate = threat?.mate != null && threat.mate > 0;
-  return { gain, mate, significant: mate || gain >= THREAT_MIN_GAIN };
+  const by = mate ? 'mate' : gain >= THREAT_MIN_GAIN ? 'gain' : material >= 1 ? 'material' : null;
+  return { gain, mate, material, significant: by !== null, by };
 }
 
 /**
- * Menace dans une position : { fen, threat: { uci, san, gain, mate, color } | null, reason }.
+ * Menace dans une position : { fen, threat: { uci, san, gain, mate, material, captured, by, color } | null, reason }.
  * reason : 'check' (le camp au trait est en échec : inverser le trait serait illégal), 'none' (pas de coup),
  * 'small' (rien de sérieux). signal : annulation (l'écran a changé de position).
  */
@@ -278,10 +299,13 @@ export async function liveThreat(evaluator, body, { signal } = {}) {
   const after = await evaluator.evaluatePosition(flipped, { depth, allowCloud: false, signal });
   const best = after.lines[0];
   if (!best?.move || !now.lines[0]) return { fen, threat: null, reason: 'none', depth: after.depth };
-  const s = threatSignificance(scoreOf(now.lines[0]), scoreOf(best));
+  const material = materialWon(flipped, best.move);
+  const s = threatSignificance(scoreOf(now.lines[0]), scoreOf(best), material);
+  const target = new Chess(flipped).get(best.move.slice(2, 4));
   const threat = {
     uci: best.move, san: pvDetails(flipped, [best.move])[0]?.san ?? null,
-    gain: s.gain, mate: s.mate ? best.mate : null, color: new Chess(flipped).turn(),
+    gain: s.gain, mate: s.mate ? best.mate : null, material, captured: target?.type ?? null, by: s.by,
+    color: new Chess(flipped).turn(),
   };
   return { fen, threat: s.significant ? threat : null, reason: s.significant ? null : 'small', candidate: threat, depth: after.depth };
 }

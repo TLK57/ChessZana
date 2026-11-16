@@ -2,8 +2,9 @@
 // flèche de la menace, faiblesses, et leur barre de boutons. Les couleurs de toutes les aides sont définies ici,
 // et seulement ici.
 import { Chess } from '/vendor/chess.js';
-import { esc, fig, fmtPct, store, BAD } from './util.js';
+import { esc, store, BAD } from './util.js';
 import { findWeaknesses } from './weaknesses.js';
+import { threatError, threatInfo as threatText } from './threat-info.js';
 
 /**
  * Code couleur des aides. Les flèches du moteur sont semi-transparentes et plus fines que les vôtres ;
@@ -70,20 +71,25 @@ export function createAids(ctx, onChange) {
   const save = () => store('boardAids', prefs);
 
   // ---- Menace : calculée à la volée par le serveur (Stockfish, trait inversé), gardée en mémoire par position,
-  //      et annulée si la position affichée change avant la fin du calcul. ----
+  //      et annulée si la position affichée change avant la fin du calcul. Un échec est retenté quand la position
+  //      est réaffichée plus de 10 s après (le moteur a fini de démarrer, l'appli a été relancée…). ----
+  const RETRY_MS = 10000;
   const threats = new Map(); // FEN → réponse du serveur
   let pending = null; // { fen, ctl } : calcul en cours
   function cancelThreat() { pending?.ctl.abort(); pending = null; }
   function threatFor(fen) {
-    if (threats.has(fen)) return threats.get(fen);
+    const known = threats.get(fen);
+    if (known && !(known.error && Date.now() - known.at > RETRY_MS)) return known;
     if (pending?.fen === fen) return undefined;
     cancelThreat();
     const ctl = new AbortController();
     pending = { fen, ctl };
     fetch('/api/live/threat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fen }), signal: ctl.signal })
-      .then(async (r) => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.statusText); return j; })
-      .then((j) => threats.set(fen, j))
-      .catch((e) => { if (e.name !== 'AbortError') threats.set(fen, { fen, threat: null, error: e.message }); })
+      .then(async (r) => {
+        const j = await r.json().catch(() => ({}));
+        threats.set(fen, r.ok ? j : { fen, threat: null, ...threatError(r.status, j), at: Date.now() });
+      })
+      .catch((e) => { if (e.name !== 'AbortError') threats.set(fen, { fen, threat: null, error: 'l\'application ne répond pas (fermée ?)', at: Date.now() }); })
       .finally(() => { if (pending?.ctl === ctl) { pending = null; onChange(); } });
     return undefined;
   }
@@ -115,17 +121,11 @@ export function createAids(ctx, onChange) {
     return weakCache.list;
   }
 
-  /** Ligne d'information sous la barre : ce que montre la flèche de menace. */
+  /** Ligne d'information sous la barre : ce que montre la flèche de menace (calcul en cours tant que rien n'est su). */
   function threatInfo(nd) {
     if (!prefs.threat) return '';
     const t = threats.get(nd.fen);
-    if (!t) return '<span class="spinner"></span> Calcul de la menace…';
-    if (t.error) return `Menace indisponible : ${esc(t.error)}`;
-    if (t.reason === 'check') return 'Pas de menace calculée : le camp au trait est en échec.';
-    if (!t.threat) return 'Pas de menace sérieuse.';
-    const who = t.threat.color === 'w' ? 'les Blancs' : 'les Noirs';
-    const what = t.threat.mate ? `mat en ${t.threat.mate}` : `+${fmtPct(t.threat.gain, 0)} points de chances de gain`;
-    return `<b class="aid-threat-txt">Menace</b> : ${esc(fig(t.threat.san ?? t.threat.uci))} (${what} pour ${who} s'ils jouaient maintenant).`;
+    return threatText(t && !(pending?.fen === nd.fen && t.error) ? t : undefined);
   }
 
   const BUTTONS = [
